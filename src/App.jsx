@@ -139,28 +139,41 @@ function App() {
             </p>
           </div>
 
-          <div className="sync">
-            <span className="live-dot" />
-            <div>
-              <strong>
-                {loading
-                  ? "Synchronizing"
-                  : error
-                  ? "Sync error"
-                  : configured
-                  ? "Live"
-                  : "API pending"}
-              </strong>
+          <div className="header-actions">
+            <div className="sync">
+              <span className="live-dot" />
+              <div>
+                <strong>
+                  {loading
+                    ? "Synchronizing"
+                    : error
+                    ? "Sync error"
+                    : configured
+                    ? "Live data"
+                    : "API pending"}
+                </strong>
 
-              <small>
-                {lastUpdated
-                  ? `Updated ${lastUpdated.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}`
-                  : "Waiting for data"}
-              </small>
+                <small>
+                  {lastUpdated
+                    ? `Updated ${lastUpdated.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`
+                    : "Waiting for data"}
+                </small>
+              </div>
             </div>
+
+            <button
+              className="primary-refresh"
+              onClick={loadJobs}
+              disabled={loading}
+            >
+              <span className={loading ? "refresh-icon spinning" : "refresh-icon"}>
+                ↻
+              </span>
+              {loading ? "Syncing" : "Refresh data"}
+            </button>
           </div>
         </header>
 
@@ -180,12 +193,42 @@ function App() {
         {error && <section className="error-banner">{error}</section>}
 
         <section className="kpi-grid">
-          <Kpi label="Opportunities" value={stats.total} />
-          <Kpi label="M2 Internships" value={stats.internships} />
-          <Kpi label="Remote Jobs" value={stats.remote} />
-          <Kpi label="High Priority" value={stats.high} />
-          <Kpi label="Applications" value={stats.applied} />
-          <Kpi label="Interviews" value={stats.interviews} />
+          <Kpi
+            label="Opportunities"
+            value={stats.total}
+            hint="Tracked roles"
+            tone="blue"
+          />
+          <Kpi
+            label="M2 Internships"
+            value={stats.internships}
+            hint="Final-year targets"
+            tone="violet"
+          />
+          <Kpi
+            label="Remote Jobs"
+            value={stats.remote}
+            hint="France eligible"
+            tone="cyan"
+          />
+          <Kpi
+            label="High Priority"
+            value={stats.high}
+            hint="Top matches"
+            tone="amber"
+          />
+          <Kpi
+            label="Applications"
+            value={stats.applied}
+            hint="Submitted"
+            tone="green"
+          />
+          <Kpi
+            label="Interviews"
+            value={stats.interviews}
+            hint="In progress"
+            tone="rose"
+          />
         </section>
 
         {view === "pipeline" ? (
@@ -224,6 +267,18 @@ function App() {
                 <option value="Refusé">Rejected</option>
                 <option value="Expiré">Expired</option>
               </select>
+
+              <button
+                className="clear-filters"
+                disabled={!search && !priority && !status}
+                onClick={() => {
+                  setSearch("");
+                  setPriority("");
+                  setStatus("");
+                }}
+              >
+                Clear
+              </button>
             </section>
 
             <section className="panel">
@@ -236,9 +291,9 @@ function App() {
                   </p>
                 </div>
 
-                <button className="refresh" onClick={loadJobs}>
-                  Refresh
-                </button>
+                <span className="result-pill">
+                  {filteredJobs.length} visible
+                </span>
               </div>
 
               <JobsTable jobs={filteredJobs} />
@@ -250,11 +305,16 @@ function App() {
   );
 }
 
-function Kpi({ label, value }) {
+function Kpi({ label, value, hint, tone = "blue" }) {
   return (
-    <article className="kpi">
-      <span>{label}</span>
+    <article className={`kpi kpi-${tone}`}>
+      <div className="kpi-heading">
+        <span>{label}</span>
+        <i className="kpi-indicator" />
+      </div>
+
       <strong>{value}</strong>
+      <small>{hint}</small>
     </article>
   );
 }
@@ -325,12 +385,16 @@ function JobsTable({ jobs }) {
               </td>
 
               <td>
-                <span className="score">
+                <span className={`score-badge ${matchClass(job.fitScore)}`}>
                   {job.fitScore ? `${job.fitScore}%` : "—"}
                 </span>
               </td>
 
-              <td>{job.status || "Nouveau"}</td>
+              <td>
+                <span className={`status-chip ${statusClass(job.status)}`}>
+                  {statusLabel(job.status)}
+                </span>
+              </td>
 
               <td>
                 {job.link ? (
@@ -390,6 +454,46 @@ function Pipeline({ jobs }) {
       })}
     </section>
   );
+}
+
+function matchClass(score) {
+  const value = Number(score || 0);
+
+  if (value >= 90) return "match-excellent";
+  if (value >= 80) return "match-strong";
+  if (value >= 70) return "match-good";
+
+  return "match-standard";
+}
+
+function statusLabel(status) {
+  const labels = {
+    "Nouveau": "New",
+    "À candidater": "To apply",
+    "Candidature envoyée": "Applied",
+    "Entretien": "Interview",
+    "Offre": "Offer",
+    "Accepté": "Accepted",
+    "Refusé": "Rejected",
+    "Expiré": "Expired",
+  };
+
+  return labels[status] || status || "New";
+}
+
+function statusClass(status) {
+  const classes = {
+    "Nouveau": "status-new",
+    "À candidater": "status-to-apply",
+    "Candidature envoyée": "status-applied",
+    "Entretien": "status-interview",
+    "Offre": "status-offer",
+    "Accepté": "status-accepted",
+    "Refusé": "status-rejected",
+    "Expiré": "status-expired",
+  };
+
+  return classes[status] || "status-new";
 }
 
 function priorityClass(priority) {
