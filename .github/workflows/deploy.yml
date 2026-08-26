@@ -35,6 +35,8 @@ jobs:
       - name: Build
         env:
           VITE_JOBDRIVE_API_URL: ${{ vars.VITE_JOBDRIVE_API_URL }}
+            VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+            VITE_JOBDRIVE_SPREADSHEET_ID: ${{ vars.VITE_JOBDRIVE_SPREADSHEET_ID }}
         run: npm run build
 
       - name: Configure Pages
