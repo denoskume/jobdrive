@@ -23,7 +23,10 @@ import {
   addDaysISO,
   calculateAnalytics,
   deadlineInfo,
+  filterInternships,
   followUpInfo,
+  internshipSpecializations,
+  sortInternships,
   sourceAnalytics,
   statusLabel,
   toDateInput,
@@ -43,7 +46,6 @@ const SPREADSHEET_ID =
 const NAV_ITEMS = [
   ["overview", "Overview"],
   ["internships", "M2 Internships"],
-  ["remote", "Remote Jobs"],
   ["pipeline", "Pipeline"],
   ["analytics", "Analytics"],
 ];
@@ -117,6 +119,9 @@ function DeadlineBadge({ value }) {
   const deadline =
     deadlineInfo(value);
 
+  const date =
+    toDateInput(value);
+
   return (
     <span
       className={
@@ -124,7 +129,9 @@ function DeadlineBadge({ value }) {
         `deadline-${deadline.tone}`
       }
     >
-      {deadline.label}
+      {date
+        ? `${date} · ${deadline.label}`
+        : "Not specified"}
     </span>
   );
 }
@@ -256,12 +263,13 @@ function OpportunityTable({
           <thead>
             <tr>
               <th />
-              <th>Type</th>
               <th>Company</th>
               <th>Role</th>
+              <th>Specialization</th>
               <th>Location</th>
               <th>Mode</th>
               <th>Compensation</th>
+              <th>Published</th>
               <th>Deadline</th>
               <th>Priority</th>
               <th>Match</th>
@@ -297,12 +305,6 @@ function OpportunityTable({
                 </td>
 
                 <td>
-                  <span className="pro-type">
-                    {job.type}
-                  </span>
-                </td>
-
-                <td>
                   <strong>
                     {job.company || "—"}
                   </strong>
@@ -310,6 +312,10 @@ function OpportunityTable({
 
                 <td className="pro-role-cell">
                   {job.role || "—"}
+                </td>
+
+                <td>
+                  {job.domain || "—"}
                 </td>
 
                 <td>
@@ -322,6 +328,12 @@ function OpportunityTable({
 
                 <td>
                   {job.compensation || "—"}
+                </td>
+
+                <td>
+                  {toDateInput(
+                    job.postedDate
+                  ) || "Not specified"}
                 </td>
 
                 <td>
@@ -390,7 +402,7 @@ function OpportunityTable({
             <div className="pro-job-card-top">
               <div>
                 <span className="pro-type">
-                  {job.type}
+                  {job.domain || "M2 Internship"}
                 </span>
 
                 <h3>{job.role}</h3>
@@ -426,6 +438,13 @@ function OpportunityTable({
 
               <span>
                 {job.compensation || "—"}
+              </span>
+
+              <span>
+                Published{" "}
+                {toDateInput(
+                  job.postedDate
+                ) || "Not specified"}
               </span>
             </div>
 
@@ -1001,6 +1020,12 @@ export default function AppPro() {
   const [status, setStatus] =
     useState("");
 
+  const [specialization, setSpecialization] =
+    useState("");
+
+  const [sortMode, setSortMode] =
+    useState("newest");
+
   const [quickFilter, setQuickFilter] =
     useState("");
 
@@ -1030,12 +1055,15 @@ export default function AppPro() {
                 SPREADSHEET_ID,
             });
 
-          setJobs(result);
+          const internshipResult =
+            filterInternships(result);
+
+          setJobs(internshipResult);
           setLastUpdated(new Date());
 
           if (selectedJob) {
             const refreshed =
-              result.find(
+              internshipResult.find(
                 (job) =>
                   job.id ===
                   selectedJob.id
@@ -1264,6 +1292,13 @@ export default function AppPro() {
   }
 
 
+  const specializations =
+    useMemo(
+      () =>
+        internshipSpecializations(jobs),
+      [jobs]
+    );
+
   const metrics = useMemo(
     () =>
       calculateAnalytics(jobs),
@@ -1274,21 +1309,6 @@ export default function AppPro() {
   const filteredJobs =
     useMemo(() => {
       let result = [...jobs];
-
-      if (view === "internships") {
-        result = result.filter(
-          (job) =>
-            job.type === "Stage M2"
-        );
-      }
-
-      if (view === "remote") {
-        result = result.filter(
-          (job) =>
-            job.type ===
-            "Remote Job"
-        );
-      }
 
       const query =
         search.trim().toLowerCase();
@@ -1313,8 +1333,7 @@ export default function AppPro() {
       if (priority) {
         result = result.filter(
           (job) =>
-            job.priority ===
-            priority
+            job.priority === priority
         );
       }
 
@@ -1322,6 +1341,13 @@ export default function AppPro() {
         result = result.filter(
           (job) =>
             job.status === status
+        );
+      }
+
+      if (specialization) {
+        result = result.filter(
+          (job) =>
+            job.domain === specialization
         );
       }
 
@@ -1385,35 +1411,22 @@ export default function AppPro() {
       ) {
         result = result.filter(
           (job) =>
-            job.status ===
-            "Entretien"
+            job.status === "Entretien"
         );
       }
 
-      return result.sort(
-        (a, b) => {
-          if (
-            a.favorite !==
-            b.favorite
-          ) {
-            return a.favorite
-              ? -1
-              : 1;
-          }
-
-          return (
-            b.fitScore -
-            a.fitScore
-          );
-        }
+      return sortInternships(
+        result,
+        sortMode
       );
     }, [
       jobs,
-      view,
       search,
       priority,
       status,
+      specialization,
       quickFilter,
+      sortMode,
     ]);
 
 
@@ -1437,7 +1450,6 @@ export default function AppPro() {
     overview: "Overview",
     internships:
       "M2 Internships",
-    remote: "Remote Jobs",
     pipeline:
       "Application Pipeline",
     analytics:
@@ -1571,25 +1583,9 @@ export default function AppPro() {
 
         <section className="pro-kpi-grid">
           <Kpi
-            label="Opportunities"
+            label="M2 Internships"
             value={metrics.total}
             hint="Tracked roles"
-          />
-
-          <Kpi
-            label="M2 Internships"
-            value={
-              metrics.internships
-            }
-            hint="Final-year targets"
-            tone="violet"
-          />
-
-          <Kpi
-            label="Remote Jobs"
-            value={metrics.remote}
-            hint="Remote eligible"
-            tone="cyan"
           />
 
           <Kpi
@@ -1689,6 +1685,58 @@ export default function AppPro() {
                       )
                     )}
                   </select>
+                  <select
+                    value={specialization}
+                    onChange={(event) =>
+                      setSpecialization(
+                        event.target.value
+                      )
+                    }
+                  >
+                    <option value="">
+                      All specializations
+                    </option>
+
+                    {specializations.map(
+                      (item) => (
+                        <option
+                          value={item}
+                          key={item}
+                        >
+                          {item}
+                        </option>
+                      )
+                    )}
+                  </select>
+
+                  <select
+                    value={sortMode}
+                    onChange={(event) =>
+                      setSortMode(
+                        event.target.value
+                      )
+                    }
+                  >
+                    <option value="newest">
+                      Newest published
+                    </option>
+
+                    <option value="deadline">
+                      Deadline soonest
+                    </option>
+
+                    <option value="match">
+                      Highest match
+                    </option>
+
+                    <option value="priority">
+                      Highest priority
+                    </option>
+
+                    <option value="company">
+                      Company A–Z
+                    </option>
+                  </select>
                 </div>
 
                 <div className="pro-quick-filters">
@@ -1720,12 +1768,12 @@ export default function AppPro() {
                 <header className="pro-panel-header">
                   <div>
                     <h2>
-                      Opportunities
+                      M2 Internships
                     </h2>
 
                     <p>
-                      Private data from
-                      Google Sheets
+                      Internship data from
+                      private Google Sheets
                     </p>
                   </div>
 
