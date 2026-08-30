@@ -338,3 +338,92 @@ export function addDaysISO(value, amount) {
 
   return toDateInput(base);
 }
+
+export function filterInternships(jobs = []) {
+  return jobs.filter(
+    (job) => job.type === "Stage M2"
+  );
+}
+
+export function internshipSpecializations(jobs = []) {
+  return [
+    ...new Set(
+      filterInternships(jobs)
+        .map((job) =>
+          String(job.domain || "").trim()
+        )
+        .filter(Boolean)
+    ),
+  ].sort((a, b) =>
+    a.localeCompare(b)
+  );
+}
+
+function sortableDate(value, missingValue) {
+  const date = parseDate(value);
+
+  return date
+    ? date.getTime()
+    : missingValue;
+}
+
+export function sortInternships(
+  jobs = [],
+  mode = "newest"
+) {
+  const result = [...jobs];
+
+  const priorityOrder = {
+    Haute: 0,
+    Moyenne: 1,
+    Basse: 2,
+  };
+
+  return result.sort((a, b) => {
+    if (mode === "deadline") {
+      return (
+        sortableDate(
+          a.deadline,
+          Number.POSITIVE_INFINITY
+        ) -
+        sortableDate(
+          b.deadline,
+          Number.POSITIVE_INFINITY
+        )
+      );
+    }
+
+    if (mode === "match") {
+      return (
+        Number(b.fitScore || 0) -
+        Number(a.fitScore || 0)
+      );
+    }
+
+    if (mode === "priority") {
+      return (
+        (priorityOrder[a.priority] ?? 99) -
+        (priorityOrder[b.priority] ?? 99)
+      );
+    }
+
+    if (mode === "company") {
+      return String(
+        a.company || ""
+      ).localeCompare(
+        String(b.company || "")
+      );
+    }
+
+    return (
+      sortableDate(
+        b.postedDate,
+        Number.NEGATIVE_INFINITY
+      ) -
+      sortableDate(
+        a.postedDate,
+        Number.NEGATIVE_INFINITY
+      )
+    );
+  });
+}

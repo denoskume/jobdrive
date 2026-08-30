@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import * as jobDrive from "../src/utils/jobDrive.mjs";
 
 import {
   calculateAnalytics,
@@ -115,3 +116,90 @@ test("analytics calculates application funnel", () => {
   assert.equal(analytics.offers, 1);
 });
 
+
+test("filterInternships excludes Remote Job rows", () => {
+  const jobs = [
+    { id: "M2-1", type: "Stage M2" },
+    { id: "RJ-1", type: "Remote Job" },
+    { id: "M2-2", type: "Stage M2" },
+  ];
+
+  const result = jobDrive.filterInternships?.(jobs);
+
+  assert.deepEqual(
+    result?.map((job) => job.id),
+    ["M2-1", "M2-2"]
+  );
+});
+
+test("internshipSpecializations returns unique sorted domains", () => {
+  const jobs = [
+    { type: "Stage M2", domain: "Machine Learning" },
+    { type: "Stage M2", domain: "Computer Vision" },
+    { type: "Stage M2", domain: "Machine Learning" },
+    { type: "Remote Job", domain: "AI Evaluation" },
+  ];
+
+  assert.deepEqual(
+    jobDrive.internshipSpecializations?.(jobs),
+    ["Computer Vision", "Machine Learning"]
+  );
+});
+
+test("sortInternships sorts newest publication first and missing dates last", () => {
+  const jobs = [
+    { id: "old", postedDate: "2026-08-20" },
+    { id: "missing", postedDate: "" },
+    { id: "new", postedDate: "2026-08-29" },
+  ];
+
+  const result = jobDrive.sortInternships?.(
+    jobs,
+    "newest"
+  );
+
+  assert.deepEqual(
+    result?.map((job) => job.id),
+    ["new", "old", "missing"]
+  );
+});
+
+test("sortInternships supports deadline, match, priority and company", () => {
+  const jobs = [
+    {
+      id: "B",
+      company: "Beta",
+      deadline: "2026-09-15",
+      fitScore: 92,
+      priority: "Moyenne",
+    },
+    {
+      id: "A",
+      company: "Alpha",
+      deadline: "2026-09-05",
+      fitScore: 97,
+      priority: "Haute",
+    },
+    {
+      id: "C",
+      company: "Gamma",
+      deadline: "",
+      fitScore: 88,
+      priority: "Basse",
+    },
+  ];
+
+  for (const mode of [
+    "deadline",
+    "match",
+    "priority",
+    "company",
+  ]) {
+    assert.deepEqual(
+      jobDrive
+        .sortInternships?.(jobs, mode)
+        ?.map((job) => job.id),
+      ["A", "B", "C"]
+    );
+  }
+});
