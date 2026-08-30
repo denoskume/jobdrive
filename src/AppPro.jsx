@@ -439,20 +439,27 @@ function OpportunityTable({
               <span>
                 {job.compensation || "—"}
               </span>
+            </div>
 
-              <span>
-                Published{" "}
-                {toDateInput(
-                  job.postedDate
-                ) || "Not specified"}
-              </span>
+            <div className="pro-job-dates">
+              <div>
+                <small>Published</small>
+                <strong>
+                  {toDateInput(
+                    job.postedDate
+                  ) || "Not specified"}
+                </strong>
+              </div>
+
+              <div>
+                <small>Deadline</small>
+                <DeadlineBadge
+                  value={job.deadline}
+                />
+              </div>
             </div>
 
             <div className="pro-job-card-bottom">
-              <DeadlineBadge
-                value={job.deadline}
-              />
-
               <span
                 className={
                   `pro-match ` +
@@ -464,6 +471,30 @@ function OpportunityTable({
                 {job.fitScore
                   ? `${job.fitScore}% match`
                   : "No score"}
+              </span>
+
+              <span
+                className={
+                  `pro-priority ` +
+                  priorityClass(
+                    job.priority
+                  )
+                }
+              >
+                {job.priority || "—"}
+              </span>
+
+              <span
+                className={
+                  `pro-status ` +
+                  statusClass(
+                    job.status
+                  )
+                }
+              >
+                {statusLabel(
+                  job.status
+                )}
               </span>
             </div>
           </article>

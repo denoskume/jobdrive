@@ -1889,3 +1889,160 @@ body {
       );
   }
 }
+
+
+/* -------------------------------------------------
+   Internship dashboard — mobile enhancements
+-------------------------------------------------- */
+
+@media (max-width: 680px) {
+  .pro-filter-panel {
+    padding: 12px;
+  }
+
+  .pro-main-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .pro-main-filters input,
+  .pro-main-filters select {
+    width: 100%;
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  .pro-quick-filters {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .pro-quick-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pro-quick-filters button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    white-space: nowrap;
+  }
+
+  .pro-job-card {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .pro-job-card-top > div {
+    min-width: 0;
+  }
+
+  .pro-job-card h3 {
+    overflow-wrap: anywhere;
+  }
+
+  .pro-job-card .pro-type {
+    display: inline-block;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .pro-job-meta {
+    margin-top: 12px;
+  }
+
+  .pro-job-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    margin-top: 12px;
+  }
+
+  .pro-job-dates > div {
+    min-width: 0;
+    padding: 10px;
+
+    border: 1px solid #edf1f6;
+    border-radius: 10px;
+
+    background: #f8fafc;
+  }
+
+  .pro-job-dates small {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .pro-job-dates strong {
+    display: block;
+
+    color: #334155;
+    font-size: 11px;
+  }
+
+  .pro-job-dates .pro-deadline {
+    display: inline-flex;
+    max-width: 100%;
+
+    white-space: normal;
+  }
+
+  .pro-job-card-bottom {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pro-job-card-bottom .pro-match,
+  .pro-job-card-bottom .pro-priority,
+  .pro-job-card-bottom .pro-status {
+    flex: 0 0 auto;
+  }
+}
+
+
+@media (max-width: 420px) {
+  .pro-main {
+    padding: 10px;
+  }
+
+  .pro-header h1 {
+    font-size: 29px;
+  }
+
+  .pro-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pro-kpi {
+    padding: 12px;
+  }
+
+  .pro-kpi strong {
+    font-size: 25px;
+  }
+
+  .pro-mobile-list {
+    padding: 6px 0;
+  }
+
+  .pro-job-card {
+    padding: 13px;
+    border-radius: 13px;
+  }
+
+  .pro-job-dates {
+    grid-template-columns: 1fr;
+  }
+}
