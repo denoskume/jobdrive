@@ -238,7 +238,7 @@ function LoginScreen({
 }
 
 
-function OpportunityTable({
+function OpportunityCards({
   jobs,
   onOpen,
   onFavorite,
@@ -247,7 +247,9 @@ function OpportunityTable({
     return (
       <div className="pro-empty">
         <div>◎</div>
+
         <h3>No opportunities found</h3>
+
         <p>
           Try changing your filters or
           refreshing JobDrive.
@@ -257,193 +259,97 @@ function OpportunityTable({
   }
 
   return (
-    <>
-      <div className="pro-table-wrap">
-        <table className="pro-table">
-          <thead>
-            <tr>
-              <th />
-              <th>Company</th>
-              <th>Role</th>
-              <th>Specialization</th>
-              <th>Location</th>
-              <th>Mode</th>
-              <th>Compensation</th>
-              <th>Published</th>
-              <th>Deadline</th>
-              <th>Priority</th>
-              <th>Match</th>
-              <th>Status</th>
-            </tr>
-          </thead>
+    <div className="pro-opportunity-grid">
+      {jobs.map((job) => {
+        const company =
+          job.company || "Company";
 
-          <tbody>
-            {jobs.map((job) => (
-              <tr
-                key={job.id}
-                onClick={() =>
-                  onOpen(job)
-                }
-              >
-                <td>
-                  <button
-                    className={
-                      job.favorite
-                        ? "pro-star active"
-                        : "pro-star"
-                    }
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onFavorite(job);
-                    }}
-                    aria-label="Favorite"
-                  >
-                    {job.favorite
-                      ? "★"
-                      : "☆"}
-                  </button>
-                </td>
+        const initials = company
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((word) =>
+            word.charAt(0).toUpperCase()
+          )
+          .join("");
 
-                <td>
-                  <strong>
-                    {job.company || "—"}
-                  </strong>
-                </td>
-
-                <td className="pro-role-cell">
-                  {job.role || "—"}
-                </td>
-
-                <td>
-                  {job.domain || "—"}
-                </td>
-
-                <td>
-                  {job.location || "—"}
-                </td>
-
-                <td>
-                  {job.mode || "—"}
-                </td>
-
-                <td>
-                  {job.compensation || "—"}
-                </td>
-
-                <td>
-                  {toDateInput(
-                    job.postedDate
-                  ) || "Not specified"}
-                </td>
-
-                <td>
-                  <DeadlineBadge
-                    value={job.deadline}
-                  />
-                </td>
-
-                <td>
-                  <span
-                    className={
-                      `pro-priority ` +
-                      priorityClass(
-                        job.priority
-                      )
-                    }
-                  >
-                    {job.priority || "—"}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    className={
-                      `pro-match ` +
-                      matchClass(
-                        job.fitScore
-                      )
-                    }
-                  >
-                    {job.fitScore
-                      ? `${job.fitScore}%`
-                      : "—"}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    className={
-                      `pro-status ` +
-                      statusClass(
-                        job.status
-                      )
-                    }
-                  >
-                    {statusLabel(
-                      job.status
-                    )}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="pro-mobile-list">
-        {jobs.map((job) => (
+        return (
           <article
-            className="pro-job-card"
             key={job.id}
-            onClick={() =>
-              onOpen(job)
-            }
+            className="pro-opportunity-card"
           >
-            <div className="pro-job-card-top">
-              <div>
-                <span className="pro-type">
-                  {job.domain || "M2 Internship"}
-                </span>
+            <div className="pro-card-top">
 
-                <h3>{job.role}</h3>
+              <div className="pro-company">
 
-                <strong>
-                  {job.company}
-                </strong>
+                <div className="pro-company-avatar">
+                  {initials || "JD"}
+                </div>
+
+                <div className="pro-company-copy">
+                  <strong>
+                    {company}
+                  </strong>
+
+                  <small>
+                    M2 Internship
+                  </small>
+                </div>
+
               </div>
 
               <button
+                type="button"
                 className={
                   job.favorite
-                    ? "pro-star active"
-                    : "pro-star"
+                    ? "pro-card-favorite active"
+                    : "pro-card-favorite"
                 }
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onFavorite(job);
-                }}
+                onClick={() =>
+                  onFavorite(job)
+                }
+                aria-label="Favorite"
               >
                 {job.favorite ? "★" : "☆"}
               </button>
+
             </div>
 
-            <div className="pro-job-meta">
-              <span>
-                {job.location || "—"}
-              </span>
+            <div className="pro-card-title">
+
+              <h3>
+                {job.role ||
+                  "Internship opportunity"}
+              </h3>
 
               <span>
-                {job.mode || "—"}
+                {job.domain ||
+                  "Data / AI"}
               </span>
 
-              <span>
-                {job.compensation || "—"}
-              </span>
             </div>
 
-            <div className="pro-job-dates">
+            <div className="pro-card-meta">
+
+              <span>
+                <b>⌖</b>
+                {job.location ||
+                  "Not specified"}
+              </span>
+
+              <span>
+                <b>▦</b>
+                {job.mode ||
+                  "Not specified"}
+              </span>
+
+            </div>
+
+            <div className="pro-card-dates">
+
               <div>
                 <small>Published</small>
+
                 <strong>
                   {toDateInput(
                     job.postedDate
@@ -453,23 +359,24 @@ function OpportunityTable({
 
               <div>
                 <small>Deadline</small>
+
                 <DeadlineBadge
                   value={job.deadline}
                 />
               </div>
+
             </div>
 
-            <div className="pro-job-card-bottom">
+            <div className="pro-card-badges">
+
               <span
                 className={
                   `pro-match ` +
-                  matchClass(
-                    job.fitScore
-                  )
+                  matchClass(job.fitScore)
                 }
               >
                 {job.fitScore
-                  ? `${job.fitScore}% match`
+                  ? `Match ${job.fitScore}%`
                   : "No score"}
               </span>
 
@@ -481,7 +388,8 @@ function OpportunityTable({
                   )
                 }
               >
-                {job.priority || "—"}
+                {job.priority ||
+                  "Priority —"}
               </span>
 
               <span
@@ -496,14 +404,60 @@ function OpportunityTable({
                   job.status
                 )}
               </span>
+
             </div>
+
+            {job.compensation && (
+              <div className="pro-card-pay">
+                <small>
+                  Compensation
+                </small>
+
+                <strong>
+                  {job.compensation}
+                </strong>
+              </div>
+            )}
+
+            <div className="pro-card-actions">
+
+              <button
+                type="button"
+                className="pro-card-details"
+                onClick={() =>
+                  onOpen(job)
+                }
+              >
+                View details
+              </button>
+
+              {job.link ? (
+                <a
+                  className="pro-card-apply"
+                  href={job.link}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Apply ↗
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="pro-card-apply disabled"
+                  disabled
+                >
+                  No link
+                </button>
+              )}
+
+            </div>
+
           </article>
-        ))}
-      </div>
-    </>
+        );
+      })}
+    </div>
   );
 }
-
 
 function Pipeline({
   jobs,
@@ -1490,6 +1444,72 @@ export default function AppPro() {
 
   return (
     <div className="pro-app">
+      <header className="pro-topbar">
+
+        <div className="pro-topbar-brand">
+          <span className="pro-topbar-logo">
+            J
+          </span>
+
+          <div>
+            <strong>JobDrive</strong>
+            <small>
+              Career Operating System
+            </small>
+          </div>
+        </div>
+
+        <label className="pro-global-search">
+          <span>⌕</span>
+
+          <input
+            type="search"
+            value={search}
+            onChange={(event) =>
+              setSearch(
+                event.target.value
+              )
+            }
+            placeholder="Search company, role, domain, location..."
+          />
+
+          <kbd>⌘ K</kbd>
+        </label>
+
+        <div className="pro-topbar-right">
+
+          <div className="pro-live-mini">
+            <i />
+
+            <div>
+              <strong>
+                Live data
+              </strong>
+
+              <small>
+                Google Sheets
+              </small>
+            </div>
+          </div>
+
+          <div className="pro-google-mini">
+            <span>D</span>
+
+            <div>
+              <strong>
+                Google connected
+              </strong>
+
+              <small>
+                Private Sheet
+              </small>
+            </div>
+          </div>
+
+        </div>
+
+      </header>
+
       <aside className="pro-sidebar">
         <div className="pro-brand">
           <div>J</div>
@@ -1816,7 +1836,7 @@ export default function AppPro() {
                   </span>
                 </header>
 
-                <OpportunityTable
+                <OpportunityCards
                   jobs={
                     filteredJobs
                   }
