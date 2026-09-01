@@ -2046,3 +2046,387 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================
+   JOBDRIVE_PREMIUM_CARDS_V1
+   Premium M2 internship opportunity cards
+   ========================================================= */
+
+.pro-table {
+    width: 100%;
+    display: block;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    background: transparent !important;
+}
+
+.pro-table thead {
+    display: none !important;
+}
+
+.pro-table tbody {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 0.3rem;
+    background: transparent;
+}
+
+.pro-table tbody tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 320px;
+    padding: 1.35rem !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff 0%,
+            #ffffff 82%,
+            #fbfcff 100%
+        );
+
+    border: 1px solid #e4e7ec !important;
+    border-radius: 18px;
+
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.03),
+        0 8px 24px rgba(16, 24, 40, 0.055);
+
+    cursor: pointer;
+
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        border-color 180ms ease;
+}
+
+.pro-table tbody tr::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.75);
+}
+
+.pro-table tbody tr:hover {
+    transform: translateY(-4px);
+    border-color: #b9c8ff !important;
+
+    box-shadow:
+        0 3px 8px rgba(16, 24, 40, 0.06),
+        0 20px 40px rgba(49, 87, 255, 0.10);
+}
+
+.pro-table tbody tr:focus-within {
+    outline: 3px solid rgba(49, 87, 255, 0.14);
+    outline-offset: 2px;
+}
+
+.pro-table tbody td {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+
+    padding: 0 !important;
+    margin: 0 0 0.72rem !important;
+
+    color: #475467;
+    background: transparent !important;
+
+    border: 0 !important;
+
+    font-size: 0.76rem;
+    line-height: 1.45;
+
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: initial !important;
+}
+
+.pro-table tbody td:last-child {
+    margin-bottom: 0 !important;
+}
+
+.pro-table tbody td a {
+    position: relative;
+    z-index: 2;
+}
+
+.pro-table tbody button,
+.pro-table tbody a {
+    transition:
+        transform 160ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease;
+}
+
+.pro-table tbody button:hover,
+.pro-table tbody a:hover {
+    transform: translateY(-1px);
+}
+
+
+.pro-table tbody td:nth-child(1)::before {
+    content: "Company";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(2)::before {
+    content: "Role";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(3)::before {
+    content: "Specialization";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(4)::before {
+    content: "Location";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(5)::before {
+    content: "Mode";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(6)::before {
+    content: "Compensation";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(7)::before {
+    content: "Published";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(8)::before {
+    content: "Deadline";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(9)::before {
+    content: "Priority";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(10)::before {
+    content: "Match";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(11)::before {
+    content: "Status";
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #98a2b3;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(1) {
+    margin-bottom: 0.45rem !important;
+    color: #3157ff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+}
+
+.pro-table tbody td:nth-child(1)::before {
+    display: none;
+}
+
+.pro-table tbody td:nth-child(2) {
+    margin-bottom: 0.85rem !important;
+    color: #101828;
+    font-size: 1.12rem;
+    font-weight: 800;
+    line-height: 1.28;
+    letter-spacing: -0.025em;
+}
+
+.pro-table tbody td:nth-child(2)::before {
+    display: none;
+}
+
+.pro-table tbody td:nth-child(3) {
+    align-self: flex-start;
+    width: auto !important;
+    margin-bottom: 1.05rem !important;
+    padding: 0.38rem 0.62rem !important;
+    color: #3157ff;
+    background: #eef3ff;
+    border: 1px solid #dbe5ff !important;
+    border-radius: 999px;
+    font-size: 0.67rem;
+    font-weight: 800;
+}
+
+.pro-table tbody td:nth-child(3)::before {
+    display: none;
+}
+
+.pro-table tbody td:nth-child(9) {
+    display: inline-flex !important;
+    align-items: center;
+    width: fit-content !important;
+    max-width: 100%;
+    margin-top: 0.35rem !important;
+    padding: 0.4rem 0.62rem !important;
+    background: #f8fafc;
+    border: 1px solid #e4e7ec !important;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.pro-table tbody td:nth-child(10) {
+    display: inline-flex !important;
+    align-items: center;
+    width: fit-content !important;
+    max-width: 100%;
+    margin-top: 0.35rem !important;
+    padding: 0.4rem 0.62rem !important;
+    background: #f8fafc;
+    border: 1px solid #e4e7ec !important;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.pro-table tbody td:nth-child(11) {
+    display: inline-flex !important;
+    align-items: center;
+    width: fit-content !important;
+    max-width: 100%;
+    margin-top: 0.35rem !important;
+    padding: 0.4rem 0.62rem !important;
+    background: #f8fafc;
+    border: 1px solid #e4e7ec !important;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.pro-table tbody td:nth-child(10) {
+    color: #067647;
+    background: #ecfdf3;
+    border-color: #abefc6 !important;
+}
+
+.pro-table tbody td:nth-child(9) {
+    color: #b54708;
+    background: #fffaeb;
+    border-color: #fedf89 !important;
+}
+
+.pro-table tbody td:nth-child(11) {
+    color: #344054;
+    background: #f2f4f7;
+}
+
+
+@media (max-width: 1100px) {
+    .pro-table tbody {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .pro-table tbody {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+        padding-inline: 0;
+    }
+
+    .pro-table tbody tr {
+        min-height: 0;
+        padding: 1.15rem !important;
+        border-radius: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pro-table tbody tr,
+    .pro-table tbody button,
+    .pro-table tbody a {
+        transition: none !important;
+    }
+
+    .pro-table tbody tr:hover {
+        transform: none;
+    }
+}
+
