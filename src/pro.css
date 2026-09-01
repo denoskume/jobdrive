@@ -3314,3 +3314,86 @@ body {
   }
 }
 
+
+
+/* ========================================================
+   JOBDRIVE PREMIUM — ROOT LAYOUT FIX
+   Fixed topbar + fixed sidebar architecture
+   ======================================================== */
+
+.pro-app {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 100vh !important;
+  padding-top: var(--jd-top) !important;
+}
+
+.pro-main {
+  display: block !important;
+
+  box-sizing: border-box !important;
+
+  margin-left: var(--jd-side) !important;
+
+  width: calc(100% - var(--jd-side)) !important;
+  max-width: none !important;
+
+  min-width: 0 !important;
+
+  padding: 28px 34px 50px !important;
+}
+
+.pro-header {
+  width: 100% !important;
+}
+
+.pro-kpi-grid {
+  width: 100% !important;
+}
+
+.pro-filter-panel {
+  width: 100% !important;
+}
+
+.pro-panel {
+  width: 100% !important;
+}
+
+.pro-opportunity-grid {
+  width: 100% !important;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+}
+
+
+/* Medium desktop */
+
+@media (max-width: 1200px) {
+  .pro-opportunity-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* Tablet */
+
+@media (max-width: 850px) {
+  .pro-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+
+/* Mobile */
+
+@media (max-width: 620px) {
+  .pro-opportunity-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+}
+
