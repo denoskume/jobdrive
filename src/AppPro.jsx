@@ -238,9 +238,10 @@ function LoginScreen({
 }
 
 
-function OpportunityCards({
+function OpportunityFeed({
   jobs,
-  onOpen,
+  selectedJobId,
+  onSelect,
   onFavorite,
 }) {
   if (!jobs.length) {
@@ -259,205 +260,383 @@ function OpportunityCards({
   }
 
   return (
-    <div className="pro-opportunity-grid">
-      {jobs.map((job) => {
-        const company =
-          job.company || "Company";
+    <section className="pro-feed">
 
-        const initials = company
-          .split(/\s+/)
-          .filter(Boolean)
-          .slice(0, 2)
-          .map((word) =>
-            word.charAt(0).toUpperCase()
-          )
-          .join("");
+      <header className="pro-feed-heading">
+        <div>
+          <strong>
+            {jobs.length} opportunities
+          </strong>
 
-        return (
-          <article
-            key={job.id}
-            className="pro-opportunity-card"
-          >
-            <div className="pro-card-top">
+          <small>
+            M2 internships matching your profile
+          </small>
+        </div>
+      </header>
 
-              <div className="pro-company">
+      <div className="pro-feed-list">
+        {jobs.map((job) => {
+          const active =
+            job.id === selectedJobId;
 
-                <div className="pro-company-avatar">
-                  {initials || "JD"}
+          return (
+            <article
+              key={job.id}
+              className={
+                active
+                  ? "pro-feed-card active"
+                  : "pro-feed-card"
+              }
+              onClick={() =>
+                onSelect(job.id)
+              }
+            >
+              <div className="pro-feed-card-top">
+
+                <div>
+                  <h3>
+                    {job.role ||
+                      "Internship opportunity"}
+                  </h3>
+
+                  <p>
+                    <strong>
+                      {job.company ||
+                        "Company"}
+                    </strong>
+
+                    {job.location && (
+                      <>
+                        <span>•</span>
+                        {job.location}
+                      </>
+                    )}
+                  </p>
                 </div>
 
-                <div className="pro-company-copy">
-                  <strong>
-                    {company}
-                  </strong>
-
-                  <small>
-                    M2 Internship
-                  </small>
-                </div>
+                <button
+                  type="button"
+                  className={
+                    job.favorite
+                      ? "pro-feed-star active"
+                      : "pro-feed-star"
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onFavorite(job);
+                  }}
+                  aria-label="Favorite"
+                >
+                  {job.favorite
+                    ? "★"
+                    : "☆"}
+                </button>
 
               </div>
 
-              <button
-                type="button"
-                className={
-                  job.favorite
-                    ? "pro-card-favorite active"
-                    : "pro-card-favorite"
-                }
-                onClick={() =>
-                  onFavorite(job)
-                }
-                aria-label="Favorite"
-              >
-                {job.favorite ? "★" : "☆"}
-              </button>
+              <div className="pro-feed-tags">
 
-            </div>
+                {job.domain && (
+                  <span>
+                    {job.domain}
+                  </span>
+                )}
 
-            <div className="pro-card-title">
+                {job.mode && (
+                  <span>
+                    {job.mode}
+                  </span>
+                )}
 
-              <h3>
-                {job.role ||
-                  "Internship opportunity"}
-              </h3>
+                {job.fitScore ? (
+                  <span className="match">
+                    {job.fitScore}% match
+                  </span>
+                ) : null}
 
-              <span>
-                {job.domain ||
-                  "Data / AI"}
-              </span>
+                {job.priority && (
+                  <span className="priority">
+                    {job.priority}
+                  </span>
+                )}
 
-            </div>
+              </div>
 
-            <div className="pro-card-meta">
-
-              <span>
-                <b>⌖</b>
-                {job.location ||
-                  "Not specified"}
-              </span>
-
-              <span>
-                <b>▦</b>
-                {job.mode ||
-                  "Not specified"}
-              </span>
-
-            </div>
-
-            <div className="pro-card-dates">
-
-              <div>
-                <small>Published</small>
-
-                <strong>
+              <div className="pro-feed-footer">
+                <span>
+                  Published{" "}
                   {toDateInput(
                     job.postedDate
-                  ) || "Not specified"}
-                </strong>
-              </div>
-
-              <div>
-                <small>Deadline</small>
+                  ) || "—"}
+                </span>
 
                 <DeadlineBadge
                   value={job.deadline}
                 />
               </div>
 
+            </article>
+          );
+        })}
+      </div>
+
+    </section>
+  );
+}
+
+
+function OpportunityDetail({
+  job,
+  onFavorite,
+  onEdit,
+}) {
+  if (!job) {
+    return (
+      <section className="pro-opportunity-detail">
+        <div className="pro-detail-empty">
+          Select an opportunity
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="pro-opportunity-detail">
+
+      <header className="pro-detail-sticky">
+
+        <div>
+          <h2>
+            {job.role ||
+              "Internship opportunity"}
+          </h2>
+
+          <p>
+            {job.company ||
+              "Company"}
+          </p>
+        </div>
+
+        <div className="pro-detail-header-actions">
+
+          <button
+            type="button"
+            className={
+              job.favorite
+                ? "pro-detail-favorite active"
+                : "pro-detail-favorite"
+            }
+            onClick={() =>
+              onFavorite(job)
+            }
+            aria-label="Favorite"
+          >
+            {job.favorite
+              ? "★"
+              : "☆"}
+          </button>
+
+          {job.link && (
+            <a
+              href={job.link}
+              target="_blank"
+              rel="noreferrer"
+              className="pro-detail-apply"
+            >
+              Open official offer ↗
+            </a>
+          )}
+
+        </div>
+
+      </header>
+
+      <div className="pro-detail-scroll">
+
+        <div className="pro-detail-badges">
+
+          {job.fitScore ? (
+            <span className="match">
+              Match {job.fitScore}%
+            </span>
+          ) : null}
+
+          {job.priority && (
+            <span className="priority">
+              {job.priority}
+            </span>
+          )}
+
+          <span className="status">
+            {statusLabel(
+              job.status
+            )}
+          </span>
+
+        </div>
+
+        {job.whyRelevant && (
+          <section className="pro-detail-section highlight">
+            <h3>
+              Why this matches
+            </h3>
+
+            <p>
+              {job.whyRelevant}
+            </p>
+          </section>
+        )}
+
+        <section className="pro-detail-section">
+          <h3>Overview</h3>
+
+          <div className="pro-detail-facts">
+
+            <div>
+              <small>Location</small>
+              <strong>
+                {job.location ||
+                  "—"}
+              </strong>
             </div>
 
-            <div className="pro-card-badges">
+            <div>
+              <small>Work mode</small>
+              <strong>
+                {job.mode ||
+                  "—"}
+              </strong>
+            </div>
 
-              <span
-                className={
-                  `pro-match ` +
-                  matchClass(job.fitScore)
-                }
-              >
-                {job.fitScore
-                  ? `Match ${job.fitScore}%`
-                  : "No score"}
+            <div>
+              <small>Published</small>
+              <strong>
+                {toDateInput(
+                  job.postedDate
+                ) || "—"}
+              </strong>
+            </div>
+
+            <div>
+              <small>Deadline</small>
+              <DeadlineBadge
+                value={job.deadline}
+              />
+            </div>
+
+            <div>
+              <small>Compensation</small>
+              <strong>
+                {job.compensation ||
+                  "—"}
+              </strong>
+            </div>
+
+            <div>
+              <small>Source</small>
+              <strong>
+                {job.source ||
+                  "—"}
+              </strong>
+            </div>
+
+          </div>
+        </section>
+
+        {job.domain && (
+          <section className="pro-detail-section">
+            <h3>
+              Specialization
+            </h3>
+
+            <div className="pro-detail-tags">
+              <span>
+                {job.domain}
               </span>
+            </div>
+          </section>
+        )}
 
-              <span
-                className={
-                  `pro-priority ` +
-                  priorityClass(
-                    job.priority
-                  )
-                }
-              >
-                {job.priority ||
-                  "Priority —"}
-              </span>
+        {job.description && (
+          <section className="pro-detail-section">
+            <h3>
+              Job description
+            </h3>
 
-              <span
-                className={
-                  `pro-status ` +
-                  statusClass(
-                    job.status
-                  )
-                }
-              >
+            <p className="pro-detail-copy">
+              {job.description}
+            </p>
+          </section>
+        )}
+
+        <section className="pro-detail-section">
+
+          <div className="pro-detail-section-heading">
+            <h3>
+              My application
+            </h3>
+
+            <button
+              type="button"
+              onClick={() =>
+                onEdit(job)
+              }
+            >
+              Update
+            </button>
+          </div>
+
+          <div className="pro-detail-facts">
+
+            <div>
+              <small>Status</small>
+              <strong>
                 {statusLabel(
                   job.status
                 )}
-              </span>
-
+              </strong>
             </div>
 
-            {job.compensation && (
-              <div className="pro-card-pay">
-                <small>
-                  Compensation
-                </small>
+            <div>
+              <small>Applied date</small>
+              <strong>
+                {job.appliedDate ||
+                  "—"}
+              </strong>
+            </div>
 
-                <strong>
-                  {job.compensation}
-                </strong>
-              </div>
-            )}
+            <div>
+              <small>Follow-up</small>
 
-            <div className="pro-card-actions">
-
-              <button
-                type="button"
-                className="pro-card-details"
-                onClick={() =>
-                  onOpen(job)
+              <FollowUpBadge
+                value={
+                  job.followUpDate
                 }
-              >
-                View details
-              </button>
-
-              {job.link ? (
-                <a
-                  className="pro-card-apply"
-                  href={job.link}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Apply ↗
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  className="pro-card-apply disabled"
-                  disabled
-                >
-                  No link
-                </button>
-              )}
-
+              />
             </div>
 
-          </article>
-        );
-      })}
-    </div>
+          </div>
+
+          {job.notes && (
+            <div className="pro-detail-notes">
+              <small>
+                Notes
+              </small>
+
+              <p>
+                {job.notes}
+              </p>
+            </div>
+          )}
+
+        </section>
+
+      </div>
+
+    </section>
   );
 }
+
 
 function Pipeline({
   jobs,
@@ -1017,6 +1196,9 @@ export default function AppPro() {
   const [selectedJob, setSelectedJob] =
     useState(null);
 
+  const [selectedJobId, setSelectedJobId] =
+    useState(null);
+
   const [lastUpdated, setLastUpdated] =
     useState(null);
 
@@ -1372,7 +1554,7 @@ export default function AppPro() {
                 job.deadline
               );
 
-            return (
+return (
               info.days !== null &&
               info.days >= 0 &&
               info.days <= 7
@@ -1415,6 +1597,53 @@ export default function AppPro() {
     ]);
 
 
+const detailJob =
+    useMemo(
+      () => {
+        if (!filteredJobs.length) {
+          return null;
+        }
+
+        return (
+          filteredJobs.find(
+            (job) =>
+              job.id ===
+              selectedJobId
+          ) ||
+          filteredJobs[0]
+        );
+      },
+      [
+        filteredJobs,
+        selectedJobId,
+      ]
+    );
+
+
+  useEffect(() => {
+    if (!filteredJobs.length) {
+      setSelectedJobId(null);
+      return;
+    }
+
+    const exists =
+      filteredJobs.some(
+        (job) =>
+          job.id ===
+          selectedJobId
+      );
+
+    if (!exists) {
+      setSelectedJobId(
+        filteredJobs[0].id
+      );
+    }
+  }, [
+    filteredJobs,
+    selectedJobId,
+  ]);
+
+
   if (!token) {
     return (
       <LoginScreen
@@ -1431,19 +1660,20 @@ export default function AppPro() {
   }
 
 
+
+
+
   const viewTitle = {
     overview: "Overview",
-    internships:
-      "M2 Internships",
-    pipeline:
-      "Application Pipeline",
-    analytics:
-      "Career Analytics",
+    internships: "M2 Internships",
+    pipeline: "Application Pipeline",
+    analytics: "Career Analytics",
   }[view];
 
 
   return (
     <div className="pro-app">
+
       <header className="pro-topbar">
 
         <div className="pro-topbar-brand">
@@ -1459,6 +1689,23 @@ export default function AppPro() {
           </div>
         </div>
 
+
+        <nav className="pro-topbar-nav">
+          {NAV_ITEMS.map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={
+                view === key ? "active" : ""
+              }
+              onClick={() => setView(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+
         <label className="pro-global-search">
           <span>⌕</span>
 
@@ -1466,29 +1713,30 @@ export default function AppPro() {
             type="search"
             value={search}
             onChange={(event) =>
-              setSearch(
-                event.target.value
-              )
+              setSearch(event.target.value)
             }
-            placeholder="Search company, role, domain, location..."
+            placeholder="Search jobs..."
           />
-
-          <kbd>⌘ K</kbd>
         </label>
 
+
         <div className="pro-topbar-right">
+
+          <button
+            className="pro-topbar-refresh"
+            type="button"
+            onClick={loadJobs}
+            disabled={loading}
+          >
+            {loading ? "Syncing..." : "↻"}
+          </button>
 
           <div className="pro-live-mini">
             <i />
 
             <div>
-              <strong>
-                Live data
-              </strong>
-
-              <small>
-                Google Sheets
-              </small>
+              <strong>Live data</strong>
+              <small>Google Sheets</small>
             </div>
           </div>
 
@@ -1499,131 +1747,24 @@ export default function AppPro() {
               <strong>
                 Google connected
               </strong>
-
-              <small>
-                Private Sheet
-              </small>
+              <small>Private Sheet</small>
             </div>
           </div>
+
+          <button
+            className="pro-topbar-signout"
+            type="button"
+            onClick={logout}
+          >
+            Sign out
+          </button>
 
         </div>
 
       </header>
 
-      <aside className="pro-sidebar">
-        <div className="pro-brand">
-          <div>J</div>
-
-          <span>
-            <strong>
-              JobDrive
-            </strong>
-
-            <small>
-              CAREER OPERATING SYSTEM
-            </small>
-          </span>
-        </div>
-
-        <nav>
-          {NAV_ITEMS.map(
-            ([key, label]) => (
-              <button
-                key={key}
-                className={
-                  view === key
-                    ? "active"
-                    : ""
-                }
-                onClick={() =>
-                  setView(key)
-                }
-              >
-                {label}
-              </button>
-            )
-          )}
-        </nav>
-
-        <div className="pro-sidebar-bottom">
-          <div className="pro-live-state">
-            <i />
-            <span>
-              <strong>
-                Google connected
-              </strong>
-
-              <small>
-                Private Sheet
-              </small>
-            </span>
-          </div>
-
-          <button
-            className="pro-signout"
-            onClick={logout}
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
 
       <main className="pro-main">
-        <header className="pro-header">
-          <div>
-            <p className="pro-eyebrow">
-              JOB SEARCH COMMAND CENTER
-            </p>
-
-            <h1>
-              {viewTitle}
-            </h1>
-
-            <p className="pro-subtitle">
-              Track opportunities,
-              applications and
-              follow-ups.
-            </p>
-          </div>
-
-          <div className="pro-header-actions">
-            <div className="pro-sync">
-              <i />
-
-              <span>
-                <strong>
-                  Live data
-                </strong>
-
-                <small>
-                  {lastUpdated
-                    ? `Updated ${lastUpdated.toLocaleTimeString(
-                        [],
-                        {
-                          hour:
-                            "2-digit",
-                          minute:
-                            "2-digit",
-                        }
-                      )}`
-                    : "Google Sheets"}
-                </small>
-              </span>
-            </div>
-
-            <button
-              className="pro-refresh"
-              onClick={loadJobs}
-              disabled={loading}
-            >
-              {loading
-                ? "Syncing..."
-                : "↻ Refresh"}
-            </button>
-          </div>
-        </header>
-
 
         {error && (
           <div className="pro-error">
@@ -1632,110 +1773,25 @@ export default function AppPro() {
         )}
 
 
-        <section className="pro-kpi-grid">
-          <Kpi
-            label="M2 Internships"
-            value={metrics.total}
-            hint="Tracked roles"
-          />
-
-          <Kpi
-            label="High Priority"
-            value={
-              metrics.highPriority
-            }
-            hint="Top matches"
-            tone="amber"
-          />
-
-          <Kpi
-            label="Applications"
-            value={
-              metrics.applications
-            }
-            hint="Submitted"
-            tone="green"
-          />
-
-          <Kpi
-            label="Interviews"
-            value={
-              metrics.interviews
-            }
-            hint="Pipeline"
-            tone="rose"
-          />
-        </section>
-
-
-        {view !== "analytics" &&
-          view !== "pipeline" && (
+        {view !== "pipeline" &&
+          view !== "analytics" && (
             <>
-              <section className="pro-filter-panel">
-                <div className="pro-main-filters">
-                  <input
-                    value={search}
-                    placeholder="Search company, role, domain, location..."
-                    onChange={(event) =>
-                      setSearch(
-                        event.target
-                          .value
-                      )
-                    }
-                  />
 
-                  <select
-                    value={priority}
-                    onChange={(event) =>
-                      setPriority(
-                        event.target
-                          .value
-                      )
-                    }
-                  >
-                    <option value="">
-                      All priorities
-                    </option>
+              <section className="pro-commandbar">
 
-                    <option value="Haute">
-                      High
-                    </option>
+                <div className="pro-commandbar-title">
+                  <strong>
+                    {viewTitle}
+                  </strong>
 
-                    <option value="Moyenne">
-                      Medium
-                    </option>
+                  <span>
+                    {filteredJobs.length} opportunities
+                  </span>
+                </div>
 
-                    <option value="Basse">
-                      Low
-                    </option>
-                  </select>
 
-                  <select
-                    value={status}
-                    onChange={(event) =>
-                      setStatus(
-                        event.target
-                          .value
-                      )
-                    }
-                  >
-                    <option value="">
-                      All statuses
-                    </option>
+                <div className="pro-command-filters">
 
-                    {STATUS_OPTIONS.map(
-                      (item) => (
-                        <option
-                          value={item}
-                          key={item}
-                        >
-                          {statusLabel(
-                            item
-                          )}
-                        </option>
-                      )
-                    )}
-                  </select>
                   <select
                     value={specialization}
                     onChange={(event) =>
@@ -1745,7 +1801,7 @@ export default function AppPro() {
                     }
                   >
                     <option value="">
-                      All specializations
+                      Specialization
                     </option>
 
                     {specializations.map(
@@ -1760,6 +1816,55 @@ export default function AppPro() {
                     )}
                   </select>
 
+
+                  <select
+                    value={priority}
+                    onChange={(event) =>
+                      setPriority(
+                        event.target.value
+                      )
+                    }
+                  >
+                    <option value="">
+                      Priority
+                    </option>
+                    <option value="Haute">
+                      High
+                    </option>
+                    <option value="Moyenne">
+                      Medium
+                    </option>
+                    <option value="Basse">
+                      Low
+                    </option>
+                  </select>
+
+
+                  <select
+                    value={status}
+                    onChange={(event) =>
+                      setStatus(
+                        event.target.value
+                      )
+                    }
+                  >
+                    <option value="">
+                      Status
+                    </option>
+
+                    {STATUS_OPTIONS.map(
+                      (item) => (
+                        <option
+                          value={item}
+                          key={item}
+                        >
+                          {statusLabel(item)}
+                        </option>
+                      )
+                    )}
+                  </select>
+
+
                   <select
                     value={sortMode}
                     onChange={(event) =>
@@ -1769,42 +1874,38 @@ export default function AppPro() {
                     }
                   >
                     <option value="newest">
-                      Newest published
+                      Newest
                     </option>
-
                     <option value="deadline">
-                      Deadline soonest
+                      Deadline
                     </option>
-
                     <option value="match">
-                      Highest match
+                      Best match
                     </option>
-
                     <option value="priority">
-                      Highest priority
+                      Priority
                     </option>
-
                     <option value="company">
                       Company A–Z
                     </option>
                   </select>
+
                 </div>
+
 
                 <div className="pro-quick-filters">
                   {QUICK_FILTERS.map(
                     ([key, label]) => (
                       <button
                         key={key || "all"}
+                        type="button"
                         className={
-                          quickFilter ===
-                          key
+                          quickFilter === key
                             ? "active"
                             : ""
                         }
                         onClick={() =>
-                          setQuickFilter(
-                            key
-                          )
+                          setQuickFilter(key)
                         }
                       >
                         {label}
@@ -1812,42 +1913,38 @@ export default function AppPro() {
                     )
                   )}
                 </div>
+
               </section>
 
 
-              <section className="pro-panel">
-                <header className="pro-panel-header">
-                  <div>
-                    <h2>
-                      M2 Internships
-                    </h2>
+              <div className="pro-opportunity-workspace">
 
-                    <p>
-                      Internship data from
-                      private Google Sheets
-                    </p>
-                  </div>
-
-                  <span>
-                    {
-                      filteredJobs.length
-                    }{" "}
-                    visible
-                  </span>
-                </header>
-
-                <OpportunityCards
-                  jobs={
-                    filteredJobs
+                <OpportunityFeed
+                  jobs={filteredJobs}
+                  selectedJobId={
+                    detailJob?.id
                   }
-                  onOpen={
-                    setSelectedJob
+                  onSelect={
+                    setSelectedJobId
                   }
                   onFavorite={
                     toggleFavorite
                   }
                 />
-              </section>
+
+
+                <OpportunityDetail
+                  job={detailJob}
+                  onFavorite={
+                    toggleFavorite
+                  }
+                  onEdit={
+                    setSelectedJob
+                  }
+                />
+
+              </div>
+
             </>
           )}
 
@@ -1855,20 +1952,16 @@ export default function AppPro() {
         {view === "pipeline" && (
           <Pipeline
             jobs={jobs}
-            onOpen={
-              setSelectedJob
-            }
+            onOpen={setSelectedJob}
           />
         )}
 
 
         {view === "analytics" && (
-          <AnalyticsView
-            jobs={jobs}
-          />
+          <AnalyticsView jobs={jobs} />
         )}
-      </main>
 
+      </main>
 
       <JobDrawer
         job={selectedJob}

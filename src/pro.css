@@ -3397,3 +3397,2025 @@ body {
   }
 }
 
+
+
+/* ========================================================
+   JOBDRIVE MASTER DETAIL WORKSPACE
+   Opportunity feed + selected opportunity
+   ======================================================== */
+
+
+/* ---------- MASTER WORKSPACE ---------- */
+
+.pro-opportunity-workspace {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(340px, 0.88fr)
+    minmax(560px, 1.7fr);
+
+  gap: 16px;
+
+  height:
+    calc(
+      100vh
+      - var(--jd-top)
+      - 305px
+    );
+
+  min-height: 590px;
+}
+
+
+/* ========================================================
+   LEFT — OPPORTUNITY FEED
+   ======================================================== */
+
+.pro-feed {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.025),
+    0 10px 28px rgba(16, 24, 40, 0.05);
+}
+
+
+.pro-feed-heading {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 15px 16px;
+
+  background:
+    rgba(255, 255, 255, 0.98);
+
+  border-bottom: 1px solid #eaecf0;
+}
+
+
+.pro-feed-heading > div {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.pro-feed-heading strong {
+  color: #101828;
+
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+
+.pro-feed-heading small {
+  margin-top: 3px;
+
+  color: #98a2b3;
+
+  font-size: 0.57rem;
+}
+
+
+/* Scroll only the offers */
+
+.pro-feed-list {
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding: 10px;
+
+  background: #f8fafc;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    #d0d5dd transparent;
+}
+
+
+.pro-feed-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+
+.pro-feed-list::-webkit-scrollbar-thumb {
+  background: #d0d5dd;
+  border-radius: 999px;
+}
+
+
+/* ---------- FEED CARD ---------- */
+
+.pro-feed-card {
+  position: relative;
+
+  padding: 14px;
+
+  margin-bottom: 9px;
+
+  background: #ffffff;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+
+.pro-feed-card:last-child {
+  margin-bottom: 0;
+}
+
+
+.pro-feed-card:hover {
+  transform: translateY(-1px);
+
+  border-color: #b9cbff;
+
+  box-shadow:
+    0 7px 20px
+    rgba(16, 24, 40, 0.055);
+}
+
+
+/* Selected opportunity */
+
+.pro-feed-card.active {
+  border-color: #155eef;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #f7f9ff
+    );
+
+  box-shadow:
+    0 0 0 1px #155eef,
+    0 9px 24px
+      rgba(21, 94, 239, 0.10);
+}
+
+
+.pro-feed-card.active::before {
+  content: "";
+
+  position: absolute;
+
+  top: 12px;
+  bottom: 12px;
+  left: -1px;
+
+  width: 3px;
+
+  background: #155eef;
+
+  border-radius:
+    0 4px 4px 0;
+}
+
+
+.pro-feed-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+.pro-feed-card-top > div {
+  min-width: 0;
+}
+
+
+.pro-feed-card h3 {
+  margin: 0;
+
+  color: #101828;
+
+  font-size: 0.83rem;
+  font-weight: 850;
+
+  line-height: 1.35;
+  letter-spacing: -0.018em;
+}
+
+
+.pro-feed-card p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 5px;
+
+  margin:
+    5px 0 0;
+
+  color: #667085;
+
+  font-size: 0.61rem;
+}
+
+
+.pro-feed-card p strong {
+  color: #475467;
+}
+
+
+.pro-feed-card p span {
+  color: #d0d5dd;
+}
+
+
+/* Favorite */
+
+.pro-feed-star {
+  width: 31px;
+  height: 31px;
+
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  color: #667085;
+  background: transparent;
+
+  border: 0;
+  border-radius: 50%;
+
+  font-size: 1rem;
+
+  cursor: pointer;
+
+  transition:
+    color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+
+.pro-feed-star:hover {
+  transform: scale(1.06);
+
+  color: #f79009;
+  background: #fffaeb;
+}
+
+
+.pro-feed-star.active {
+  color: #f79009;
+  background: #fffaeb;
+}
+
+
+/* Feed badges */
+
+.pro-feed-tags {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px;
+
+  margin-top: 10px;
+}
+
+
+.pro-feed-tags span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 23px;
+
+  padding: 0 8px;
+
+  color: #475467;
+  background: #f2f4f7;
+
+  border:
+    1px solid #eaecf0;
+
+  border-radius: 999px;
+
+  font-size: 0.53rem;
+  font-weight: 750;
+}
+
+
+.pro-feed-tags .match {
+  color: #067647;
+  background: #ecfdf3;
+
+  border-color: #abefc6;
+}
+
+
+.pro-feed-tags .priority {
+  color: #b54708;
+  background: #fffaeb;
+
+  border-color: #fedf89;
+}
+
+
+/* Footer */
+
+.pro-feed-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  margin-top: 11px;
+
+  padding-top: 10px;
+
+  border-top:
+    1px solid #f0f2f5;
+
+  color: #98a2b3;
+
+  font-size: 0.52rem;
+}
+
+
+.pro-feed-footer .pro-deadline {
+  max-width: 60%;
+
+  font-size: 0.52rem !important;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ========================================================
+   RIGHT — OPPORTUNITY DETAIL
+   ======================================================== */
+
+.pro-opportunity-detail {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.025),
+    0 10px 28px rgba(16, 24, 40, 0.05);
+}
+
+
+/* Empty detail */
+
+.pro-detail-empty {
+  min-height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  color: #98a2b3;
+
+  font-size: 0.78rem;
+}
+
+
+/* ---------- DETAIL HEADER ---------- */
+
+.pro-detail-sticky {
+  position: relative;
+  z-index: 20;
+
+  flex: 0 0 auto;
+
+  min-height: 83px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  padding: 17px 19px;
+
+  background:
+    rgba(255, 255, 255, 0.97);
+
+  border-bottom:
+    1px solid #eaecf0;
+
+  backdrop-filter:
+    blur(14px);
+}
+
+
+.pro-detail-sticky > div:first-child {
+  min-width: 0;
+}
+
+
+.pro-detail-sticky h2 {
+  margin: 0;
+
+  color: #101828;
+
+  font-size:
+    clamp(
+      1.05rem,
+      1.6vw,
+      1.35rem
+    );
+
+  line-height: 1.25;
+
+  letter-spacing: -0.035em;
+}
+
+
+.pro-detail-sticky p {
+  margin:
+    5px 0 0;
+
+  color: #475467;
+
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+
+.pro-detail-header-actions {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+.pro-detail-favorite {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  color: #667085;
+  background: #ffffff;
+
+  border:
+    1px solid #d0d5dd;
+
+  border-radius: 9px;
+
+  font-size: 1.05rem;
+
+  cursor: pointer;
+}
+
+
+.pro-detail-favorite:hover,
+.pro-detail-favorite.active {
+  color: #f79009;
+  background: #fffaeb;
+
+  border-color: #fedf89;
+}
+
+
+.pro-detail-apply {
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    0 14px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2870ff,
+      #155eef
+    );
+
+  border:
+    1px solid #155eef;
+
+  border-radius: 9px;
+
+  box-shadow:
+    0 5px 13px
+    rgba(21, 94, 239, 0.16);
+
+  text-decoration: none;
+
+  font-size: 0.62rem;
+  font-weight: 850;
+
+  white-space: nowrap;
+}
+
+
+.pro-detail-apply:hover {
+  background: #004eeb;
+}
+
+
+/* ---------- INDEPENDENT DETAIL SCROLL ---------- */
+
+.pro-detail-scroll {
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding:
+    18px 20px 32px;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    #d0d5dd transparent;
+}
+
+
+.pro-detail-scroll::-webkit-scrollbar {
+  width: 7px;
+}
+
+
+.pro-detail-scroll::-webkit-scrollbar-thumb {
+  background: #d0d5dd;
+  border-radius: 999px;
+}
+
+
+/* ---------- MAIN BADGES ---------- */
+
+.pro-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  padding-bottom: 4px;
+}
+
+
+.pro-detail-badges > span {
+  min-height: 27px;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding:
+    0 9px;
+
+  border-radius: 999px;
+
+  font-size: 0.57rem;
+  font-weight: 850;
+}
+
+
+.pro-detail-badges .match {
+  color: #067647;
+  background: #ecfdf3;
+
+  border:
+    1px solid #abefc6;
+}
+
+
+.pro-detail-badges .priority {
+  color: #b54708;
+  background: #fffaeb;
+
+  border:
+    1px solid #fedf89;
+}
+
+
+.pro-detail-badges .status {
+  color: #344054;
+  background: #f2f4f7;
+
+  border:
+    1px solid #e4e7ec;
+}
+
+
+/* ========================================================
+   DETAIL CONTENT SECTIONS
+   ======================================================== */
+
+.pro-detail-section {
+  margin-top: 20px;
+
+  padding-top: 19px;
+
+  border-top:
+    1px solid #eaecf0;
+}
+
+
+.pro-detail-section h3 {
+  margin:
+    0 0 11px;
+
+  color: #101828;
+
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+
+/* Why this matches */
+
+.pro-detail-section.highlight {
+  margin-top: 17px;
+
+  padding: 14px;
+
+  color: #344054;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f7f9ff,
+      #fbfcff
+    );
+
+  border:
+    1px solid #d9e5ff;
+
+  border-radius: 11px;
+}
+
+
+.pro-detail-section.highlight h3 {
+  color: #155eef;
+}
+
+
+.pro-detail-section.highlight p {
+  margin: 0;
+}
+
+
+/* Copy */
+
+.pro-detail-section p,
+.pro-detail-copy {
+  color: #475467;
+
+  font-size: 0.67rem;
+  line-height: 1.7;
+}
+
+
+.pro-detail-copy {
+  margin: 0;
+
+  white-space: pre-line;
+}
+
+
+/* ---------- OVERVIEW FACTS ---------- */
+
+.pro-detail-facts {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 8px;
+}
+
+
+.pro-detail-facts > div {
+  min-width: 0;
+
+  padding: 11px;
+
+  background: #f9fafb;
+
+  border:
+    1px solid #eaecf0;
+
+  border-radius: 9px;
+}
+
+
+.pro-detail-facts small {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #98a2b3;
+
+  font-size: 0.49rem;
+  font-weight: 850;
+
+  letter-spacing:
+    0.055em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.pro-detail-facts strong {
+  display: block;
+
+  min-width: 0;
+
+  color: #344054;
+
+  font-size: 0.62rem;
+  font-weight: 750;
+
+  overflow-wrap: anywhere;
+}
+
+
+.pro-detail-facts
+.pro-deadline {
+  width: fit-content;
+  max-width: 100%;
+
+  font-size: 0.54rem !important;
+}
+
+
+/* ---------- SPECIALIZATION ---------- */
+
+.pro-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+
+.pro-detail-tags span {
+  min-height: 27px;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding:
+    0 9px;
+
+  color: #155eef;
+  background: #eff4ff;
+
+  border:
+    1px solid #d6e2ff;
+
+  border-radius: 999px;
+
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+
+/* ---------- APPLICATION ---------- */
+
+.pro-detail-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+.pro-detail-section-heading button {
+  min-height: 30px;
+
+  padding:
+    0 10px;
+
+  color: #155eef;
+  background: #eff4ff;
+
+  border:
+    1px solid #d6e2ff;
+
+  border-radius: 7px;
+
+  font-size: 0.54rem;
+  font-weight: 850;
+
+  cursor: pointer;
+}
+
+
+.pro-detail-section-heading button:hover {
+  background: #e4ebff;
+}
+
+
+/* Notes */
+
+.pro-detail-notes {
+  margin-top: 10px;
+
+  padding: 12px;
+
+  background: #fffcf5;
+
+  border:
+    1px solid #fef0c7;
+
+  border-radius: 9px;
+}
+
+
+.pro-detail-notes small {
+  display: block;
+
+  color: #b54708;
+
+  font-size: 0.51rem;
+  font-weight: 850;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+
+.pro-detail-notes p {
+  margin:
+    6px 0 0;
+
+  color: #475467;
+}
+
+
+/* ========================================================
+   PANEL SURFACE FOR MASTER DETAIL
+   ======================================================== */
+
+/*
+  The old .pro-panel was the table container.
+  In master-detail mode it should only act as a wrapper.
+*/
+
+.pro-panel:has(.pro-opportunity-workspace) {
+  overflow: visible !important;
+
+  background: transparent !important;
+
+  border: 0 !important;
+
+  box-shadow: none !important;
+}
+
+
+.pro-panel:has(.pro-opportunity-workspace)
+.pro-panel-header {
+  padding:
+    0 2px 10px !important;
+
+  min-height: auto !important;
+
+  border-bottom: 0 !important;
+}
+
+
+/* ========================================================
+   RESPONSIVE MASTER DETAIL
+   ======================================================== */
+
+@media (max-width: 1250px) {
+
+  .pro-opportunity-workspace {
+    grid-template-columns:
+      minmax(320px, 0.82fr)
+      minmax(480px, 1.45fr);
+  }
+
+}
+
+
+@media (max-width: 1050px) {
+
+  .pro-opportunity-workspace {
+    grid-template-columns:
+      minmax(300px, 0.8fr)
+      minmax(420px, 1.3fr);
+  }
+
+
+  .pro-detail-facts {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+}
+
+
+@media (max-width: 850px) {
+
+  .pro-opportunity-workspace {
+    display: block;
+
+    height: auto;
+    min-height: 0;
+  }
+
+
+  .pro-feed {
+    max-height: 520px;
+  }
+
+
+  .pro-opportunity-detail {
+    min-height: 620px;
+
+    margin-top: 14px;
+  }
+
+}
+
+
+@media (max-width: 580px) {
+
+  .pro-detail-sticky {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+
+  .pro-detail-header-actions {
+    width: 100%;
+  }
+
+
+  .pro-detail-apply {
+    flex: 1;
+  }
+
+
+  .pro-detail-facts {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .pro-detail-scroll {
+    padding:
+      15px 14px 28px;
+  }
+
+}
+
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  .pro-feed-card,
+  .pro-feed-star {
+    transition: none !important;
+  }
+
+
+  .pro-feed-card:hover {
+    transform: none;
+  }
+
+}
+
+
+
+/* =========================================================
+   JOBDRIVE REFERENCE MASTER-DETAIL SHELL
+   ========================================================= */
+
+.pro-app {
+  height: 100vh;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 72px minmax(0, 1fr);
+  overflow: hidden;
+  background: #f5f3ef;
+}
+
+
+/* TOP NAVIGATION */
+
+.pro-topbar {
+  position: relative;
+  z-index: 30;
+
+  display: grid;
+  grid-template-columns:
+    auto auto minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+
+  min-width: 0;
+  height: 72px;
+
+  padding: 0 28px;
+
+  border-bottom: 1px solid #dedbd5;
+  background: #ffffff;
+}
+
+
+.pro-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+
+.pro-topbar-logo {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+
+  background: #111111;
+  color: #ffffff;
+
+  font-weight: 900;
+}
+
+
+.pro-topbar-brand strong,
+.pro-topbar-brand small {
+  display: block;
+}
+
+
+.pro-topbar-brand strong {
+  font-size: 16px;
+}
+
+
+.pro-topbar-brand small {
+  margin-top: 2px;
+  color: #888;
+  font-size: 9px;
+}
+
+
+.pro-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+
+.pro-topbar-nav button {
+  padding: 9px 11px;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: transparent;
+  color: #696969;
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+
+.pro-topbar-nav button:hover {
+  background: #f5f3ef;
+  color: #111;
+}
+
+
+.pro-topbar-nav button.active {
+  background: #111;
+  color: #fff;
+}
+
+
+.pro-global-search {
+  width: 100%;
+  max-width: 570px;
+
+  justify-self: center;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  height: 42px;
+
+  padding: 0 14px;
+
+  border: 1px solid #dedbd5;
+  border-radius: 999px;
+
+  background: #faf9f7;
+}
+
+
+.pro-global-search input {
+  width: 100%;
+  min-width: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+  color: #171717;
+
+  font-size: 13px;
+}
+
+
+.pro-global-search kbd {
+  display: none;
+}
+
+
+.pro-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.pro-live-mini,
+.pro-google-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  white-space: nowrap;
+}
+
+
+.pro-live-mini i {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+  background: #24b86a;
+}
+
+
+.pro-live-mini strong,
+.pro-live-mini small,
+.pro-google-mini strong,
+.pro-google-mini small {
+  display: block;
+}
+
+
+.pro-live-mini strong,
+.pro-google-mini strong {
+  font-size: 10px;
+}
+
+
+.pro-live-mini small,
+.pro-google-mini small {
+  color: #8c8c8c;
+  font-size: 8px;
+}
+
+
+.pro-google-mini > span {
+  width: 31px;
+  height: 31px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #111;
+  color: white;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+.pro-topbar-refresh,
+.pro-topbar-signout {
+  border: 1px solid #ddd9d2;
+  background: #fff;
+}
+
+
+.pro-topbar-refresh {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+
+.pro-topbar-signout {
+  padding: 8px 11px;
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+/* MAIN */
+
+.pro-main {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 0;
+
+  overflow: hidden;
+}
+
+
+/* COMPACT COMMAND BAR */
+
+.pro-commandbar {
+  flex: 0 0 auto;
+
+  display: grid;
+  grid-template-columns:
+    auto minmax(0, 1fr) auto;
+
+  align-items: center;
+  gap: 18px;
+
+  min-height: 62px;
+
+  padding: 9px 24px;
+
+  border-bottom: 1px solid #dedbd5;
+
+  background: #f7f5f1;
+}
+
+
+.pro-commandbar-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+
+  white-space: nowrap;
+}
+
+
+.pro-commandbar-title strong {
+  font-size: 14px;
+}
+
+
+.pro-commandbar-title span {
+  color: #8a8a8a;
+  font-size: 10px;
+}
+
+
+.pro-command-filters {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+
+  min-width: 0;
+}
+
+
+.pro-command-filters select {
+  height: 34px;
+  max-width: 170px;
+
+  padding: 0 28px 0 11px;
+
+  border: 1px solid #dedbd5;
+  border-radius: 999px;
+
+  background: #fff;
+
+  font-size: 10px;
+}
+
+
+.pro-commandbar .pro-quick-filters {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  margin: 0;
+
+  overflow-x: auto;
+}
+
+
+.pro-commandbar .pro-quick-filters button {
+  padding: 7px 9px;
+
+  border-color: #ddd9d2;
+
+  background: #fff;
+  color: #666;
+
+  font-size: 9px;
+}
+
+
+.pro-commandbar
+.pro-quick-filters button.active {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+
+/* MASTER DETAIL */
+
+.pro-opportunity-workspace {
+  flex: 1 1 auto;
+
+  min-width: 0;
+  min-height: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(360px, 39%)
+    minmax(0, 61%);
+
+  overflow: hidden;
+
+  background: #fff;
+}
+
+
+.pro-feed {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-right: 1px solid #d9d5cf;
+
+  background: #f4f1ec;
+}
+
+
+.pro-feed-heading {
+  flex: 0 0 auto;
+
+  padding: 16px 20px;
+
+  border-bottom: 1px solid #dedbd5;
+
+  background: #f4f1ec;
+}
+
+
+.pro-feed-heading strong,
+.pro-feed-heading small {
+  display: block;
+}
+
+
+.pro-feed-heading strong {
+  font-size: 13px;
+}
+
+
+.pro-feed-heading small {
+  margin-top: 3px;
+
+  color: #898989;
+
+  font-size: 9px;
+}
+
+
+.pro-feed-list {
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding: 10px;
+}
+
+
+.pro-feed-card {
+  margin-bottom: 9px;
+  padding: 17px;
+
+  border: 1px solid #dedad3;
+  border-radius: 9px;
+
+  background: #fff;
+
+  box-shadow: none;
+
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+
+.pro-feed-card:hover {
+  border-color: #aaa59d;
+}
+
+
+.pro-feed-card.active {
+  border: 2px solid #151515;
+
+  background: #fff;
+}
+
+
+.pro-feed-card h3 {
+  margin: 0;
+
+  color: #111;
+
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+
+.pro-feed-card-top p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  margin: 7px 0 0;
+
+  color: #666;
+
+  font-size: 11px;
+}
+
+
+.pro-feed-star {
+  border: 0;
+  background: transparent;
+
+  font-size: 20px;
+}
+
+
+.pro-feed-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  margin-top: 13px;
+}
+
+
+.pro-feed-tags span {
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  background: #efede8;
+  color: #555;
+
+  font-size: 9px;
+}
+
+
+.pro-feed-tags .match {
+  background: #eaff70;
+  color: #343900;
+}
+
+
+.pro-feed-footer {
+  margin-top: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  color: #777;
+
+  font-size: 9px;
+}
+
+
+/* DETAIL */
+
+.pro-opportunity-detail {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #fff;
+}
+
+
+.pro-detail-sticky {
+  position: relative;
+  top: auto;
+
+  flex: 0 0 auto;
+
+  min-height: 88px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 18px 26px;
+
+  border-bottom: 1px solid #dedbd5;
+
+  background: #fff;
+}
+
+
+.pro-detail-sticky h2 {
+  margin: 0;
+
+  color: #111;
+
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+
+.pro-detail-sticky p {
+  margin: 5px 0 0;
+
+  color: #555;
+
+  font-size: 12px;
+}
+
+
+.pro-detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  flex: 0 0 auto;
+}
+
+
+.pro-detail-favorite {
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid #d8d4cd;
+  border-radius: 50%;
+
+  background: #fff;
+
+  font-size: 18px;
+}
+
+
+.pro-detail-apply {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 40px;
+
+  padding: 0 17px;
+
+  border-radius: 999px;
+
+  background: #111;
+  color: #fff;
+
+  text-decoration: none;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+.pro-detail-scroll {
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding: 22px 28px 60px;
+}
+
+
+.pro-detail-section {
+  padding: 20px 0;
+
+  border-bottom: 1px solid #ece9e4;
+}
+
+
+.pro-detail-section h3 {
+  margin: 0 0 12px;
+
+  color: #151515;
+
+  font-size: 15px;
+}
+
+
+.pro-detail-section p {
+  color: #4e4e4e;
+
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+
+.pro-detail-section.highlight {
+  margin: 0 0 4px;
+  padding: 17px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #f3f6d6;
+}
+
+
+/* Kill legacy dashboard shell if old rules remain */
+
+.pro-sidebar,
+.pro-header,
+.pro-kpi-grid,
+.pro-filter-panel,
+.pro-panel-header {
+  display: none !important;
+}
+
+
+.pro-panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 1050px) {
+
+  .pro-topbar {
+    grid-template-columns:
+      auto 1fr auto;
+  }
+
+  .pro-topbar-nav {
+    display: none;
+  }
+
+  .pro-global-search {
+    justify-self: stretch;
+  }
+
+  .pro-live-mini {
+    display: none;
+  }
+
+  .pro-commandbar {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .pro-command-filters {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+}
+
+
+@media (max-width: 720px) {
+
+  .pro-app {
+    grid-template-rows:
+      62px minmax(0, 1fr);
+  }
+
+  .pro-topbar {
+    height: 62px;
+
+    grid-template-columns:
+      auto minmax(0, 1fr) auto;
+
+    gap: 10px;
+
+    padding: 0 12px;
+  }
+
+  .pro-topbar-brand div,
+  .pro-google-mini div,
+  .pro-topbar-signout {
+    display: none;
+  }
+
+  .pro-global-search {
+    height: 38px;
+  }
+
+  .pro-commandbar {
+    padding: 8px 10px;
+  }
+
+  .pro-commandbar-title {
+    display: none;
+  }
+
+  .pro-opportunity-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .pro-feed {
+    border-right: 0;
+  }
+
+  .pro-opportunity-detail {
+    display: none;
+  }
+
+}
+
+/* ==========================================================
+   JOBDRIVE — MASTER/DETAIL FULL VIEWPORT FINAL TUNING
+   Preserve architecture; correct proportions and viewport use
+   ========================================================== */
+
+html,
+body,
+#root {
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+.pro-app {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  background: #f6f4ef !important;
+}
+
+/* Remove the large empty band above navigation */
+.pro-topbar {
+  position: relative !important;
+  top: auto !important;
+  flex: 0 0 72px !important;
+  min-height: 72px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  z-index: 100 !important;
+}
+
+/* Main application area must consume the remaining viewport */
+.pro-main {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Overview becomes a real application workspace */
+.pro-overview,
+.pro-overview-content,
+.pro-dashboard-content {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* Search/filter command area */
+.pro-commandbar {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 18px 28px 14px !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+/* Main master-detail browser */
+.pro-opportunity-workspace {
+  width: 100% !important;
+  max-width: none !important;
+  height: calc(100vh - 145px) !important;
+  min-height: 560px !important;
+
+  display: grid !important;
+  grid-template-columns:
+    minmax(380px, 36%)
+    minmax(0, 64%) !important;
+
+  gap: 16px !important;
+  margin: 0 !important;
+  padding: 0 28px 20px !important;
+  box-sizing: border-box !important;
+
+  overflow: hidden !important;
+  align-items: stretch !important;
+}
+
+/* LEFT — opportunity list */
+.pro-opportunity-feed {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: hidden !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+
+  background: #fff !important;
+  border: 1px solid #dedbd5 !important;
+  border-radius: 12px !important;
+}
+
+/* Support current class name if implementation uses pro-feed */
+.pro-feed {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Feed cards should breathe */
+.pro-opportunity-card {
+  min-height: 150px !important;
+  padding: 20px !important;
+  margin: 0 10px 12px !important;
+  border-radius: 10px !important;
+}
+
+/* RIGHT — selected opportunity */
+.pro-opportunity-detail {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  background: #fff !important;
+  border: 1px solid #dedbd5 !important;
+  border-radius: 12px !important;
+}
+
+/* Detail header remains visible while reading */
+.pro-detail-sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background: #fff !important;
+}
+
+/* Avoid tiny compressed detail typography */
+.pro-opportunity-detail h1,
+.pro-opportunity-detail h2 {
+  line-height: 1.2 !important;
+}
+
+/* Scrollbars kept subtle */
+.pro-feed::-webkit-scrollbar,
+.pro-opportunity-detail::-webkit-scrollbar {
+  width: 7px;
+}
+
+.pro-feed::-webkit-scrollbar-thumb,
+.pro-opportunity-detail::-webkit-scrollbar-thumb {
+  background: #c7c7c7;
+  border-radius: 20px;
+}
+
+/* Laptop */
+@media (max-width: 1100px) {
+  .pro-opportunity-workspace {
+    grid-template-columns:
+      minmax(330px, 42%)
+      minmax(0, 58%) !important;
+
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+}
+
+/* Mobile: single-pane behaviour */
+@media (max-width: 760px) {
+  body {
+    overflow: auto !important;
+  }
+
+  .pro-app {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+  }
+
+  .pro-main {
+    overflow: visible !important;
+  }
+
+  .pro-opportunity-workspace {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+  }
+
+  .pro-opportunity-feed,
+  .pro-feed,
+  .pro-opportunity-detail {
+    height: auto !important;
+    max-height: none !important;
+  }
+}
+
