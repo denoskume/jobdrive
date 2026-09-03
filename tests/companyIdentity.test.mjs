@@ -566,3 +566,77 @@ test("resolveCompanyIdentity caches official URL resolution", () => {
     "airbus.com"
   );
 });
+
+import {
+  buildLogoCandidates,
+} from "../src/companyIdentity/companyIdentitySources.mjs";
+
+
+test("buildLogoCandidates puts explicit logo before favicon", () => {
+  assert.deepEqual(
+    buildLogoCandidates({
+      logoUrl:
+        "https://cdn.example.com/logo.svg",
+      domain:
+        "example.com",
+    }),
+    [
+      "https://cdn.example.com/logo.svg",
+      "https://www.google.com/s2/favicons?domain_url=https://example.com&sz=128",
+    ]
+  );
+});
+
+
+test("buildLogoCandidates creates favicon from domain", () => {
+  assert.deepEqual(
+    buildLogoCandidates({
+      domain:
+        "airbus.com",
+    }),
+    [
+      "https://www.google.com/s2/favicons?domain_url=https://airbus.com&sz=128",
+    ]
+  );
+});
+
+
+test("buildLogoCandidates removes duplicate candidates", () => {
+  const url =
+    "https://cdn.example.com/logo.svg";
+
+  assert.deepEqual(
+    buildLogoCandidates({
+      logoUrl: url,
+      logoCandidates: [
+        url,
+        url,
+      ],
+    }),
+    [
+      url,
+    ]
+  );
+});
+
+
+test("buildLogoCandidates tolerates empty identity", () => {
+  assert.deepEqual(
+    buildLogoCandidates({}),
+    []
+  );
+});
+
+
+test("buildLogoCandidates never creates initials", () => {
+  const result =
+    buildLogoCandidates({
+      domain: "",
+      logoUrl: "",
+    });
+
+  assert.deepEqual(
+    result,
+    []
+  );
+});

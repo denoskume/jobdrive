@@ -237,3 +237,66 @@ export function inferAtsIdentity(
     confidence: "low",
   };
 }
+
+
+export function buildLogoCandidates(
+  identity = {}
+) {
+  const candidates = [];
+
+
+  const addCandidate = (
+    value
+  ) => {
+    const candidate =
+      String(value || "")
+        .trim();
+
+    if (!candidate) {
+      return;
+    }
+
+    if (
+      !candidates.includes(
+        candidate
+      )
+    ) {
+      candidates.push(
+        candidate
+      );
+    }
+  };
+
+
+  addCandidate(
+    identity.logoUrl
+  );
+
+
+  if (
+    Array.isArray(
+      identity.logoCandidates
+    )
+  ) {
+    identity.logoCandidates
+      .forEach(
+        addCandidate
+      );
+  }
+
+
+  const domain =
+    normalizeDomain(
+      identity.domain || ""
+    );
+
+
+  if (domain) {
+    addCandidate(
+      `https://www.google.com/s2/favicons?domain_url=https://${domain}&sz=128`
+    );
+  }
+
+
+  return candidates;
+}
