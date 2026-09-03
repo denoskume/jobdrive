@@ -90,3 +90,100 @@ test("findSeedIdentity returns null for unknown company", () => {
     null
   );
 });
+
+import {
+  normalizeDomain,
+  extractOfficialDomain,
+} from "../src/companyIdentity/companyIdentitySources.mjs";
+
+
+test("normalizeDomain removes www prefix", () => {
+  assert.equal(
+    normalizeDomain("www.airbus.com"),
+    "airbus.com"
+  );
+});
+
+
+test("normalizeDomain removes careers subdomain", () => {
+  assert.equal(
+    normalizeDomain("careers.airbus.com"),
+    "airbus.com"
+  );
+});
+
+
+test("normalizeDomain removes jobs subdomain", () => {
+  assert.equal(
+    normalizeDomain("jobs.alstom.com"),
+    "alstom.com"
+  );
+});
+
+
+test("extractOfficialDomain resolves direct official URL", () => {
+  assert.deepEqual(
+    extractOfficialDomain(
+      "https://careers.airbus.com/job/123"
+    ),
+    {
+      domain: "airbus.com",
+      source: "offer-domain",
+      confidence: "high",
+    }
+  );
+});
+
+
+test("extractOfficialDomain resolves jobs subdomain", () => {
+  assert.deepEqual(
+    extractOfficialDomain(
+      "https://jobs.alstom.com/job/Paris-Internship/123"
+    ),
+    {
+      domain: "alstom.com",
+      source: "offer-domain",
+      confidence: "high",
+    }
+  );
+});
+
+
+test("extractOfficialDomain rejects LinkedIn", () => {
+  assert.equal(
+    extractOfficialDomain(
+      "https://www.linkedin.com/jobs/view/123"
+    ),
+    null
+  );
+});
+
+
+test("extractOfficialDomain rejects Indeed", () => {
+  assert.equal(
+    extractOfficialDomain(
+      "https://fr.indeed.com/viewjob?jk=123"
+    ),
+    null
+  );
+});
+
+
+test("extractOfficialDomain rejects Greenhouse intermediary", () => {
+  assert.equal(
+    extractOfficialDomain(
+      "https://boards.greenhouse.io/example/jobs/123"
+    ),
+    null
+  );
+});
+
+
+test("extractOfficialDomain rejects malformed URLs", () => {
+  assert.equal(
+    extractOfficialDomain(
+      "not-a-valid-url"
+    ),
+    null
+  );
+});
