@@ -223,6 +223,12 @@ export function normalizeJobs(values = []) {
       followUpDate: row[20] || "",
       notes: row[21] || "",
       lastUpdated: row[22] || "",
+
+      companyDomain:
+        String(row[23] || "").trim(),
+
+      logoUrl:
+        String(row[24] || "").trim(),
     }))
     .filter((job) => job.id);
 }

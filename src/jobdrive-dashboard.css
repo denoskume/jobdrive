@@ -1,0 +1,2823 @@
+:root {
+  --jd-sidebar-width: 204px;
+  --jd-topbar-height: 68px;
+
+  --jd-bg: #081018;
+  --jd-bg-2: #0a131b;
+  --jd-sidebar: #091119;
+
+  --jd-panel: #101922;
+  --jd-panel-2: #111b24;
+  --jd-panel-3: #151f29;
+
+  --jd-border: #1e2b36;
+  --jd-border-2: #253541;
+
+  --jd-text: #f5f7fa;
+  --jd-muted: #9aa5b1;
+  --jd-dim: #6f7c89;
+
+  --jd-purple: #7b50ff;
+  --jd-green: #83df62;
+  --jd-orange: #ff9c2b;
+  --jd-blue: #42a5ff;
+  --jd-pink: #f05c91;
+  --jd-cyan: #52d0d8;
+}
+
+
+.jd-shell,
+.jd-shell *,
+.jd-shell *::before,
+.jd-shell *::after {
+  box-sizing: border-box;
+}
+
+
+.jd-shell button,
+.jd-shell input,
+.jd-shell select {
+  font: inherit;
+}
+
+
+.jd-shell {
+  width: 100vw;
+  height: 100vh;
+
+  display: grid;
+
+  grid-template-columns:
+    var(--jd-sidebar-width)
+    minmax(0, 1fr);
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      #071018,
+      #0a131c
+    );
+
+  color: var(--jd-text);
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.jd-sidebar {
+  min-width: 0;
+  height: 100vh;
+
+  padding: 16px 14px 14px;
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    linear-gradient(
+      180deg,
+      #091119,
+      #081017
+    );
+
+  border-right:
+    1px solid var(--jd-border);
+}
+
+
+.jd-brand {
+  height: 52px;
+
+  padding: 0 8px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+}
+
+
+.jd-brand-logo {
+  width: 36px;
+  height: 36px;
+
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8e63ff,
+      #5e35db
+    );
+
+  box-shadow:
+    0 8px 24px
+    rgba(85, 45, 180, .20);
+
+  color: #fff;
+
+  font-size: 16px;
+  font-weight: 800;
+}
+
+
+.jd-brand strong {
+  display: block;
+
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+
+.jd-brand small {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #98a2ae;
+
+  font-size: 10px;
+}
+
+
+.jd-nav {
+  margin-top: 16px;
+
+  display: grid;
+
+  gap: 3px;
+}
+
+
+.jd-nav button {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #c8d0d8;
+
+  cursor: pointer;
+
+  font-size: 13px;
+  text-align: left;
+}
+
+
+.jd-nav button svg {
+  color: #8a96a3;
+}
+
+
+.jd-nav button.active {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(123,80,255,.28),
+      rgba(123,80,255,.14)
+    );
+
+  color: #fff;
+}
+
+
+.jd-nav button.active svg {
+  color: #b499ff;
+}
+
+
+.jd-saved {
+  margin-top: 30px;
+
+  padding: 0 7px;
+}
+
+
+.jd-saved h6 {
+  margin: 0 0 8px;
+
+  padding-bottom: 10px;
+
+  border-bottom:
+    1px solid var(--jd-border);
+
+  color: #697683;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  letter-spacing: .06em;
+}
+
+
+.jd-saved button {
+  width: 100%;
+  min-height: 38px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #c9d0d8;
+
+  cursor: pointer;
+
+  font-size: 11px;
+}
+
+
+.jd-saved button > i {
+  width: 8px;
+  height: 8px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+}
+
+
+.jd-saved i.purple {
+  background: #8d5eff;
+}
+
+
+.jd-saved i.orange {
+  background: var(--jd-orange);
+}
+
+
+.jd-saved i.cyan {
+  background: var(--jd-cyan);
+}
+
+
+.jd-saved i.pink {
+  background: var(--jd-pink);
+}
+
+
+.jd-saved button > span {
+  margin-left: auto;
+
+  min-width: 21px;
+  height: 21px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid #34424f;
+
+  border-radius: 5px;
+
+  color: #b9c1ca;
+
+  font-size: 9px;
+}
+
+
+.jd-profile {
+  margin-top: auto;
+
+  padding: 13px;
+
+  border:
+    1px solid var(--jd-border);
+
+  border-radius: 10px;
+
+  background:
+    rgba(255,255,255,.02);
+}
+
+
+.jd-profile-head {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+.jd-profile-head > span {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 7px;
+
+  background:
+    rgba(123,80,255,.17);
+
+  color: #d6caff;
+
+  font-size: 9px;
+}
+
+
+.jd-profile-head strong {
+  display: block;
+
+  font-size: 11px;
+}
+
+
+.jd-profile-head small {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #7e8a96;
+
+  font-size: 8px;
+}
+
+
+.jd-profile-label {
+  margin-top: 13px;
+
+  display: flex;
+  justify-content: space-between;
+
+  color: #8995a1;
+
+  font-size: 9px;
+}
+
+
+.jd-profile-label strong {
+  color: #d0d6dc;
+}
+
+
+.jd-profile-bar {
+  height: 5px;
+
+  margin-top: 7px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: #222d38;
+}
+
+
+.jd-profile-bar i {
+  width: 82%;
+  height: 100%;
+
+  display: block;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #7144ff,
+      #9b67ff
+    );
+}
+
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.jd-main {
+  min-width: 0;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
+.jd-topbar {
+  height: var(--jd-topbar-height);
+  min-height: var(--jd-topbar-height);
+
+  padding: 0 38px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content: space-between;
+
+  border-bottom:
+    1px solid var(--jd-border);
+}
+
+
+.jd-search {
+  width: 596px;
+  max-width: 58%;
+
+  height: 42px;
+
+  padding: 0 13px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    1px solid #263540;
+
+  border-radius: 8px;
+
+  background:
+    rgba(255,255,255,.018);
+
+  color: #7f8c98;
+}
+
+
+.jd-search input {
+  min-width: 0;
+
+  flex: 1;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: #dbe1e7;
+
+  font-size: 12px;
+}
+
+
+.jd-search input::placeholder {
+  color: #73808c;
+}
+
+
+.jd-search kbd {
+  padding: 5px 7px;
+
+  border-radius: 5px;
+
+  background: #111c25;
+
+  color: #74818d;
+
+  font-size: 9px;
+  font-family: inherit;
+}
+
+
+.jd-top-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+
+.jd-top-actions > button {
+  position: relative;
+
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #8f9ba6;
+
+  cursor: pointer;
+}
+
+
+.jd-top-actions > button b {
+  position: absolute;
+
+  right: -1px;
+  top: -2px;
+
+  width: 15px;
+  height: 15px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #7447dd;
+
+  color: white;
+
+  font-size: 8px;
+  font-weight: 700;
+}
+
+
+.jd-top-actions
+.jd-avatar {
+  position: relative;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #2b293e,
+      #171c27
+    );
+
+  color: #fff;
+
+  font-size: 11px;
+}
+
+
+.jd-avatar i {
+  position: absolute;
+
+  right: 0;
+  bottom: 0;
+
+  width: 8px;
+  height: 8px;
+
+  border:
+    2px solid #081018;
+
+  border-radius: 50%;
+
+  background: #66dc68;
+}
+
+
+/* =========================================================
+   KPIS
+   ========================================================= */
+
+.jd-kpis {
+  height: 110px;
+
+  padding: 8px 24px 14px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0,1fr));
+
+  gap: 20px;
+}
+
+
+.jd-kpi {
+  min-width: 0;
+
+  height: 88px;
+
+  padding: 13px 15px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content: space-between;
+
+  border:
+    1px solid var(--jd-border);
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #121b25,
+      #0f1821
+    );
+}
+
+
+.jd-kpi small {
+  display: block;
+
+  color: #87929e;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+
+.jd-kpi strong {
+  display: block;
+
+  margin-top: 7px;
+
+  color: #fff;
+
+  font-size: 25px;
+  line-height: 1;
+}
+
+
+.jd-kpi span {
+  display: block;
+
+  margin-top: 7px;
+
+  color: #7d8995;
+
+  font-size: 10px;
+}
+
+
+.jd-kpi > i {
+  font-style: normal;
+}
+
+
+.jd-kpi.purple > i {
+  color: var(--jd-purple);
+}
+
+
+.jd-kpi.green > i {
+  color: var(--jd-green);
+}
+
+
+.jd-kpi.blue > i {
+  color: var(--jd-blue);
+}
+
+
+.jd-kpi.orange > i {
+  color: var(--jd-orange);
+}
+
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.jd-workspace {
+  min-height: 0;
+
+  flex: 1;
+
+  padding: 0 24px 14px;
+
+  display: grid;
+
+  grid-template-columns:
+    37% 63%;
+
+  gap: 14px;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   FEED
+   ========================================================= */
+
+.jd-feed {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border:
+    1px solid var(--jd-border);
+
+  border-radius: 10px;
+
+  background: #0e171f;
+}
+
+
+.jd-feed-header {
+  height: 54px;
+  min-height: 54px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content: space-between;
+
+  border-bottom:
+    1px solid var(--jd-border);
+
+  background: #101922;
+}
+
+
+.jd-feed-header > strong {
+  font-size: 13px;
+}
+
+
+.jd-feed-header label {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #84909b;
+
+  font-size: 9px;
+}
+
+
+.jd-feed-header select {
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: #b5bec7;
+
+  font-size: 9px;
+}
+
+
+.jd-job-list {
+  min-height: 0;
+
+  flex: 1;
+
+  padding: 8px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  overflow-y: auto;
+
+  background: #0d151d;
+}
+
+
+.jd-job-list::-webkit-scrollbar,
+.jd-detail-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+
+.jd-job-list::-webkit-scrollbar-thumb,
+.jd-detail-scroll::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+
+  background: #36434f;
+}
+
+
+.jd-job-card {
+  min-height: 145px;
+
+  padding: 12px;
+
+  display: grid;
+
+  grid-template-columns:
+    46px minmax(0,1fr);
+
+  gap: 12px;
+
+  border:
+    1px solid #23313d;
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #121c25,
+      #101820
+    );
+
+  cursor: pointer;
+}
+
+
+.jd-job-card.active {
+  border-color: #8057ff;
+
+  box-shadow:
+    inset 2px 0 0 #8057ff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(123,80,255,.075),
+      #111a23 36%
+    );
+}
+
+
+.jd-company-logo {
+  width: 44px;
+  height: 44px;
+
+  margin-top: 7px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border-radius: 6px;
+
+  background: #fff;
+}
+
+
+.jd-company-logo img {
+  width: 33px;
+  height: 33px;
+
+  object-fit: contain;
+}
+
+
+.jd-company-logo span {
+  color: #263748;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+
+.jd-job-body {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+
+.jd-job-top {
+  min-height: 22px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content: space-between;
+}
+
+
+.jd-match-mini {
+  padding: 3px 5px;
+
+  border:
+    1px solid
+    rgba(115,214,84,.32);
+
+  border-radius: 5px;
+
+  background:
+    rgba(115,214,84,.10);
+
+  color: #8ce46e;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+
+.jd-days {
+  color: #87e16c;
+
+  font-size: 9px;
+}
+
+
+.jd-job-title {
+  margin-top: 4px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0,1fr) auto;
+
+  gap: 8px;
+}
+
+
+.jd-job-title h3 {
+  margin: 0;
+
+  max-width: 100%;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+
+  overflow: hidden;
+
+  color: #f4f6f8;
+
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.38;
+}
+
+
+.jd-job-title p {
+  margin: 5px 0 0;
+
+  max-width: 100%;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: #adb6bf;
+
+  font-size: 9px;
+}
+
+
+.jd-job-title button {
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #77838f;
+
+  cursor: pointer;
+}
+
+
+.jd-job-meta {
+  margin-top: 11px;
+
+  display: flex;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 14px;
+
+  color: #7e8b97;
+
+  font-size: 9px;
+}
+
+
+.jd-job-meta span {
+  min-width: 0;
+  max-width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.jd-job-meta span:first-child {
+  max-width: 56%;
+}
+
+.jd-job-meta span:last-child {
+  max-width: 44%;
+}
+
+.jd-job-meta svg {
+  flex: 0 0 auto;
+}
+
+
+.jd-job-tags {
+  width: 100%;
+  max-width: 100%;
+
+  margin-top: 9px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  overflow: hidden;
+}
+
+
+.jd-job-tags span {
+  padding: 4px 8px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.025);
+
+  border-radius: 999px;
+
+  background:
+    rgba(255,255,255,.045);
+
+  color: #9fa9b3;
+
+  font-size: 8px;
+
+  white-space: nowrap;
+}
+
+
+.jd-feed-footer {
+  height: 52px;
+  min-height: 52px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content: space-between;
+
+  border-top:
+    1px solid var(--jd-border);
+
+  background: #101922;
+}
+
+
+.jd-feed-footer > span {
+  color: #808d99;
+
+  font-size: 8px;
+}
+
+
+.jd-feed-footer > div {
+  display: flex;
+
+  gap: 5px;
+}
+
+
+.jd-feed-footer button {
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+
+  border:
+    1px solid #293844;
+
+  border-radius: 6px;
+
+  background: #0d151d;
+
+  color: #72808d;
+}
+
+
+.jd-feed-footer
+button.active {
+  border-color: #5047c4;
+
+  background: #292365;
+
+  color: #fff;
+}
+
+
+/* =========================================================
+   DETAIL
+   ========================================================= */
+
+.jd-detail {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border:
+    1px solid var(--jd-border);
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #101922,
+      #0d161e
+    );
+}
+
+
+.jd-detail-header {
+  min-height: 190px;
+
+  padding: 18px 18px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0,1fr) auto;
+
+  gap: 22px;
+
+  border-bottom:
+    1px solid var(--jd-border);
+
+  background:
+    linear-gradient(
+      145deg,
+      #111a23,
+      #0e171f
+    );
+}
+
+
+.jd-stage {
+  display: inline-flex;
+
+  padding: 4px 10px;
+
+  border:
+    1px solid
+    rgba(123,80,255,.34);
+
+  border-radius: 999px;
+
+  background:
+    rgba(123,80,255,.13);
+
+  color: #b69aff;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+.jd-detail-title h1 {
+  max-width: 760px;
+
+  margin: 14px 0 0;
+
+  color: #fff;
+
+  font-size: 22px;
+  font-weight: 760;
+
+  line-height: 1.28;
+
+  letter-spacing: -.35px;
+}
+
+
+.jd-detail-title h2 {
+  margin: 14px 0 0;
+
+  color: #b5bec7;
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+
+.jd-detail-title p {
+  margin: 10px 0 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color: #8995a1;
+
+  font-size: 10px;
+}
+
+
+.jd-detail-actions {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 8px;
+}
+
+
+.jd-detail-actions button,
+.jd-detail-actions a {
+  height: 38px;
+
+  padding: 0 15px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  border-radius: 7px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  text-decoration: none;
+}
+
+
+.jd-save {
+  border:
+    1px solid #2b3945;
+
+  background:
+    rgba(255,255,255,.02);
+
+  color: #d4d9de;
+
+  cursor: pointer;
+}
+
+
+.jd-detail-actions a {
+  padding: 0 18px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  background:
+    linear-gradient(
+      135deg,
+      #7245ff,
+      #895cff
+    );
+
+  color: white;
+}
+
+
+.jd-detail-scroll {
+  min-height: 0;
+
+  flex: 1;
+
+  padding: 14px 14px 26px;
+
+  overflow-y: auto;
+}
+
+
+.jd-status-row {
+  min-height: 58px;
+
+  padding-bottom: 12px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 16px;
+
+  border-bottom:
+    1px solid var(--jd-border);
+}
+
+
+.jd-badges {
+  display: flex;
+
+  gap: 7px;
+}
+
+
+.jd-badges > span {
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 650;
+}
+
+
+.jd-badges .match {
+  border:
+    1px solid
+    rgba(125,220,94,.3);
+
+  background:
+    rgba(125,220,94,.08);
+
+  color: #91e877;
+}
+
+
+.jd-badges .priority {
+  border:
+    1px solid
+    rgba(255,157,42,.31);
+
+  background:
+    rgba(255,157,42,.08);
+
+  color: #ffb057;
+}
+
+
+.jd-badges .status {
+  border:
+    1px solid
+    rgba(65,158,255,.28);
+
+  background:
+    rgba(65,158,255,.08);
+
+  color: #68b2ff;
+}
+
+
+.jd-deadline {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  color: #83909b;
+
+  font-size: 10px;
+}
+
+
+.jd-deadline strong {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #82df68;
+}
+
+
+.jd-match-card {
+  min-height: 136px;
+
+  margin-top: 12px;
+
+  padding: 16px 18px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0,1fr) 130px;
+
+  align-items: center;
+
+  gap: 24px;
+
+  border:
+    1px solid var(--jd-border);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255,255,255,.018);
+}
+
+
+.jd-match-card h3,
+.jd-info-card h3,
+.jd-skills h3 {
+  margin: 0;
+
+  font-size: 12px;
+}
+
+
+.jd-match-card p {
+  max-width: 730px;
+
+  margin: 11px 0 0;
+
+  color: #9ea8b2;
+
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+
+.jd-match-ring {
+  width: 96px;
+  height: 96px;
+
+  margin: auto;
+
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    conic-gradient(
+      #7fd75f var(--score),
+      #26323d 0
+    );
+}
+
+
+.jd-match-ring::after {
+  content: "";
+
+  position: absolute;
+
+  width: 76px;
+  height: 76px;
+
+  border-radius: 50%;
+
+  background: #111a23;
+}
+
+
+.jd-match-ring > div {
+  position: relative;
+
+  z-index: 1;
+
+  text-align: center;
+}
+
+
+.jd-match-ring strong {
+  display: block;
+
+  font-size: 20px;
+}
+
+
+.jd-match-ring span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #7ed75e;
+
+  font-size: 9px;
+}
+
+
+.jd-detail-columns {
+  margin-top: 11px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0,1fr));
+
+  gap: 11px;
+}
+
+
+.jd-info-card,
+.jd-skills {
+  padding: 16px;
+
+  border:
+    1px solid var(--jd-border);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255,255,255,.018);
+}
+
+
+.jd-info-card {
+  min-height: 275px;
+}
+
+
+.jd-info-card dl {
+  margin: 17px 0 0;
+
+  display: grid;
+
+  gap: 13px;
+}
+
+
+.jd-info-card dl > div {
+  display: grid;
+
+  grid-template-columns:
+    112px minmax(0,1fr);
+
+  gap: 9px;
+}
+
+
+.jd-info-card dt {
+  color: #7d8995;
+
+  font-size: 10px;
+}
+
+
+.jd-info-card dd {
+  margin: 0;
+
+  color: #dce1e6;
+
+  font-size: 10px;
+}
+
+
+.jd-track-status {
+  padding: 3px 8px;
+
+  border:
+    1px solid
+    rgba(65,158,255,.27);
+
+  border-radius: 999px;
+
+  background:
+    rgba(65,158,255,.08);
+
+  color: #65b0ff;
+}
+
+
+.jd-update {
+  height: 31px;
+
+  margin-top: 16px;
+
+  padding: 0 11px;
+
+  border:
+    1px solid #31404d;
+
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: #cbd2da;
+
+  font-size: 9px;
+
+  cursor: pointer;
+}
+
+
+.jd-skills {
+  min-height: 108px;
+
+  margin-top: 11px;
+}
+
+
+.jd-skills > div {
+  margin-top: 14px;
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+
+.jd-skills span {
+  padding: 5px 10px;
+
+  border:
+    1px solid #202e39;
+
+  border-radius: 999px;
+
+  background: #19232d;
+
+  color: #aab4bd;
+
+  font-size: 9px;
+}
+
+
+.jd-no-selection {
+  height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  color: var(--jd-dim);
+}
+
+
+.jd-alternate {
+  min-height: 0;
+
+  flex: 1;
+
+  padding: 18px 28px;
+
+  overflow: auto;
+}
+
+
+/* =========================================================
+   REFERENCE DESKTOP BEHAVIOUR
+   ========================================================= */
+
+@media (max-width: 1180px) {
+  .jd-workspace {
+    grid-template-columns:
+      38% 62%;
+  }
+
+  .jd-kpis {
+    gap: 10px;
+  }
+}
+
+
+@media (max-width: 1000px) {
+  :root {
+    --jd-sidebar-width: 190px;
+  }
+
+  .jd-workspace {
+    grid-template-columns:
+      42% 58%;
+  }
+
+  .jd-detail-columns {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+/* =========================================================
+   V6 — containment guards
+   ========================================================= */
+
+.jd-feed,
+.jd-job-card,
+.jd-job-title,
+.jd-job-title > div,
+.jd-detail,
+.jd-detail-title,
+.jd-detail-scroll,
+.jd-match-card,
+.jd-info-card {
+  min-width: 0;
+}
+
+.jd-detail-title h1,
+.jd-detail-title h2,
+.jd-match-card p,
+.jd-info-card dd {
+  overflow-wrap: anywhere;
+}
+
+.jd-job-card {
+  overflow: hidden;
+}
+
+.jd-job-title {
+  min-width: 0;
+}
+
+.jd-job-title > div {
+  min-width: 0;
+}
+
+.jd-job-title button {
+  flex: 0 0 auto;
+}
+
+.jd-job-meta {
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.jd-job-tags span {
+  flex: 0 0 auto;
+}
+
+
+/* Maintain exact desktop geometry longer.
+   Previous breakpoint was changing the reference layout too early. */
+
+@media (max-width: 1180px) and (min-width: 1001px) {
+  .jd-workspace {
+    grid-template-columns:
+      37% 63%;
+  }
+}
+
+
+
+/* =========================================================
+   V7 — FULL-WIDTH INTERNSHIP EXPERIENCE
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   Main internship workspace now contains ONE element:
+   the internship feed.
+   --------------------------------------------------------- */
+
+.jd-workspace.jd-internship-stage {
+  grid-template-columns: 1fr;
+
+  padding:
+    0 24px 14px;
+
+  gap: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Internship feed occupies all available space
+   --------------------------------------------------------- */
+
+.jd-internship-stage .jd-feed {
+  width: 100%;
+  height: 100%;
+}
+
+
+/* Slightly larger header now that feed owns the workspace */
+
+.jd-internship-stage
+.jd-feed-header {
+  height: 56px;
+  min-height: 56px;
+
+  padding:
+    0 18px;
+}
+
+
+.jd-internship-stage
+.jd-feed-header > strong {
+  font-size: 14px;
+}
+
+
+/* ---------------------------------------------------------
+   Two-column opportunity catalogue
+   --------------------------------------------------------- */
+
+.jd-internship-stage
+.jd-job-list {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  grid-auto-rows:
+    minmax(170px, auto);
+
+  align-content: start;
+
+  gap: 10px;
+
+  padding: 10px;
+
+  overflow-y: auto;
+}
+
+
+/* ---------------------------------------------------------
+   Wider cards
+   --------------------------------------------------------- */
+
+.jd-internship-stage
+.jd-job-card {
+  min-width: 0;
+  min-height: 170px;
+
+  padding: 15px;
+
+  grid-template-columns:
+    52px minmax(0, 1fr);
+
+  gap: 14px;
+}
+
+
+.jd-internship-stage
+.jd-company-logo {
+  width: 50px;
+  height: 50px;
+
+  margin-top: 7px;
+}
+
+
+.jd-internship-stage
+.jd-company-logo img {
+  width: 36px;
+  height: 36px;
+}
+
+
+.jd-internship-stage
+.jd-job-title h3 {
+  max-width: 95%;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  -webkit-line-clamp: 2;
+}
+
+
+.jd-internship-stage
+.jd-job-title p {
+  margin-top: 6px;
+
+  font-size: 10px;
+}
+
+
+.jd-internship-stage
+.jd-job-meta {
+  margin-top: 13px;
+
+  font-size: 9px;
+
+  gap: 20px;
+}
+
+
+.jd-internship-stage
+.jd-job-tags {
+  margin-top: 13px;
+}
+
+
+.jd-internship-stage
+.jd-job-tags span {
+  padding:
+    5px 9px;
+
+  font-size: 8px;
+}
+
+
+.jd-internship-stage
+.jd-match-mini {
+  padding:
+    4px 6px;
+
+  font-size: 8px;
+}
+
+
+.jd-internship-stage
+.jd-days {
+  font-size: 10px;
+}
+
+
+/* Selected state no longer needs to look like permanent split pane */
+
+.jd-internship-stage
+.jd-job-card.active {
+  border-color:
+    rgba(128,87,255,.72);
+
+  box-shadow:
+    inset 2px 0 0 #8057ff,
+    0 0 0 1px
+    rgba(128,87,255,.08);
+}
+
+
+/* ---------------------------------------------------------
+   Footer
+   --------------------------------------------------------- */
+
+.jd-internship-stage
+.jd-feed-footer {
+  padding:
+    0 18px;
+}
+
+
+/* =========================================================
+   FULLSCREEN DETAIL MODAL
+   ========================================================= */
+
+.jd-detail-backdrop {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 9999;
+
+  padding: 14px;
+
+  display: flex;
+
+  align-items: stretch;
+  justify-content: stretch;
+
+  background:
+    rgba(2, 6, 12, .80);
+
+  backdrop-filter:
+    blur(9px);
+
+  animation:
+    jdBackdropIn
+    140ms ease-out;
+}
+
+
+.jd-detail-modal {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(120, 139, 158, .28);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #0d161f,
+      #081119
+    );
+
+  box-shadow:
+    0 30px 100px
+    rgba(0,0,0,.60);
+
+  animation:
+    jdModalIn
+    180ms
+    cubic-bezier(
+      .2,
+      .8,
+      .2,
+      1
+    );
+}
+
+
+/* The existing JobDetail becomes a full-screen content surface */
+
+.jd-detail-modal
+.jd-detail {
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+  border-radius: 0;
+
+  background:
+    transparent;
+}
+
+
+/* ---------------------------------------------------------
+   Close button
+   --------------------------------------------------------- */
+
+.jd-detail-close {
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  z-index: 30;
+
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid #33424f;
+
+  border-radius: 9px;
+
+  background:
+    rgba(9,17,25,.88);
+
+  color: #cbd3db;
+
+  cursor: pointer;
+
+  backdrop-filter:
+    blur(10px);
+
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    transform .15s ease;
+}
+
+
+.jd-detail-close:hover {
+  background:
+    #17232e;
+
+  border-color:
+    #566574;
+
+  transform:
+    scale(1.03);
+}
+
+
+/* Leave room for close button */
+
+.jd-detail-modal
+.jd-detail-actions {
+  margin-right: 50px;
+}
+
+
+/* =========================================================
+   FULLSCREEN DETAIL — HERO
+   ========================================================= */
+
+.jd-detail-modal
+.jd-detail-header {
+  min-height: 220px;
+
+  padding:
+    28px 36px;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  gap: 28px;
+
+  background:
+    radial-gradient(
+      circle at 80% 0%,
+      rgba(123,80,255,.09),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #111c26,
+      #0c151e
+    );
+}
+
+
+.jd-detail-modal
+.jd-detail-title {
+  max-width: 900px;
+}
+
+
+.jd-detail-modal
+.jd-detail-title h1 {
+  max-width: 900px;
+
+  margin-top: 16px;
+
+  font-size:
+    clamp(
+      27px,
+      2.35vw,
+      38px
+    );
+
+  line-height: 1.17;
+
+  letter-spacing: -.7px;
+}
+
+
+.jd-detail-modal
+.jd-detail-title h2 {
+  margin-top: 16px;
+
+  font-size: 14px;
+}
+
+
+.jd-detail-modal
+.jd-detail-title p {
+  margin-top: 12px;
+
+  font-size: 12px;
+}
+
+
+.jd-detail-modal
+.jd-stage {
+  padding:
+    5px 11px;
+
+  font-size: 10px;
+}
+
+
+.jd-detail-modal
+.jd-detail-actions {
+  margin-top: 2px;
+}
+
+
+.jd-detail-modal
+.jd-detail-actions button,
+.jd-detail-modal
+.jd-detail-actions a {
+  height: 42px;
+
+  padding:
+    0 17px;
+
+  font-size: 11px;
+}
+
+
+.jd-detail-modal
+.jd-detail-actions a {
+  padding:
+    0 21px;
+}
+
+
+/* =========================================================
+   MODAL DETAIL BODY
+   ========================================================= */
+
+.jd-detail-modal
+.jd-detail-scroll {
+  padding:
+    18px 34px 40px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #0a131c,
+      #081119
+    );
+}
+
+
+/* Status line */
+
+.jd-detail-modal
+.jd-status-row {
+  min-height: 66px;
+
+  padding:
+    0 4px 14px;
+}
+
+
+.jd-detail-modal
+.jd-badges > span {
+  padding:
+    6px 11px;
+
+  font-size: 10px;
+}
+
+
+.jd-detail-modal
+.jd-deadline {
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   MATCH SUMMARY
+   ========================================================= */
+
+.jd-detail-modal
+.jd-match-card {
+  min-height: 190px;
+
+  margin-top: 14px;
+
+  padding:
+    24px 28px;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    160px;
+
+  border-radius: 11px;
+
+  background:
+    radial-gradient(
+      circle at 95% 50%,
+      rgba(127,215,95,.055),
+      transparent 30%
+    ),
+    rgba(255,255,255,.018);
+}
+
+
+.jd-detail-modal
+.jd-match-card h3 {
+  font-size: 15px;
+}
+
+
+.jd-detail-modal
+.jd-match-card p {
+  max-width: 900px;
+
+  margin-top: 14px;
+
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+
+.jd-detail-modal
+.jd-match-ring {
+  width: 118px;
+  height: 118px;
+}
+
+
+.jd-detail-modal
+.jd-match-ring::after {
+  width: 94px;
+  height: 94px;
+}
+
+
+.jd-detail-modal
+.jd-match-ring strong {
+  font-size: 25px;
+}
+
+
+.jd-detail-modal
+.jd-match-ring span {
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   DETAIL DATA CARDS
+   ========================================================= */
+
+.jd-detail-modal
+.jd-detail-columns {
+  margin-top: 14px;
+
+  gap: 14px;
+}
+
+
+.jd-detail-modal
+.jd-info-card {
+  min-height: 310px;
+
+  padding:
+    21px 24px;
+}
+
+
+.jd-detail-modal
+.jd-info-card h3,
+.jd-detail-modal
+.jd-skills h3 {
+  font-size: 14px;
+}
+
+
+.jd-detail-modal
+.jd-info-card dl {
+  margin-top: 20px;
+
+  gap: 15px;
+}
+
+
+.jd-detail-modal
+.jd-info-card dl > div {
+  grid-template-columns:
+    145px minmax(0,1fr);
+
+  gap: 12px;
+}
+
+
+.jd-detail-modal
+.jd-info-card dt {
+  font-size: 11px;
+}
+
+
+.jd-detail-modal
+.jd-info-card dd {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+
+.jd-detail-modal
+.jd-update {
+  height: 35px;
+
+  margin-top: 20px;
+
+  padding:
+    0 13px;
+
+  font-size: 10px;
+}
+
+
+/* Skills */
+
+.jd-detail-modal
+.jd-skills {
+  min-height: 120px;
+
+  margin-top: 14px;
+
+  padding:
+    20px 24px;
+}
+
+
+.jd-detail-modal
+.jd-skills > div {
+  margin-top: 16px;
+
+  gap: 8px;
+}
+
+
+.jd-detail-modal
+.jd-skills span {
+  padding:
+    6px 11px;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+@keyframes jdBackdropIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+@keyframes jdModalIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(12px)
+      scale(.992);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+
+  .jd-internship-stage
+  .jd-job-list {
+    grid-template-columns:
+      1fr;
+  }
+
+}
+
+
+@media (max-width: 760px) {
+
+  .jd-detail-backdrop {
+    padding: 0;
+  }
+
+  .jd-detail-modal {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .jd-detail-modal
+  .jd-detail-header {
+    min-height: 260px;
+
+    padding:
+      22px 18px;
+
+    grid-template-columns:
+      1fr;
+  }
+
+  .jd-detail-modal
+  .jd-detail-actions {
+    margin-right: 0;
+  }
+
+  .jd-detail-modal
+  .jd-detail-scroll {
+    padding:
+      14px 14px 30px;
+  }
+
+  .jd-detail-modal
+  .jd-match-card {
+    grid-template-columns:
+      1fr;
+  }
+
+  .jd-detail-modal
+  .jd-detail-columns {
+    grid-template-columns:
+      1fr;
+  }
+
+}
+
+
+/* =========================================================
+   V8 — SINGLE COLUMN INTERNSHIP FEED
+   ========================================================= */
+
+.jd-internship-stage
+.jd-job-list {
+  display: grid;
+
+  grid-template-columns: 1fr;
+
+  grid-auto-rows:
+    minmax(155px, auto);
+
+  gap: 10px;
+
+  padding: 10px;
+
+  overflow-y: auto;
+}
+
+
+/* Full-width internship card */
+
+.jd-internship-stage
+.jd-job-card {
+  width: 100%;
+
+  min-height: 155px;
+
+  padding: 16px 18px;
+
+  grid-template-columns:
+    54px minmax(0, 1fr);
+
+  gap: 16px;
+}
+
+
+/* Slightly larger company identity */
+
+.jd-internship-stage
+.jd-company-logo {
+  width: 52px;
+  height: 52px;
+}
+
+
+.jd-internship-stage
+.jd-company-logo img {
+  width: 38px;
+  height: 38px;
+}
+
+
+/* More room for title */
+
+.jd-internship-stage
+.jd-job-title h3 {
+  max-width: 92%;
+
+  font-size: 14px;
+  line-height: 1.35;
+
+  -webkit-line-clamp: 2;
+}
+
+
+/* Company */
+
+.jd-internship-stage
+.jd-job-title p {
+  margin-top: 6px;
+
+  font-size: 10px;
+}
+
+
+/* Metadata remains on one clean line */
+
+.jd-internship-stage
+.jd-job-meta {
+  margin-top: 12px;
+
+  display: flex;
+  flex-wrap: nowrap;
+
+  gap: 22px;
+
+  font-size: 9px;
+}
+
+
+/* Give location more width */
+
+.jd-internship-stage
+.jd-job-meta span:first-child {
+  max-width: 48%;
+}
+
+
+.jd-internship-stage
+.jd-job-meta span:last-child {
+  max-width: 40%;
+}
+
+
+/* Skills */
+
+.jd-internship-stage
+.jd-job-tags {
+  margin-top: 12px;
+
+  gap: 6px;
+}
+
+
+.jd-internship-stage
+.jd-job-tags span {
+  padding: 5px 10px;
+
+  font-size: 8px;
+}
+
+
+/* Match / days alignment */
+
+.jd-internship-stage
+.jd-job-top {
+  min-height: 24px;
+}
+
+
+.jd-internship-stage
+.jd-match-mini {
+  font-size: 8px;
+
+  padding: 4px 7px;
+}
+
+
+.jd-internship-stage
+.jd-days {
+  font-size: 10px;
+}
+
+
+/* Keep footer stable */
+
+.jd-internship-stage
+.jd-feed-footer {
+  min-height: 54px;
+  height: 54px;
+}
+
+
+
+/* =========================================================
+   V9 — COMPANY BRAND LOGOS
+   ========================================================= */
+
+.jd-company-logo {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  overflow: hidden;
+
+  border:
+    1px solid rgba(255,255,255,.10);
+
+  border-radius: 7px;
+
+  background: #fff;
+}
+
+
+.jd-company-logo img {
+  width: 40px;
+  height: 40px;
+
+  display: block;
+
+  object-fit: contain;
+}
+
+
+/*
+  Unknown companies no longer display initials.
+  A neutral company SVG is used until a brand
+  mapping is added.
+*/
+
+.jd-company-logo-fallback {
+  background:
+    linear-gradient(
+      145deg,
+      #17232e,
+      #111a23
+    );
+
+  color: #83909d;
+
+  border-color: #293845;
+}
+
+
+.jd-company-logo-fallback svg {
+  width: 24px;
+  height: 24px;
+}
+
+
+/* =========================================================
+   V10 — OFFICIAL COMPANY IDENTITY
+   ========================================================= */
+
+.jd-company-logo {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  overflow: hidden;
+
+  border:
+    1px solid rgba(255,255,255,.11);
+
+  border-radius: 7px;
+
+  background: #fff;
+}
+
+.jd-company-logo img {
+  width: 42px;
+  height: 42px;
+
+  display: block;
+
+  object-fit: contain;
+}
+
+.jd-logo-error-fallback {
+  width: 100%;
+  height: 100%;
+
+  place-items: center;
+
+  color: #82909d;
+
+  background:
+    linear-gradient(
+      145deg,
+      #17232e,
+      #111a23
+    );
+}
+
+.jd-company-logo-fallback {
+  background:
+    linear-gradient(
+      145deg,
+      #17232e,
+      #111a23
+    );
+
+  border-color: #2b3945;
+}
+

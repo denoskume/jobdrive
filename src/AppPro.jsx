@@ -7,6 +7,8 @@ import {
 } from "react";
 
 import "./pro.css";
+import JobDriveDashboard from "./JobDriveDashboard.jsx";
+import CompanyLogo from "./components/CompanyLogo.jsx";
 
 import {
   requestGoogleToken,
@@ -238,24 +240,35 @@ function LoginScreen({
 }
 
 
+
+function domainTags(job = {}) {
+  return String(job.domain || "")
+    .split(/[\/,|•]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
+
 function OpportunityFeed({
   jobs,
   selectedJobId,
   onSelect,
   onFavorite,
+  sortMode,
+  onSortChange,
 }) {
   if (!jobs.length) {
     return (
-      <div className="pro-empty">
-        <div>◎</div>
-
-        <h3>No opportunities found</h3>
-
-        <p>
-          Try changing your filters or
-          refreshing JobDrive.
-        </p>
-      </div>
+      <section className="pro-feed">
+        <div className="pro-empty">
+          <div>◎</div>
+          <h3>No opportunities found</h3>
+          <p>
+            Adjust your filters to continue.
+          </p>
+        </div>
+      </section>
     );
   }
 
@@ -263,21 +276,53 @@ function OpportunityFeed({
     <section className="pro-feed">
 
       <header className="pro-feed-heading">
-        <div>
-          <strong>
-            {jobs.length} opportunities
-          </strong>
+        <strong>
+          {jobs.length} internships
+        </strong>
 
-          <small>
-            M2 internships matching your profile
-          </small>
-        </div>
+        <label className="pro-feed-sort">
+          <span>☷ Sort:</span>
+
+          <select
+            value={sortMode}
+            onChange={(event) =>
+              onSortChange(
+                event.target.value
+              )
+            }
+          >
+            <option value="newest">
+              Newest
+            </option>
+            <option value="deadline">
+              Deadline
+            </option>
+            <option value="match">
+              Best match
+            </option>
+            <option value="priority">
+              Priority
+            </option>
+            <option value="company">
+              Company A–Z
+            </option>
+          </select>
+        </label>
       </header>
 
+
       <div className="pro-feed-list">
+
         {jobs.map((job) => {
+
           const active =
             job.id === selectedJobId;
+
+          const deadline =
+            deadlineInfo(job.deadline);
+
+          const tags =
+            domainTags(job);
 
           return (
             <article
@@ -291,94 +336,154 @@ function OpportunityFeed({
                 onSelect(job.id)
               }
             >
-              <div className="pro-feed-card-top">
 
-                <div>
-                  <h3>
-                    {job.role ||
-                      "Internship opportunity"}
-                  </h3>
+              <CompanyLogo
+                company={job.company}
+                link={job.link}
+                source={job.source}
+                companyDomain={job.companyDomain}
+                logoUrl={job.logoUrl}
+              />
 
-                  <p>
+
+              <div className="pro-card-body">
+
+                <div className="pro-card-topline">
+
+                  {job.fitScore ? (
+                    <span className="pro-card-match-top">
+                      {job.fitScore}% MATCH
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+
+
+                  {deadline.days !== null &&
+                  deadline.days >= 0 ? (
+                    <span className="pro-card-days">
+                      {deadline.days}d left
+                    </span>
+                  ) : null}
+
+                </div>
+
+
+                <div className="pro-card-title-row">
+
+                  <div>
+                    <h3>
+                      {job.role ||
+                        "Internship opportunity"}
+                    </h3>
+
                     <strong>
                       {job.company ||
                         "Company"}
                     </strong>
+                  </div>
 
-                    {job.location && (
-                      <>
-                        <span>•</span>
-                        {job.location}
-                      </>
-                    )}
-                  </p>
+
+                  <button
+                    type="button"
+                    className={
+                      job.favorite
+                        ? "pro-feed-star active"
+                        : "pro-feed-star"
+                    }
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onFavorite(job);
+                    }}
+                    aria-label="Favorite"
+                  >
+                    {job.favorite
+                      ? "★"
+                      : "☆"}
+                  </button>
+
                 </div>
 
-                <button
-                  type="button"
-                  className={
-                    job.favorite
-                      ? "pro-feed-star active"
-                      : "pro-feed-star"
-                  }
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onFavorite(job);
-                  }}
-                  aria-label="Favorite"
-                >
-                  {job.favorite
-                    ? "★"
-                    : "☆"}
-                </button>
 
-              </div>
+                <div className="pro-card-meta">
 
-              <div className="pro-feed-tags">
+                  {job.location && (
+                    <span>
+                      ◉ {job.location}
+                    </span>
+                  )}
 
-                {job.domain && (
-                  <span>
-                    {job.domain}
-                  </span>
+                  {job.postedDate && (
+                    <span>
+                      ▣ Published{" "}
+                      {toDateInput(
+                        job.postedDate
+                      )}
+                    </span>
+                  )}
+
+                </div>
+
+
+                {tags.length > 0 && (
+                  <div className="pro-card-skills">
+
+                    {tags.slice(0, 3)
+                      .map((tag) => (
+                        <span key={tag}>
+                          {tag}
+                        </span>
+                      ))}
+
+                    {tags.length > 3 && (
+                      <span>
+                        +{tags.length - 3}
+                      </span>
+                    )}
+
+                  </div>
                 )}
 
-                {job.mode && (
-                  <span>
-                    {job.mode}
-                  </span>
-                )}
-
-                {job.fitScore ? (
-                  <span className="match">
-                    {job.fitScore}% match
-                  </span>
-                ) : null}
-
-                {job.priority && (
-                  <span className="priority">
-                    {job.priority}
-                  </span>
-                )}
-
-              </div>
-
-              <div className="pro-feed-footer">
-                <span>
-                  Published{" "}
-                  {toDateInput(
-                    job.postedDate
-                  ) || "—"}
-                </span>
-
-                <DeadlineBadge
-                  value={job.deadline}
-                />
               </div>
 
             </article>
           );
         })}
+
       </div>
+
+
+      <footer className="pro-feed-pagination">
+
+        <span>
+          Showing 1 to {jobs.length} of{" "}
+          {jobs.length}
+        </span>
+
+        <div>
+          <button
+            type="button"
+            disabled
+          >
+            ‹
+          </button>
+
+          <button
+            type="button"
+            className="active"
+          >
+            1
+          </button>
+
+          <button
+            type="button"
+            disabled
+          >
+            ›
+          </button>
+        </div>
+
+      </footer>
 
     </section>
   );
@@ -400,22 +505,55 @@ function OpportunityDetail({
     );
   }
 
+
+  const deadline =
+    deadlineInfo(job.deadline);
+
+  const score =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number(job.fitScore || 0)
+      )
+    );
+
+  const tags =
+    domainTags(job);
+
+
   return (
     <section className="pro-opportunity-detail">
 
+
       <header className="pro-detail-sticky">
 
-        <div>
+        <div className="pro-detail-main-heading">
+
+          <span className="pro-stage-badge">
+            STAGE M2
+          </span>
+
+
           <h2>
             {job.role ||
               "Internship opportunity"}
           </h2>
 
-          <p>
-            {job.company ||
-              "Company"}
+
+          <p className="pro-detail-company">
+            {job.company || "Company"}
           </p>
+
+
+          {job.location && (
+            <p className="pro-detail-location">
+              ◉ {job.location}
+            </p>
+          )}
+
         </div>
+
 
         <div className="pro-detail-header-actions">
 
@@ -423,18 +561,18 @@ function OpportunityDetail({
             type="button"
             className={
               job.favorite
-                ? "pro-detail-favorite active"
-                : "pro-detail-favorite"
+                ? "pro-detail-save active"
+                : "pro-detail-save"
             }
             onClick={() =>
               onFavorite(job)
             }
-            aria-label="Favorite"
           >
             {job.favorite
-              ? "★"
-              : "☆"}
+              ? "★ Saved"
+              : "☆ Save"}
           </button>
+
 
           {job.link && (
             <a
@@ -451,114 +589,256 @@ function OpportunityDetail({
 
       </header>
 
+
       <div className="pro-detail-scroll">
 
-        <div className="pro-detail-badges">
 
-          {job.fitScore ? (
-            <span className="match">
-              Match {job.fitScore}%
-            </span>
-          ) : null}
+        <div className="pro-detail-statusline">
 
-          {job.priority && (
-            <span className="priority">
-              {job.priority}
-            </span>
-          )}
+          <div className="pro-detail-badges">
 
-          <span className="status">
-            {statusLabel(
-              job.status
+            {job.fitScore ? (
+              <span className="match">
+                Match {job.fitScore}%
+              </span>
+            ) : null}
+
+
+            {job.priority && (
+              <span className="priority">
+                {job.priority === "Haute"
+                  ? "Haute priorité"
+                  : job.priority}
+              </span>
             )}
-          </span>
+
+
+            <span className="status">
+              {statusLabel(job.status)}
+            </span>
+
+          </div>
+
+
+          <div className="pro-detail-date-info">
+
+            {deadline.days !== null &&
+            deadline.days >= 0 && (
+              <strong>
+                ▣ {deadline.days} days left
+              </strong>
+            )}
+
+            {job.postedDate && (
+              <span>
+                Published{" "}
+                {toDateInput(
+                  job.postedDate
+                )}
+              </span>
+            )}
+
+          </div>
 
         </div>
 
-        {job.whyRelevant && (
-          <section className="pro-detail-section highlight">
+
+        <section className="pro-detail-section highlight pro-match-summary">
+
+          <div className="pro-match-copy">
+
             <h3>
               Why this matches
             </h3>
 
             <p>
-              {job.whyRelevant}
+              {job.whyRelevant ||
+                "This opportunity aligns with your M2 target profile and technical specialization."}
             </p>
-          </section>
-        )}
-
-        <section className="pro-detail-section">
-          <h3>Overview</h3>
-
-          <div className="pro-detail-facts">
-
-            <div>
-              <small>Location</small>
-              <strong>
-                {job.location ||
-                  "—"}
-              </strong>
-            </div>
-
-            <div>
-              <small>Work mode</small>
-              <strong>
-                {job.mode ||
-                  "—"}
-              </strong>
-            </div>
-
-            <div>
-              <small>Published</small>
-              <strong>
-                {toDateInput(
-                  job.postedDate
-                ) || "—"}
-              </strong>
-            </div>
-
-            <div>
-              <small>Deadline</small>
-              <DeadlineBadge
-                value={job.deadline}
-              />
-            </div>
-
-            <div>
-              <small>Compensation</small>
-              <strong>
-                {job.compensation ||
-                  "—"}
-              </strong>
-            </div>
-
-            <div>
-              <small>Source</small>
-              <strong>
-                {job.source ||
-                  "—"}
-              </strong>
-            </div>
 
           </div>
+
+
+          <div
+            className="pro-match-ring"
+            style={{
+              "--match-value":
+                `${score * 3.6}deg`,
+            }}
+          >
+            <div>
+              <strong>
+                {score}%
+              </strong>
+              <span>Match</span>
+            </div>
+          </div>
+
         </section>
 
-        {job.domain && (
+
+        <div className="pro-detail-two-column">
+
+
           <section className="pro-detail-section">
+
             <h3>
-              Specialization
+              Job details
             </h3>
 
-            <div className="pro-detail-tags">
-              <span>
-                {job.domain}
-              </span>
-            </div>
+
+            <dl className="pro-detail-list">
+
+              <div>
+                <dt>Type</dt>
+                <dd>
+                  {job.type || "Stage M2"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Contract</dt>
+                <dd>
+                  {job.contract || "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Location</dt>
+                <dd>
+                  {job.location || "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Work mode</dt>
+                <dd>
+                  {job.mode || "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Domain</dt>
+                <dd>
+                  {job.domain || "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Compensation</dt>
+                <dd>
+                  {job.compensation || "—"}
+                </dd>
+              </div>
+
+            </dl>
+
           </section>
-        )}
+
+
+          <section className="pro-detail-section">
+
+            <div className="pro-detail-section-heading">
+
+              <h3>
+                Your tracking
+              </h3>
+
+            </div>
+
+
+            <dl className="pro-detail-list">
+
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  <span className="pro-track-status">
+                    {statusLabel(
+                      job.status
+                    )}
+                  </span>
+                </dd>
+              </div>
+
+              <div>
+                <dt>Applied</dt>
+                <dd>
+                  {job.appliedDate ||
+                    "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Follow-up</dt>
+                <dd>
+                  {job.followUpDate ||
+                    "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Priority</dt>
+                <dd>
+                  {job.priority ||
+                    "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Notes</dt>
+                <dd>
+                  {job.notes ||
+                    "—"}
+                </dd>
+              </div>
+
+            </dl>
+
+
+            <button
+              type="button"
+              className="pro-update-tracking"
+              onClick={() =>
+                onEdit(job)
+              }
+            >
+              Update tracking ✎
+            </button>
+
+          </section>
+
+        </div>
+
+
+        <section className="pro-detail-section pro-skills-panel">
+
+          <h3>
+            Skills & technologies
+          </h3>
+
+
+          <div className="pro-detail-tags">
+
+            {tags.length ? (
+              tags.map((tag) => (
+                <span key={tag}>
+                  {tag}
+                </span>
+              ))
+            ) : (
+              <span>
+                Not specified
+              </span>
+            )}
+
+          </div>
+
+        </section>
+
 
         {job.description && (
           <section className="pro-detail-section">
+
             <h3>
               Job description
             </h3>
@@ -566,70 +846,9 @@ function OpportunityDetail({
             <p className="pro-detail-copy">
               {job.description}
             </p>
+
           </section>
         )}
-
-        <section className="pro-detail-section">
-
-          <div className="pro-detail-section-heading">
-            <h3>
-              My application
-            </h3>
-
-            <button
-              type="button"
-              onClick={() =>
-                onEdit(job)
-              }
-            >
-              Update
-            </button>
-          </div>
-
-          <div className="pro-detail-facts">
-
-            <div>
-              <small>Status</small>
-              <strong>
-                {statusLabel(
-                  job.status
-                )}
-              </strong>
-            </div>
-
-            <div>
-              <small>Applied date</small>
-              <strong>
-                {job.appliedDate ||
-                  "—"}
-              </strong>
-            </div>
-
-            <div>
-              <small>Follow-up</small>
-
-              <FollowUpBadge
-                value={
-                  job.followUpDate
-                }
-              />
-            </div>
-
-          </div>
-
-          {job.notes && (
-            <div className="pro-detail-notes">
-              <small>
-                Notes
-              </small>
-
-              <p>
-                {job.notes}
-              </p>
-            </div>
-          )}
-
-        </section>
 
       </div>
 
@@ -1663,249 +1882,38 @@ const detailJob =
 
 
 
-  const viewTitle = {
-    overview: "Overview",
-    internships: "M2 Internships",
-    pipeline: "Application Pipeline",
-    analytics: "Career Analytics",
-  }[view];
+  const alternateContent =
+    view === "pipeline" ? (
+      <Pipeline
+        jobs={jobs}
+        onOpen={setSelectedJob}
+      />
+    ) : view === "analytics" ? (
+      <AnalyticsView
+        jobs={jobs}
+      />
+    ) : null;
 
 
   return (
-    <div className="pro-app">
-
-      <header className="pro-topbar pro-reference-header pro-reference-tabs">
-
-        <div className="pro-topbar-brand">
-          <span className="pro-topbar-logo">
-            J
-          </span>
-
-          <div>
-            <strong>JobDrive</strong>
-            <small>
-              Career Operating System
-            </small>
-          </div>
-        </div>
-
-
-
-        <nav className="pro-topbar-nav">
-          <button
-            type="button"
-            className="active"
-            onClick={() => setView("overview")}
-          >
-            Overview
-          </button>
-        </nav>
-
-
-        <label className="pro-global-search">
-          <span>⌕</span>
-
-          <input
-            type="search"
-            value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
-            placeholder="Search jobs..."
-          />
-        </label>
-
-
-
-        <div className="pro-topbar-right">
-          <button
-            className="pro-topbar-signout"
-            type="button"
-            onClick={logout}
-          >
-            Sign out
-          </button>
-        </div>
-
-      </header>
-
-
-      <main className="pro-main">
-
-        {error && (
-          <div className="pro-error">
-            {error}
-          </div>
-        )}
-
-
-        {view !== "pipeline" &&
-          view !== "analytics" && (
-            <>
-
-              <section className="pro-commandbar">
-
-                <div className="pro-commandbar-title">
-                  <strong>
-                    {viewTitle}
-                  </strong>
-
-                  <span>
-                    {filteredJobs.length} opportunities
-                  </span>
-                </div>
-
-
-                <div className="pro-command-filters">
-
-                  <select
-                    value={specialization}
-                    onChange={(event) =>
-                      setSpecialization(
-                        event.target.value
-                      )
-                    }
-                  >
-                    <option value="">
-                      Specialization
-                    </option>
-
-                    {specializations.map(
-                      (item) => (
-                        <option
-                          value={item}
-                          key={item}
-                        >
-                          {item}
-                        </option>
-                      )
-                    )}
-                  </select>
-
-
-                  <select
-                    value={priority}
-                    onChange={(event) =>
-                      setPriority(
-                        event.target.value
-                      )
-                    }
-                  >
-                    <option value="">
-                      Priority
-                    </option>
-                    <option value="Haute">
-                      High
-                    </option>
-                    <option value="Moyenne">
-                      Medium
-                    </option>
-                    <option value="Basse">
-                      Low
-                    </option>
-                  </select>
-
-
-                  <select
-                    value={status}
-                    onChange={(event) =>
-                      setStatus(
-                        event.target.value
-                      )
-                    }
-                  >
-                    <option value="">
-                      Status
-                    </option>
-
-                    {STATUS_OPTIONS.map(
-                      (item) => (
-                        <option
-                          value={item}
-                          key={item}
-                        >
-                          {statusLabel(item)}
-                        </option>
-                      )
-                    )}
-                  </select>
-
-
-                  <select
-                    value={sortMode}
-                    onChange={(event) =>
-                      setSortMode(
-                        event.target.value
-                      )
-                    }
-                  >
-                    <option value="newest">
-                      Newest
-                    </option>
-                    <option value="deadline">
-                      Deadline
-                    </option>
-                    <option value="match">
-                      Best match
-                    </option>
-                    <option value="priority">
-                      Priority
-                    </option>
-                    <option value="company">
-                      Company A–Z
-                    </option>
-                  </select>
-
-                </div>
-
-              </section>
-
-
-              <div className="pro-opportunity-workspace pro-reference-browser pro-reference-searchbar">
-
-                <OpportunityFeed
-                  jobs={filteredJobs}
-                  selectedJobId={
-                    detailJob?.id
-                  }
-                  onSelect={
-                    setSelectedJobId
-                  }
-                  onFavorite={
-                    toggleFavorite
-                  }
-                />
-
-
-                <OpportunityDetail
-                  job={detailJob}
-                  onFavorite={
-                    toggleFavorite
-                  }
-                  onEdit={
-                    setSelectedJob
-                  }
-                />
-
-              </div>
-
-            </>
-          )}
-
-
-        {view === "pipeline" && (
-          <Pipeline
-            jobs={jobs}
-            onOpen={setSelectedJob}
-          />
-        )}
-
-
-        {view === "analytics" && (
-          <AnalyticsView jobs={jobs} />
-        )}
-
-      </main>
+    <>
+      <JobDriveDashboard
+        view={view}
+        onViewChange={setView}
+        jobs={filteredJobs}
+        selectedJob={detailJob}
+        onSelectJob={setSelectedJobId}
+        onFavorite={toggleFavorite}
+        onEdit={setSelectedJob}
+        search={search}
+        onSearch={setSearch}
+        sortMode={sortMode}
+        onSortMode={setSortMode}
+        onQuickFilter={setQuickFilter}
+        onSpecialization={setSpecialization}
+        onLogout={logout}
+        alternateContent={alternateContent}
+      />
 
       <JobDrawer
         job={selectedJob}
@@ -1915,6 +1923,6 @@ const detailJob =
         }
         onSave={saveJob}
       />
-    </div>
+    </>
   );
 }
