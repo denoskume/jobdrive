@@ -176,6 +176,93 @@ function splitTags(value = "") {
 }
 
 
+
+function buildOfferSummary(job) {
+  const clean = (value) =>
+    String(value || "").trim();
+
+  const role = clean(job.role);
+  const company = clean(job.company);
+  const domain = clean(job.domain);
+  const location = clean(job.location);
+  const contract = clean(job.contract);
+  const compensation = clean(job.compensation);
+  const postedDate = clean(job.postedDate);
+  const deadline = clean(job.deadline);
+  const whyRelevant = clean(job.whyRelevant);
+
+  const roleCompany = [
+    role && company
+      ? `${role} at ${company}.`
+      : role
+        ? `${role}.`
+        : company
+          ? `Internship opportunity at ${company}.`
+          : "Internship opportunity.",
+    location
+      ? `The position is based in ${location}.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const technicalScope = domain
+    ? `The technical scope identified in the offer is ${domain}.`
+    : "The technical scope is not specified in the available offer data.";
+
+  const practicalParts = [];
+
+  if (contract) {
+    practicalParts.push(`Contract: ${contract}.`);
+  }
+
+  if (compensation) {
+    practicalParts.push(`Compensation: ${compensation}.`);
+  }
+
+  if (postedDate) {
+    practicalParts.push(
+      `Published ${toDateInput(postedDate)}.`
+    );
+  }
+
+  if (deadline) {
+    practicalParts.push(
+      `Application deadline: ${toDateInput(deadline)}.`
+    );
+  }
+
+  const practicalDetails =
+    practicalParts.length
+      ? practicalParts.join(" ")
+      : "No additional practical details are specified in the available offer data.";
+
+  const relevance = whyRelevant
+    ? whyRelevant
+    : "No additional relevance assessment is available for this offer.";
+
+  return [
+    {
+      title: "Role & company",
+      text: roleCompany,
+    },
+    {
+      title: "Technical scope",
+      text: technicalScope,
+    },
+    {
+      title: "Practical details",
+      text: practicalDetails,
+    },
+    {
+      title: "Why it matters for you",
+      text: relevance,
+    },
+  ];
+}
+
+
+
 function KPI({
   label,
   value,
@@ -719,6 +806,9 @@ function JobDetail({
   const tags =
     splitTags(job.domain);
 
+  const offerSummary =
+    buildOfferSummary(job);
+
   return (
     <section className="jd-detail">
 
@@ -835,6 +925,38 @@ function JobDetail({
           </div>
 
         </div>
+
+
+        <section className="jd-offer-summary">
+
+          <div className="jd-offer-summary-heading">
+            <span>OFFER SNAPSHOT</span>
+            <h3>What you need to know</h3>
+            <p>
+              Key information extracted from the
+              available details of this internship.
+            </p>
+          </div>
+
+          <div className="jd-offer-summary-grid">
+            {offerSummary.map((item, index) => (
+              <article
+                key={item.title}
+                className="jd-offer-summary-item"
+              >
+                <span className="jd-offer-summary-number">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <div>
+                  <h4>{item.title}</h4>
+                  <p>{item.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+
+        </section>
 
 
         <section className="jd-match-card">
