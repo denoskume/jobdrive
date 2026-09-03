@@ -354,12 +354,13 @@ const ACADEMIC_ORGANIZATION_PATTERNS = [
   /faculté/i,
   /faculte/i,
   /\bgraduate school\b/i,
-  /école/i,
-  /ecole/i,
+  /\bécole\b/i,
+  /\becole\b/i,
 
   /\bcnrs\b/i,
   /\binrae\b/i,
   /\binria\b/i,
+  /\binserm\b/i,
   /\binsa\b/i,
 
   /\bumr\b/i,
@@ -367,40 +368,132 @@ const ACADEMIC_ORGANIZATION_PATTERNS = [
   /\blaboratory\b/i,
   /\bacademic lab\b/i,
   /\bresearch laboratory\b/i,
-  /\bresearch institute\b/i,
+
+  /\binstitut curie\b/i,
+  /\binstitut imagine\b/i,
+  /\binstitut pasteur\b/i,
+
+  /\bcentre de recherche\b/i,
+  /\bcenter for research\b/i,
+  /\bresearch center\b/i,
+  /\bresearch centre\b/i,
+
+  /\bfondation.*recherche\b/i,
+  /\bresearch foundation\b/i,
+
+  /\bchu\b/i,
+  /\bcentre hospitalier universitaire\b/i,
+  /\buniversity hospital\b/i,
 
   /\bcentrale nantes\b/i,
-  /école centrale/i,
-  /ecole centrale/i,
+  /\bécole centrale\b/i,
+  /\becole centrale\b/i,
 ];
+
+
+const ALIGNED_INTERNSHIP_PATTERNS = [
+  /\bdata science\b/i,
+  /\bdata scientist\b/i,
+
+  /\bmachine learning\b/i,
+  /\bml\b/i,
+  /\bdeep learning\b/i,
+  /\bneural network/i,
+
+  /\bartificial intelligence\b/i,
+  /\bai\b/i,
+  /\bgenerative ai\b/i,
+  /\bmultimodal\b/i,
+
+  /\bcomputer vision\b/i,
+  /\bvision artificielle\b/i,
+  /\bimage processing\b/i,
+  /\bimage analysis\b/i,
+  /\bimage segmentation\b/i,
+  /\bobject detection\b/i,
+  /\bperception\b/i,
+
+  /\bsignal processing\b/i,
+  /\bsignal analysis\b/i,
+  /\bdigital signal\b/i,
+
+  /\baudio processing\b/i,
+  /\baudio analysis\b/i,
+  /\bspeech processing\b/i,
+  /\bspeech recognition\b/i,
+  /\bacoustic/i,
+
+  /\btime series\b/i,
+  /\btime-series\b/i,
+
+  /\bstatistical learning\b/i,
+  /\bstatistical analysis\b/i,
+  /\bpattern recognition\b/i,
+
+  /\bnatural language processing\b/i,
+  /\bnlp\b/i,
+];
+
 
 function internshipOrganizationText(job = {}) {
   return [
     job.company,
-    job.role,
-    job.domain,
     job.source,
-    job.whyRelevant,
+    job.companyDomain,
+    job.link,
   ]
     .filter(Boolean)
     .join(" ");
 }
+
+
+function internshipTechnicalText(job = {}) {
+  return [
+    job.role,
+    job.domain,
+    job.whyRelevant,
+    job.notes,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+
+export function isAcademicOrganization(job = {}) {
+  const text = internshipOrganizationText(job);
+
+  return ACADEMIC_ORGANIZATION_PATTERNS.some(
+    (pattern) => pattern.test(text)
+  );
+}
+
+
+export function isAlignedInternship(job = {}) {
+  const text = internshipTechnicalText(job);
+
+  return ALIGNED_INTERNSHIP_PATTERNS.some(
+    (pattern) => pattern.test(text)
+  );
+}
+
 
 export function isIndustryInternship(job = {}) {
   if (job.type !== "Stage M2") {
     return false;
   }
 
-  const text = internshipOrganizationText(job);
+  if (isAcademicOrganization(job)) {
+    return false;
+  }
 
-  return !ACADEMIC_ORGANIZATION_PATTERNS.some(
-    (pattern) => pattern.test(text)
-  );
+  return isAlignedInternship(job);
 }
+
 
 export function filterInternships(jobs = []) {
   return jobs.filter(isIndustryInternship);
 }
+
 
 export function internshipSpecializations(jobs = []) {
   return [

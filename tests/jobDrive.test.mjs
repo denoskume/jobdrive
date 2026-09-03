@@ -216,6 +216,8 @@ test("academic institutes are excluded from internship tracking", () => {
       id: "COMPANY",
       type: "Stage M2",
       company: "Valeo",
+      role: "Computer Vision Intern",
+      domain: "Computer Vision / Deep Learning",
     },
   ];
 
@@ -360,4 +362,167 @@ test("company identity metadata defaults safely", () => {
     job.logoUrl,
     ""
   );
+});
+
+test("strict policy excludes academic and institutional research internships", () => {
+  const jobs = [
+    {
+      id: "CURIE",
+      type: "Stage M2",
+      company: "Institut Curie Centre de Recherche / Institut Imagine",
+      role: "Analysis of X Chromosome Inactivation in Single-Cell Data",
+      domain: "Data Science / Statistical Analysis",
+      whyRelevant: "Single-cell data analysis",
+    },
+    {
+      id: "INSERM",
+      type: "Stage M2",
+      company: "INSERM",
+      role: "Machine Learning Intern",
+      domain: "Machine Learning",
+    },
+    {
+      id: "PASTEUR",
+      type: "Stage M2",
+      company: "Institut Pasteur",
+      role: "AI Research Internship",
+      domain: "Artificial Intelligence",
+    },
+    {
+      id: "IMAGINE",
+      type: "Stage M2",
+      company: "Institut Imagine",
+      role: "Data Science Intern",
+      domain: "Data Science",
+    },
+    {
+      id: "CHU",
+      type: "Stage M2",
+      company: "CHU Nantes - Centre de Recherche",
+      role: "Medical Image Processing Intern",
+      domain: "Image Processing",
+    },
+    {
+      id: "AIRBUS",
+      type: "Stage M2",
+      company: "Airbus",
+      role: "R&D Computer Vision Intern",
+      domain: "Computer Vision / Deep Learning",
+    },
+  ];
+
+  assert.deepEqual(
+    jobDrive.filterInternships(jobs).map((job) => job.id),
+    ["AIRBUS"]
+  );
+});
+
+
+test("strict policy keeps aligned industrial R&D internships", () => {
+  const jobs = [
+    {
+      id: "SAFRAN",
+      type: "Stage M2",
+      company: "Safran",
+      role: "Research Internship - Image Processing",
+      domain: "Computer Vision",
+      whyRelevant: "Applied research for industrial inspection",
+    },
+    {
+      id: "ALSTOM",
+      type: "Stage M2",
+      company: "Alstom",
+      role: "Machine Learning Intern",
+      domain: "Signal Processing / Predictive Maintenance",
+    },
+    {
+      id: "SCHNEIDER",
+      type: "Stage M2",
+      company: "Schneider Electric",
+      role: "AI Intern",
+      domain: "Artificial Intelligence",
+    },
+    {
+      id: "VALEO",
+      type: "Stage M2",
+      company: "Valeo",
+      role: "Perception Intern",
+      domain: "Computer Vision / Deep Learning",
+    },
+  ];
+
+  assert.deepEqual(
+    jobDrive.filterInternships(jobs).map((job) => job.id),
+    ["SAFRAN", "ALSTOM", "SCHNEIDER", "VALEO"]
+  );
+});
+
+
+test("strict policy rejects industry internships outside DASSIP core", () => {
+  const jobs = [
+    {
+      id: "WEB",
+      type: "Stage M2",
+      company: "Capgemini",
+      role: "Frontend Web Developer Intern",
+      domain: "React / JavaScript",
+    },
+    {
+      id: "SALES",
+      type: "Stage M2",
+      company: "Orange",
+      role: "Business Development Intern",
+      domain: "Sales",
+    },
+    {
+      id: "DATA-ENTRY",
+      type: "Stage M2",
+      company: "Technology Company",
+      role: "Data Entry Intern",
+      domain: "Operations",
+    },
+    {
+      id: "ML",
+      type: "Stage M2",
+      company: "Dassault Systèmes",
+      role: "Machine Learning Intern",
+      domain: "Machine Learning",
+    },
+  ];
+
+  assert.deepEqual(
+    jobDrive.filterInternships(jobs).map((job) => job.id),
+    ["ML"]
+  );
+});
+
+
+test("technical alignment recognizes DASSIP core specializations", () => {
+  const accepted = [
+    "Data Science",
+    "Machine Learning",
+    "Deep Learning",
+    "Artificial Intelligence",
+    "Computer Vision",
+    "Image Processing",
+    "Signal Processing",
+    "Audio Processing",
+    "Speech Processing",
+    "Time Series",
+    "Statistical Learning",
+    "Multimodal AI",
+  ];
+
+  for (const domain of accepted) {
+    assert.equal(
+      jobDrive.isIndustryInternship({
+        type: "Stage M2",
+        company: "Industrial Technology Company",
+        role: `${domain} Intern`,
+        domain,
+      }),
+      true,
+      `Expected ${domain} to be accepted`
+    );
+  }
 });
