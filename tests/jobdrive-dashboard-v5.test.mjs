@@ -26,10 +26,16 @@ test("uses SVG icons instead of symbol characters", () => {
   assert.match(dashboard, /viewBox="0 0 24 24"/);
 });
 
-test("renders company logo blocks", () => {
-  assert.match(dashboard, /function CompanyLogo/);
-  assert.match(dashboard, /jd-company-logo/);
-  assert.match(dashboard, /function CompanyLogo/);
+test("renders company logos through reusable CompanyLogo", () => {
+  assert.match(
+    dashboard,
+    /import CompanyLogo from "\.\/components\/CompanyLogo\.jsx"/
+  );
+
+  assert.match(
+    dashboard,
+    /<CompanyLogo/
+  );
 });
 
 test("renders complete dashboard structure", () => {
