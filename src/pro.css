@@ -5419,3 +5419,2449 @@ body {
   }
 }
 
+
+
+/* ============================================================
+   JOBDRIVE REFERENCE UI V3
+   Strict desktop master-detail job browser
+   ============================================================ */
+
+:root {
+  --jd-black: #0b0b0b;
+  --jd-page: #f5f2ed;
+  --jd-white: #ffffff;
+  --jd-border: #dedbd6;
+  --jd-muted: #6f6d69;
+  --jd-red: #ff625f;
+  --jd-lime: #eaff63;
+}
+
+
+/* ---------- PAGE ---------- */
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--jd-page) !important;
+}
+
+.pro-app {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  background: var(--jd-page) !important;
+}
+
+
+/* ---------- BLACK HEADER ---------- */
+
+.pro-reference-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+
+  width: 100% !important;
+  height: 66px !important;
+  min-height: 66px !important;
+
+  padding: 0 55px !important;
+  box-sizing: border-box !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  background: var(--jd-black) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: white !important;
+}
+
+.pro-reference-header * {
+  box-sizing: border-box;
+}
+
+.pro-reference-header .pro-topbar-logo,
+.pro-reference-header .pro-topbar-brand strong,
+.pro-reference-header a,
+.pro-reference-header button {
+  color: white;
+}
+
+
+/* ---------- NAV ---------- */
+
+.pro-reference-tabs {
+  font-size: 15px;
+}
+
+.pro-reference-tabs button,
+.pro-reference-tabs a {
+  min-height: 42px;
+}
+
+
+/* ---------- SEARCH / FILTER STRIP ---------- */
+
+.pro-reference-searchbar {
+  background: #fff !important;
+}
+
+.pro-reference-searchbar input,
+.pro-reference-searchbar select {
+  height: 45px !important;
+  min-height: 45px !important;
+
+  background: #fff !important;
+  border: 1px solid #aaa6a0 !important;
+  border-radius: 7px !important;
+
+  font-size: 15px !important;
+}
+
+
+/* ---------- MAIN MASTER DETAIL ---------- */
+
+.pro-reference-browser {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(420px, 42%)
+    minmax(0, 58%) !important;
+
+  gap: 22px !important;
+
+  width: calc(100% - 110px) !important;
+  max-width: none !important;
+
+  height: calc(100vh - 320px) !important;
+  min-height: 520px !important;
+
+  margin: 0 55px 24px !important;
+  padding: 0 !important;
+
+  align-items: stretch !important;
+  overflow: hidden !important;
+
+  background: transparent !important;
+}
+
+
+/* ---------- LEFT FEED ---------- */
+
+.pro-opportunity-feed {
+  height: 100% !important;
+  min-height: 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  padding: 0 14px 24px 0 !important;
+
+  background: transparent !important;
+
+  scrollbar-width: thin;
+}
+
+.pro-opportunity-feed::-webkit-scrollbar {
+  width: 7px;
+}
+
+.pro-opportunity-feed::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 99px;
+}
+
+
+/* ---------- OPPORTUNITY CARDS ---------- */
+
+.pro-opportunity-card,
+.pro-feed-card {
+  position: relative !important;
+
+  width: 100% !important;
+
+  margin: 0 0 14px !important;
+  padding: 20px 18px !important;
+
+  background: #fff !important;
+
+  border: 1px solid #e4e0da !important;
+  border-radius: 8px !important;
+
+  box-shadow:
+    0 2px 7px rgba(0, 0, 0, 0.06) !important;
+
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease !important;
+}
+
+.pro-opportunity-card:hover,
+.pro-feed-card:hover {
+  border-color: #777 !important;
+  transform: translateY(-1px);
+}
+
+.pro-opportunity-card.is-selected,
+.pro-feed-card.is-selected,
+.pro-opportunity-card.selected,
+.pro-feed-card.selected {
+  border: 2px solid #111 !important;
+  box-shadow: none !important;
+}
+
+
+/* Titles */
+
+.pro-opportunity-card h3,
+.pro-feed-card h3 {
+  margin: 0 42px 8px 0 !important;
+
+  font-size: 19px !important;
+  line-height: 1.25 !important;
+  font-weight: 750 !important;
+
+  color: #111 !important;
+}
+
+.pro-opportunity-card p,
+.pro-feed-card p {
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+
+/* ---------- RIGHT DETAIL ---------- */
+
+.pro-opportunity-detail {
+  position: relative !important;
+
+  height: 100% !important;
+  min-height: 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  background: #fff !important;
+
+  border: 1px solid #e2ded8 !important;
+  border-radius: 9px !important;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.055) !important;
+
+  scrollbar-width: thin;
+}
+
+.pro-opportunity-detail::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pro-opportunity-detail::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 99px;
+}
+
+
+/* ---------- STICKY DETAIL HEADER ---------- */
+
+.pro-detail-sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+
+  padding: 28px 40px 22px !important;
+
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(8px);
+
+  border-bottom: 1px solid #ddd !important;
+}
+
+.pro-detail-sticky h2 {
+  margin: 0 0 8px !important;
+
+  max-width: 760px !important;
+
+  font-size: 25px !important;
+  line-height: 1.18 !important;
+  font-weight: 800 !important;
+
+  color: #090909 !important;
+}
+
+
+/* ---------- DETAIL BODY ---------- */
+
+.pro-opportunity-detail > section,
+.pro-opportunity-detail .pro-detail-body {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.pro-opportunity-detail h3 {
+  color: #111 !important;
+}
+
+.pro-opportunity-detail p,
+.pro-opportunity-detail li {
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+}
+
+
+/* ---------- PILLS ---------- */
+
+.pro-opportunity-detail span,
+.pro-opportunity-card span,
+.pro-feed-card span {
+  max-width: 100%;
+}
+
+.pro-match,
+.pro-fit-score {
+  background: #efffb4 !important;
+  color: #315f00 !important;
+}
+
+.pro-priority-high {
+  background: #fff0d2 !important;
+  color: #a85a00 !important;
+}
+
+
+/* ---------- PRIMARY CTA ---------- */
+
+.pro-detail-sticky a[href],
+.pro-detail-sticky .pro-primary-action {
+  min-height: 44px !important;
+
+  padding: 0 24px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  background: #080808 !important;
+  color: #fff !important;
+
+  border: 0 !important;
+  border-radius: 999px !important;
+
+  font-size: 15px !important;
+  font-weight: 750 !important;
+
+  text-decoration: none !important;
+}
+
+
+/* ---------- REMOVE DASHBOARD FEEL ---------- */
+
+.pro-reference-browser .pro-stat-card,
+.pro-reference-browser .pro-kpi-card {
+  display: none !important;
+}
+
+
+/* ---------- TABLET ---------- */
+
+@media (max-width: 1050px) {
+
+  .pro-reference-header {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .pro-reference-browser {
+    width: calc(100% - 48px) !important;
+    margin-left: 24px !important;
+    margin-right: 24px !important;
+
+    grid-template-columns:
+      minmax(340px, 42%)
+      minmax(0, 58%) !important;
+  }
+
+}
+
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 760px) {
+
+  .pro-reference-header {
+    height: auto !important;
+    min-height: 62px !important;
+
+    padding: 10px 16px !important;
+  }
+
+  .pro-reference-browser {
+    display: block !important;
+
+    width: calc(100% - 24px) !important;
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 12px !important;
+
+    overflow: visible !important;
+  }
+
+  .pro-opportunity-feed,
+  .pro-opportunity-detail {
+    height: auto !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+  }
+
+  .pro-opportunity-detail {
+    margin-top: 16px;
+  }
+
+  .pro-detail-sticky {
+    padding: 22px 20px !important;
+  }
+
+}
+
+
+/* ==========================================================
+   JOBDRIVE — JOBLEADS REFERENCE FINAL VISUAL PASS
+   ========================================================== */
+
+:root {
+  --jd-page: #f5f2ed;
+  --jd-white: #ffffff;
+  --jd-black: #0b0b0b;
+  --jd-border: #dedbd5;
+  --jd-muted: #66625d;
+}
+
+/* ---------- GLOBAL ---------- */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--jd-page) !important;
+}
+
+.pro-app {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh;
+  background: var(--jd-page) !important;
+}
+
+/* ---------- TOP NAV ---------- */
+
+.pro-topbar {
+  position: sticky !important;
+  top: 0;
+  z-index: 1000;
+
+  width: 100% !important;
+  min-height: 82px !important;
+
+  padding: 0 4% !important;
+
+  display: grid !important;
+  grid-template-columns:
+    auto
+    auto
+    minmax(320px, 1fr)
+    auto !important;
+
+  align-items: center !important;
+  gap: 28px !important;
+
+  background: #0b0b0b !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Brand */
+
+.pro-topbar-brand {
+  min-width: 145px;
+}
+
+.pro-topbar-brand strong,
+.pro-topbar-brand span {
+  color: #fff;
+}
+
+/* Horizontal navigation */
+
+.pro-topnav,
+.pro-topbar-nav {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  white-space: nowrap;
+}
+
+.pro-topnav button,
+.pro-topbar-nav button {
+  min-height: 42px;
+  padding: 0 16px !important;
+
+  border: 0 !important;
+  border-radius: 999px !important;
+
+  background: transparent !important;
+  color: #bdbdbd !important;
+
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.pro-topnav button:hover,
+.pro-topbar-nav button:hover {
+  color: #fff !important;
+}
+
+.pro-topnav button.active,
+.pro-topbar-nav button.active {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+/* Search */
+
+.pro-topbar-search {
+  width: 100% !important;
+  max-width: 620px !important;
+  justify-self: center;
+}
+
+.pro-topbar-search input {
+  width: 100% !important;
+  height: 48px !important;
+
+  padding: 0 20px 0 42px !important;
+
+  border: 1px solid #d9d5cf !important;
+  border-radius: 12px !important;
+
+  background: #fff !important;
+
+  font-size: 15px !important;
+}
+
+/* Right controls */
+
+.pro-topbar-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+}
+
+/* ---------- MAIN ---------- */
+
+.pro-main,
+.pro-main-content,
+.pro-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ---------- FILTER BAR ---------- */
+
+.pro-filterbar,
+.pro-filters,
+.pro-control-bar {
+  width: 100% !important;
+  min-height: 76px !important;
+
+  padding: 14px 4% !important;
+
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+
+  background: #fff !important;
+  border-bottom: 1px solid var(--jd-border) !important;
+
+  overflow-x: auto;
+}
+
+.pro-filterbar select,
+.pro-filters select,
+.pro-control-bar select {
+  height: 46px !important;
+  min-width: 150px !important;
+
+  padding: 0 38px 0 15px !important;
+
+  border: 1px solid #cfcac3 !important;
+  border-radius: 8px !important;
+
+  background: #fff !important;
+
+  font-size: 14px !important;
+}
+
+.pro-filterbar button,
+.pro-filters button,
+.pro-control-bar button {
+  min-height: 38px !important;
+  white-space: nowrap;
+}
+
+/* ---------- OPPORTUNITY WORKSPACE ---------- */
+
+.pro-opportunity-workspace {
+  width: 92% !important;
+  max-width: 1320px !important;
+
+  height: calc(100vh - 190px) !important;
+  min-height: 610px !important;
+
+  margin: 54px auto 0 !important;
+
+  display: grid !important;
+  grid-template-columns:
+    minmax(390px, 42%)
+    minmax(0, 58%) !important;
+
+  gap: 22px !important;
+
+  align-items: stretch !important;
+}
+
+/* ---------- LEFT FEED ---------- */
+
+.pro-opportunity-feed {
+  height: 100% !important;
+  min-width: 0;
+
+  background: transparent !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  padding-right: 4px;
+}
+
+.pro-opportunity-feed-header,
+.pro-feed-header {
+  min-height: 62px !important;
+
+  padding: 0 2px 14px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.pro-opportunity-feed-header strong,
+.pro-feed-header strong {
+  font-size: 17px !important;
+}
+
+/* ---------- JOB CARD ---------- */
+
+.pro-opportunity-card,
+.pro-feed-card {
+  width: 100% !important;
+  min-height: 188px !important;
+
+  margin: 0 0 16px !important;
+  padding: 22px 20px !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+
+  background: #fff !important;
+
+  border: 1px solid #e3dfd9 !important;
+  border-radius: 10px !important;
+
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.06) !important;
+
+  cursor: pointer;
+}
+
+.pro-opportunity-card:hover,
+.pro-feed-card:hover {
+  border-color: #aaa49d !important;
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+.pro-opportunity-card.active,
+.pro-opportunity-card.is-selected,
+.pro-feed-card.active,
+.pro-feed-card.is-selected {
+  border: 2px solid #111 !important;
+  box-shadow: none !important;
+}
+
+/* Card typography */
+
+.pro-opportunity-card h3,
+.pro-feed-card h3 {
+  margin: 0 40px 8px 0 !important;
+
+  font-size: 19px !important;
+  line-height: 1.25 !important;
+  font-weight: 750 !important;
+
+  color: #111 !important;
+}
+
+.pro-opportunity-card p,
+.pro-feed-card p {
+  line-height: 1.45 !important;
+}
+
+/* Tags */
+
+.pro-opportunity-card .tag,
+.pro-feed-card .tag,
+.pro-opportunity-card .badge,
+.pro-feed-card .badge {
+  border-radius: 999px !important;
+}
+
+/* ---------- DETAIL PANE ---------- */
+
+.pro-opportunity-detail {
+  height: 100% !important;
+  min-width: 0;
+
+  background: #fff !important;
+
+  border: 1px solid #ddd9d3 !important;
+  border-radius: 10px !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Sticky detail header */
+
+.pro-detail-sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20;
+
+  min-height: 132px !important;
+
+  padding: 28px 32px !important;
+
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 22px !important;
+
+  background: #fff !important;
+
+  border-bottom:
+    1px solid #d9d5cf !important;
+}
+
+.pro-detail-sticky h1,
+.pro-detail-sticky h2 {
+  margin: 0 0 8px !important;
+
+  max-width: 650px;
+
+  font-size: 27px !important;
+  line-height: 1.16 !important;
+  font-weight: 760 !important;
+
+  color: #0b0b0b !important;
+}
+
+/* Apply button */
+
+.pro-detail-sticky a,
+.pro-detail-sticky .apply-button,
+.pro-detail-sticky .primary-button {
+  min-height: 48px !important;
+
+  padding: 0 25px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  white-space: nowrap;
+
+  background: #090909 !important;
+  color: #fff !important;
+
+  border: 0 !important;
+  border-radius: 999px !important;
+
+  font-size: 15px !important;
+  font-weight: 750 !important;
+
+  text-decoration: none !important;
+}
+
+/* Detail body */
+
+.pro-detail-body {
+  padding: 28px 32px 50px !important;
+}
+
+.pro-detail-body section {
+  padding: 22px 0 !important;
+
+  border-bottom:
+    1px solid #ece8e2 !important;
+}
+
+.pro-detail-body h3 {
+  margin: 0 0 14px !important;
+
+  font-size: 19px !important;
+  font-weight: 750 !important;
+
+  color: #111 !important;
+}
+
+.pro-detail-body p,
+.pro-detail-body li {
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+
+  color: #4d4d4d !important;
+}
+
+/* ---------- SCROLLBARS ---------- */
+
+.pro-opportunity-feed::-webkit-scrollbar,
+.pro-opportunity-detail::-webkit-scrollbar {
+  width: 7px;
+}
+
+.pro-opportunity-feed::-webkit-scrollbar-thumb,
+.pro-opportunity-detail::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 999px;
+}
+
+/* ---------- DESKTOP ---------- */
+
+@media (min-width: 1450px) {
+  .pro-opportunity-workspace {
+    max-width: 1440px !important;
+
+    grid-template-columns:
+      minmax(430px, 42%)
+      minmax(0, 58%) !important;
+  }
+}
+
+/* ---------- TABLET ---------- */
+
+@media (max-width: 1050px) {
+  .pro-topbar {
+    grid-template-columns:
+      auto 1fr auto !important;
+  }
+
+  .pro-topbar-search {
+    display: none !important;
+  }
+
+  .pro-opportunity-workspace {
+    width: 96% !important;
+
+    grid-template-columns:
+      minmax(340px, 42%)
+      minmax(0, 58%) !important;
+  }
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 760px) {
+  .pro-topbar {
+    min-height: 66px !important;
+    padding: 0 14px !important;
+
+    display: flex !important;
+  }
+
+  .pro-topnav,
+  .pro-topbar-nav {
+    overflow-x: auto;
+  }
+
+  .pro-filterbar,
+  .pro-filters,
+  .pro-control-bar {
+    padding: 10px 14px !important;
+  }
+
+  .pro-opportunity-workspace {
+    width: 100% !important;
+    height: auto !important;
+
+    margin: 16px 0 0 !important;
+
+    display: block !important;
+  }
+
+  .pro-opportunity-feed {
+    padding: 0 12px !important;
+  }
+
+  .pro-opportunity-detail {
+    border-radius: 0 !important;
+  }
+}
+
+
+
+/* ==========================================================
+   JOBDRIVE — JOBLEADS EXACT STRUCTURE OVERRIDE
+   Uses the ACTUAL AppPro.jsx class names
+   ========================================================== */
+
+:root {
+  --jl-bg: #f4f1ec;
+  --jl-white: #ffffff;
+  --jl-black: #0c0c0c;
+  --jl-border: #d9d5cf;
+  --jl-text: #161616;
+  --jl-muted: #6b6864;
+}
+
+
+/* ==========================================================
+   PAGE
+   ========================================================== */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--jl-bg) !important;
+}
+
+.pro-app {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  background: var(--jl-bg) !important;
+}
+
+.pro-main {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* ==========================================================
+   BLACK TOP NAV — JOBLEADS STYLE
+   ========================================================== */
+
+.pro-topbar.pro-reference-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+
+  width: 100% !important;
+  height: 66px !important;
+  min-height: 66px !important;
+
+  padding: 0 4% !important;
+
+  display: grid !important;
+  grid-template-columns:
+    180px
+    auto
+    minmax(260px, 1fr)
+    auto !important;
+
+  align-items: center !important;
+  gap: 24px !important;
+
+  background: #0c0c0c !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+
+/* Brand */
+
+.pro-topbar-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.pro-topbar-logo {
+  width: 38px !important;
+  height: 38px !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  background: #111 !important;
+  color: white !important;
+
+  border-radius: 7px !important;
+
+  font-weight: 800 !important;
+}
+
+.pro-topbar-brand strong {
+  color: #fff !important;
+  font-size: 17px !important;
+}
+
+.pro-topbar-brand small {
+  display: block !important;
+  color: #aaa !important;
+  font-size: 9px !important;
+}
+
+
+/* Main nav */
+
+.pro-topbar-nav {
+  height: 100% !important;
+
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 4px !important;
+}
+
+.pro-topbar-nav button {
+  position: relative !important;
+
+  height: 100% !important;
+
+  padding: 0 15px !important;
+
+  background: transparent !important;
+  color: #aaa !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.pro-topbar-nav button:hover {
+  color: white !important;
+}
+
+.pro-topbar-nav button.active {
+  background: transparent !important;
+  color: white !important;
+}
+
+.pro-topbar-nav button.active::after {
+  content: "" !important;
+
+  position: absolute !important;
+
+  left: 15px !important;
+  right: 15px !important;
+  bottom: 0 !important;
+
+  height: 2px !important;
+
+  background: #ff625e !important;
+}
+
+
+/* Global search */
+
+.pro-global-search {
+  position: relative !important;
+
+  width: 100% !important;
+  max-width: 520px !important;
+
+  justify-self: center !important;
+}
+
+.pro-global-search > span {
+  position: absolute !important;
+
+  left: 16px !important;
+  top: 50% !important;
+
+  transform: translateY(-50%) !important;
+
+  z-index: 2 !important;
+
+  color: #777 !important;
+}
+
+.pro-global-search input {
+  width: 100% !important;
+  height: 44px !important;
+
+  padding: 0 18px 0 42px !important;
+
+  background: white !important;
+
+  border: 1px solid #ddd !important;
+  border-radius: 9px !important;
+
+  outline: none !important;
+
+  font-size: 14px !important;
+}
+
+
+/* Right side */
+
+.pro-topbar-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+
+  white-space: nowrap !important;
+}
+
+.pro-topbar-refresh,
+.pro-topbar-signout {
+  background: white !important;
+  color: #111 !important;
+
+  border: 1px solid #ddd !important;
+}
+
+.pro-topbar-refresh {
+  width: 42px !important;
+  height: 42px !important;
+
+  border-radius: 50% !important;
+}
+
+.pro-topbar-signout {
+  min-height: 38px !important;
+
+  padding: 0 16px !important;
+
+  border-radius: 999px !important;
+}
+
+
+/* ==========================================================
+   SECOND WHITE BAR
+   ========================================================== */
+
+.pro-commandbar {
+  position: sticky !important;
+  top: 66px !important;
+  z-index: 900 !important;
+
+  width: 100% !important;
+  min-height: 78px !important;
+
+  margin: 0 !important;
+  padding: 0 4% !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    auto
+    minmax(480px, 1fr)
+    auto !important;
+
+  align-items: center !important;
+  gap: 18px !important;
+
+  background: #fff !important;
+
+  border: 0 !important;
+  border-bottom: 1px solid #ccc8c2 !important;
+
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+
+/* left title */
+
+.pro-commandbar-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+
+  white-space: nowrap !important;
+}
+
+.pro-commandbar-title strong {
+  font-size: 15px !important;
+  color: #111 !important;
+}
+
+.pro-commandbar-title span {
+  font-size: 11px !important;
+  color: #888 !important;
+}
+
+
+/* Select filters */
+
+.pro-command-filters {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(150px, 1.4fr)
+    minmax(115px, 0.8fr)
+    minmax(115px, 0.8fr)
+    minmax(130px, 0.9fr) !important;
+
+  gap: 8px !important;
+
+  min-width: 0 !important;
+}
+
+.pro-command-filters select {
+  width: 100% !important;
+  height: 44px !important;
+
+  padding: 0 34px 0 14px !important;
+
+  background: #fff !important;
+
+  border: 1px solid #cbc7c1 !important;
+  border-radius: 8px !important;
+
+  color: #222 !important;
+
+  font-size: 13px !important;
+}
+
+
+/* quick filters */
+
+.pro-quick-filters {
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 7px !important;
+
+  white-space: nowrap !important;
+}
+
+.pro-quick-filters button {
+  min-height: 36px !important;
+
+  padding: 0 12px !important;
+
+  background: #fff !important;
+  color: #444 !important;
+
+  border: 1px solid #d7d2cc !important;
+  border-radius: 999px !important;
+
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.pro-quick-filters button.active {
+  background: #111 !important;
+  color: #fff !important;
+
+  border-color: #111 !important;
+}
+
+
+/* ==========================================================
+   JOB BROWSER
+   ========================================================== */
+
+.pro-opportunity-workspace.pro-reference-browser {
+  width: calc(100% - 8%) !important;
+  max-width: none !important;
+
+  height: calc(100vh - 196px) !important;
+  min-height: 560px !important;
+
+  margin: 54px 4% 0 !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(420px, 43%)
+    minmax(0, 57%) !important;
+
+  gap: 22px !important;
+
+  align-items: stretch !important;
+
+  overflow: hidden !important;
+}
+
+
+/* ==========================================================
+   LEFT FEED
+   ========================================================== */
+
+.pro-feed {
+  height: 100% !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+
+  background: transparent !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  overflow: hidden !important;
+}
+
+
+/* header above cards */
+
+.pro-feed-heading {
+  flex: 0 0 auto !important;
+
+  min-height: 54px !important;
+
+  padding: 0 2px 14px !important;
+
+  display: flex !important;
+  align-items: flex-start !important;
+
+  background: transparent !important;
+
+  border: 0 !important;
+}
+
+.pro-feed-heading strong {
+  display: block !important;
+
+  font-size: 16px !important;
+  line-height: 1.3 !important;
+
+  color: #111 !important;
+}
+
+.pro-feed-heading small {
+  display: block !important;
+
+  margin-top: 3px !important;
+
+  color: #777 !important;
+
+  font-size: 11px !important;
+}
+
+
+/* scrolling list */
+
+.pro-feed-list {
+  flex: 1 1 auto !important;
+
+  min-height: 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  padding: 0 10px 40px 0 !important;
+
+  scrollbar-width: thin !important;
+}
+
+.pro-feed-list::-webkit-scrollbar {
+  width: 7px !important;
+}
+
+.pro-feed-list::-webkit-scrollbar-thumb {
+  background: #aaa !important;
+  border-radius: 99px !important;
+}
+
+
+/* ==========================================================
+   JOB CARDS
+   ========================================================== */
+
+.pro-feed-card {
+  position: relative !important;
+
+  width: 100% !important;
+  min-height: 180px !important;
+
+  margin: 0 0 15px !important;
+  padding: 20px 18px !important;
+
+  background: #fff !important;
+
+  border: 1px solid #dedad4 !important;
+  border-radius: 8px !important;
+
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.06) !important;
+
+  cursor: pointer !important;
+}
+
+.pro-feed-card:hover {
+  border-color: #999 !important;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.08) !important;
+}
+
+.pro-feed-card.active {
+  border: 2px solid #111 !important;
+  box-shadow: none !important;
+}
+
+
+/* Card top */
+
+.pro-feed-card-top {
+  display: flex !important;
+
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+
+  gap: 14px !important;
+}
+
+.pro-feed-card h3 {
+  margin: 0 0 8px !important;
+
+  font-size: 19px !important;
+  line-height: 1.25 !important;
+
+  font-weight: 750 !important;
+
+  color: #111 !important;
+}
+
+.pro-feed-card-top p {
+  margin: 0 !important;
+
+  color: #333 !important;
+
+  font-size: 14px !important;
+}
+
+.pro-feed-card-top p span {
+  margin: 0 5px !important;
+}
+
+
+/* favorite */
+
+.pro-feed-star {
+  flex: 0 0 auto !important;
+
+  width: 34px !important;
+  height: 34px !important;
+
+  padding: 0 !important;
+
+  background: transparent !important;
+
+  border: 0 !important;
+
+  font-size: 22px !important;
+
+  color: #555 !important;
+}
+
+
+/* Tags */
+
+.pro-feed-tags {
+  margin-top: 15px !important;
+
+  display: flex !important;
+  flex-wrap: wrap !important;
+
+  gap: 7px !important;
+}
+
+.pro-feed-tags span {
+  display: inline-flex !important;
+
+  align-items: center !important;
+
+  min-height: 29px !important;
+
+  padding: 0 11px !important;
+
+  background: #f2efeb !important;
+
+  border-radius: 999px !important;
+
+  color: #444 !important;
+
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+.pro-feed-tags span.match {
+  background: #eaff75 !important;
+  color: #315500 !important;
+}
+
+.pro-feed-tags span.priority {
+  background: #fff0d2 !important;
+  color: #a35a00 !important;
+
+  border: 1px solid #ffc65c !important;
+}
+
+
+/* footer */
+
+.pro-feed-footer {
+  margin-top: 15px !important;
+  padding-top: 13px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  gap: 12px !important;
+
+  border-top: 1px solid #eeeae5 !important;
+
+  color: #666 !important;
+
+  font-size: 11px !important;
+}
+
+
+/* ==========================================================
+   RIGHT DETAIL
+   ========================================================== */
+
+.pro-opportunity-detail {
+  height: 100% !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+
+  background: #fff !important;
+
+  border: 1px solid #dedad4 !important;
+  border-radius: 8px !important;
+
+  overflow: hidden !important;
+
+  box-shadow:
+    0 2px 7px rgba(0,0,0,.055) !important;
+}
+
+
+/* detail header */
+
+.pro-detail-sticky {
+  position: relative !important;
+
+  flex: 0 0 auto !important;
+
+  min-height: 142px !important;
+
+  padding: 30px 40px 24px !important;
+
+  display: flex !important;
+
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+
+  gap: 25px !important;
+
+  background: #fff !important;
+
+  border-bottom: 1px solid #d8d4ce !important;
+}
+
+.pro-detail-sticky > div:first-child {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.pro-detail-sticky h2 {
+  margin: 0 0 10px !important;
+
+  max-width: 680px !important;
+
+  color: #111 !important;
+
+  font-size: 27px !important;
+  line-height: 1.18 !important;
+
+  font-weight: 800 !important;
+}
+
+.pro-detail-sticky p {
+  margin: 0 !important;
+
+  color: #333 !important;
+
+  font-size: 15px !important;
+}
+
+
+/* header actions */
+
+.pro-detail-header-actions {
+  flex: 0 0 auto !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 12px !important;
+}
+
+.pro-detail-favorite {
+  width: 44px !important;
+  height: 44px !important;
+
+  padding: 0 !important;
+
+  background: white !important;
+
+  border: 1px solid #ccc7c0 !important;
+  border-radius: 50% !important;
+
+  font-size: 20px !important;
+}
+
+.pro-detail-apply {
+  min-height: 46px !important;
+
+  padding: 0 24px !important;
+
+  display: inline-flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  background: #090909 !important;
+  color: #fff !important;
+
+  border: 0 !important;
+  border-radius: 999px !important;
+
+  white-space: nowrap !important;
+
+  font-size: 15px !important;
+  font-weight: 750 !important;
+
+  text-decoration: none !important;
+}
+
+
+/* actual detail scroller */
+
+.pro-detail-scroll {
+  flex: 1 1 auto !important;
+
+  min-height: 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  padding: 0 40px 50px !important;
+
+  scrollbar-width: thin !important;
+}
+
+.pro-detail-scroll::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.pro-detail-scroll::-webkit-scrollbar-thumb {
+  background: #999 !important;
+  border-radius: 99px !important;
+}
+
+
+/* top badges */
+
+.pro-detail-badges {
+  padding: 22px 0 16px !important;
+
+  display: flex !important;
+  flex-wrap: wrap !important;
+
+  gap: 8px !important;
+}
+
+.pro-detail-badges span {
+  min-height: 30px !important;
+
+  padding: 0 12px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+
+  background: #f1efeb !important;
+
+  border-radius: 999px !important;
+
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.pro-detail-badges .match {
+  background: #eaff75 !important;
+  color: #315500 !important;
+}
+
+.pro-detail-badges .priority {
+  background: #fff0d2 !important;
+  color: #a35a00 !important;
+}
+
+
+/* detail sections */
+
+.pro-detail-section {
+  padding: 24px 0 !important;
+
+  border-bottom: 1px solid #ebe7e1 !important;
+}
+
+.pro-detail-section h3 {
+  margin: 0 0 15px !important;
+
+  color: #111 !important;
+
+  font-size: 19px !important;
+  font-weight: 750 !important;
+}
+
+.pro-detail-section p,
+.pro-detail-copy {
+  margin: 0 !important;
+
+  color: #4e4e4e !important;
+
+  font-size: 15px !important;
+  line-height: 1.62 !important;
+}
+
+
+/* Why match */
+
+.pro-detail-section.highlight {
+  margin: 0 0 4px !important;
+  padding: 20px !important;
+
+  background: #f4f4d5 !important;
+
+  border: 0 !important;
+  border-radius: 8px !important;
+}
+
+
+/* Facts */
+
+.pro-detail-facts {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+
+  gap: 10px !important;
+}
+
+.pro-detail-facts > div {
+  min-height: 78px !important;
+
+  padding: 13px !important;
+
+  background: #fafafa !important;
+
+  border: 1px solid #e5e2dd !important;
+  border-radius: 7px !important;
+}
+
+.pro-detail-facts small {
+  display: block !important;
+
+  margin-bottom: 6px !important;
+
+  color: #777 !important;
+
+  font-size: 10px !important;
+
+  text-transform: uppercase !important;
+}
+
+.pro-detail-facts strong {
+  color: #222 !important;
+
+  font-size: 12px !important;
+}
+
+
+/* Specialization */
+
+.pro-detail-tags {
+  display: flex !important;
+  flex-wrap: wrap !important;
+
+  gap: 8px !important;
+}
+
+.pro-detail-tags span {
+  padding: 8px 12px !important;
+
+  background: #edf3ff !important;
+  color: #1559d5 !important;
+
+  border: 1px solid #cbdcff !important;
+  border-radius: 999px !important;
+
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+
+/* application heading */
+
+.pro-detail-section-heading {
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  gap: 16px !important;
+
+  margin-bottom: 15px !important;
+}
+
+.pro-detail-section-heading h3 {
+  margin: 0 !important;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 1250px) {
+
+  .pro-topbar.pro-reference-header {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+
+    grid-template-columns:
+      160px
+      auto
+      1fr
+      auto !important;
+
+    gap: 12px !important;
+  }
+
+  .pro-commandbar {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+
+    overflow-x: auto !important;
+  }
+
+  .pro-opportunity-workspace.pro-reference-browser {
+    width: calc(100% - 48px) !important;
+
+    margin-left: 24px !important;
+    margin-right: 24px !important;
+
+    grid-template-columns:
+      minmax(360px, 42%)
+      minmax(0, 58%) !important;
+  }
+
+}
+
+
+@media (max-width: 900px) {
+
+  .pro-global-search {
+    display: none !important;
+  }
+
+  .pro-topbar.pro-reference-header {
+    grid-template-columns:
+      auto 1fr auto !important;
+  }
+
+  .pro-commandbar {
+    display: flex !important;
+    overflow-x: auto !important;
+  }
+
+}
+
+
+@media (max-width: 760px) {
+
+  .pro-topbar.pro-reference-header {
+    height: auto !important;
+    min-height: 64px !important;
+
+    padding: 8px 14px !important;
+
+    display: flex !important;
+
+    overflow-x: auto !important;
+  }
+
+  .pro-topbar-right {
+    margin-left: auto !important;
+  }
+
+  .pro-commandbar {
+    position: static !important;
+
+    padding: 10px 14px !important;
+  }
+
+  .pro-command-filters {
+    display: flex !important;
+  }
+
+  .pro-command-filters select {
+    min-width: 140px !important;
+  }
+
+  .pro-opportunity-workspace.pro-reference-browser {
+    width: 100% !important;
+    height: auto !important;
+
+    margin: 14px 0 0 !important;
+
+    display: block !important;
+
+    overflow: visible !important;
+  }
+
+  .pro-feed {
+    height: auto !important;
+
+    padding: 0 12px !important;
+
+    overflow: visible !important;
+  }
+
+  .pro-feed-list {
+    overflow: visible !important;
+  }
+
+  .pro-opportunity-detail {
+    height: auto !important;
+
+    margin-top: 16px !important;
+
+    border-radius: 0 !important;
+
+    overflow: visible !important;
+  }
+
+  .pro-detail-scroll {
+    overflow: visible !important;
+
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  .pro-detail-sticky {
+    padding: 22px 20px !important;
+  }
+
+  .pro-detail-facts {
+    grid-template-columns:
+      1fr !important;
+  }
+
+}
+
+
+
+/* ==========================================================
+   JOBDRIVE — FINAL REFERENCE LAYOUT
+   ========================================================== */
+
+html,
+body,
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  min-height: 100% !important;
+}
+
+body {
+  background: #f4f1ec !important;
+}
+
+
+/* REMOVE THE LARGE EMPTY AREA ABOVE HEADER */
+
+.pro-app {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh !important;
+  background: #f4f1ec !important;
+}
+
+
+/* ==========================================================
+   BLACK HEADER
+   ========================================================== */
+
+.pro-topbar.pro-reference-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+
+  width: 100% !important;
+  height: 66px !important;
+  min-height: 66px !important;
+
+  margin: 0 !important;
+  padding: 0 4% !important;
+
+  display: grid !important;
+  grid-template-columns:
+    170px
+    110px
+    minmax(320px, 1fr)
+    auto !important;
+
+  align-items: center !important;
+  gap: 24px !important;
+
+  background: #0c0c0c !important;
+  border: 0 !important;
+  box-sizing: border-box !important;
+}
+
+
+/* BRAND */
+
+.pro-topbar-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+.pro-topbar-logo {
+  width: 38px !important;
+  height: 38px !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  border-radius: 9px !important;
+
+  background: #111827 !important;
+  color: white !important;
+
+  font-weight: 800 !important;
+}
+
+.pro-topbar-brand strong {
+  display: block !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  line-height: 1.1 !important;
+}
+
+.pro-topbar-brand small {
+  display: block !important;
+  color: #aaa !important;
+  font-size: 9px !important;
+  margin-top: 3px !important;
+}
+
+
+/* OVERVIEW */
+
+.pro-topbar-nav {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.pro-topbar-nav button {
+  height: 40px !important;
+  padding: 0 17px !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  background: transparent !important;
+  color: #aaa !important;
+
+  font-size: 13px !important;
+  font-weight: 700 !important;
+
+  cursor: pointer !important;
+}
+
+.pro-topbar-nav button.active {
+  color: #fff !important;
+  background: transparent !important;
+  border-bottom: 2px solid #ff625f !important;
+}
+
+
+/* GLOBAL SEARCH */
+
+.pro-global-search {
+  width: 100% !important;
+  max-width: 620px !important;
+
+  height: 44px !important;
+
+  justify-self: center !important;
+
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+
+  padding: 0 16px !important;
+
+  background: #fff !important;
+  border: 1px solid #d4d0ca !important;
+  border-radius: 7px !important;
+
+  box-sizing: border-box !important;
+}
+
+.pro-global-search span {
+  color: #777 !important;
+}
+
+.pro-global-search input {
+  width: 100% !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+
+  font-size: 14px !important;
+  color: #222 !important;
+}
+
+
+/* SIGN OUT ONLY */
+
+.pro-topbar-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
+.pro-topbar-signout {
+  height: 40px !important;
+  padding: 0 18px !important;
+
+  border-radius: 22px !important;
+  border: 1px solid #ddd7cf !important;
+
+  background: #fff !important;
+  color: #111 !important;
+
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+
+/* ==========================================================
+   WHITE FILTER BAR
+   ========================================================== */
+
+.pro-commandbar {
+  position: sticky !important;
+  top: 66px !important;
+  z-index: 900 !important;
+
+  width: 100% !important;
+  min-height: 78px !important;
+
+  margin: 0 !important;
+  padding: 0 4% !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    220px
+    minmax(500px, 760px)
+    1fr !important;
+
+  align-items: center !important;
+  gap: 18px !important;
+
+  background: #fff !important;
+
+  border: 0 !important;
+  border-bottom: 1px solid #ccc8c2 !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* TITLE */
+
+.pro-commandbar-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  white-space: nowrap !important;
+}
+
+.pro-commandbar-title strong {
+  color: #111 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+.pro-commandbar-title span {
+  color: #888 !important;
+  font-size: 11px !important;
+}
+
+
+/* FOUR FILTERS */
+
+.pro-command-filters {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(160px, 1.4fr)
+    minmax(115px, .8fr)
+    minmax(115px, .8fr)
+    minmax(130px, .9fr) !important;
+
+  gap: 8px !important;
+
+  width: 100% !important;
+}
+
+.pro-command-filters select {
+  width: 100% !important;
+  height: 44px !important;
+
+  padding: 0 14px !important;
+
+  border: 1px solid #c9c5bf !important;
+  border-radius: 7px !important;
+
+  background: #fff !important;
+  color: #222 !important;
+
+  font-size: 13px !important;
+
+  outline: none !important;
+}
+
+
+/* FORCE OLD QUICK FILTERS AWAY */
+
+.pro-quick-filters {
+  display: none !important;
+}
+
+
+/* ==========================================================
+   MAIN AREA
+   ========================================================== */
+
+.pro-main {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+
+  background: #f4f1ec !important;
+}
+
+
+/* MASTER DETAIL */
+
+.pro-opportunity-workspace.pro-reference-browser {
+  width: calc(100% - 8%) !important;
+  max-width: none !important;
+
+  height: calc(100vh - 180px) !important;
+
+  margin: 54px 4% 0 !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(400px, 42%)
+    minmax(0, 58%) !important;
+
+  gap: 22px !important;
+
+  overflow: hidden !important;
+}
+
+
+/* LEFT FEED */
+
+.pro-opportunity-feed,
+.pro-feed {
+  height: 100% !important;
+
+  background: transparent !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+
+/* RIGHT DETAIL */
+
+.pro-opportunity-detail {
+  height: 100% !important;
+
+  background: #fff !important;
+
+  border: 1px solid #ddd8d1 !important;
+  border-radius: 10px !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 1100px) {
+
+  .pro-topbar.pro-reference-header {
+    grid-template-columns:
+      150px
+      100px
+      1fr
+      auto !important;
+
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .pro-commandbar {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+
+    grid-template-columns:
+      180px
+      minmax(500px, 1fr) !important;
+
+    overflow-x: auto !important;
+  }
+
+  .pro-opportunity-workspace.pro-reference-browser {
+    width: calc(100% - 48px) !important;
+    margin-left: 24px !important;
+    margin-right: 24px !important;
+  }
+}
+
+
+@media (max-width: 760px) {
+
+  .pro-topbar.pro-reference-header {
+    position: static !important;
+
+    height: auto !important;
+
+    padding: 10px 14px !important;
+
+    display: flex !important;
+    gap: 10px !important;
+  }
+
+  .pro-global-search {
+    min-width: 220px !important;
+  }
+
+  .pro-commandbar {
+    position: static !important;
+
+    display: flex !important;
+
+    padding: 10px 14px !important;
+
+    overflow-x: auto !important;
+  }
+
+  .pro-command-filters {
+    display: flex !important;
+  }
+
+  .pro-command-filters select {
+    min-width: 140px !important;
+  }
+
+  .pro-opportunity-workspace.pro-reference-browser {
+    width: 100% !important;
+    height: auto !important;
+
+    margin: 16px 0 0 !important;
+
+    display: block !important;
+  }
+
+}
+

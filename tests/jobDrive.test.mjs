@@ -117,20 +117,116 @@ test("analytics calculates application funnel", () => {
 });
 
 
-test("filterInternships excludes Remote Job rows", () => {
+test("filterInternships keeps only industry M2 internships", () => {
   const jobs = [
-    { id: "M2-1", type: "Stage M2" },
-    { id: "RJ-1", type: "Remote Job" },
-    { id: "M2-2", type: "Stage M2" },
+    {
+      id: "AIRBUS",
+      type: "Stage M2",
+      company: "Airbus",
+      role: "Computer Vision Intern",
+      domain: "Computer Vision",
+    },
+    {
+      id: "ALSTOM",
+      type: "Stage M2",
+      company: "Alstom",
+      role: "R&D Machine Learning Intern",
+      domain: "Machine Learning",
+    },
+    {
+      id: "CNRS",
+      type: "Stage M2",
+      company: "CNRS",
+      role: "Machine Learning Internship",
+    },
+    {
+      id: "UNIVERSITY",
+      type: "Stage M2",
+      company: "Nantes Université",
+      role: "Computer Vision Intern",
+    },
+    {
+      id: "LAB",
+      type: "Stage M2",
+      company: "University Research Laboratory",
+      role: "Image Processing Internship",
+    },
+    {
+      id: "RJ-1",
+      type: "Remote Job",
+      company: "Technology Company",
+    },
   ];
 
   const result = jobDrive.filterInternships?.(jobs);
 
   assert.deepEqual(
     result?.map((job) => job.id),
-    ["M2-1", "M2-2"]
+    ["AIRBUS", "ALSTOM"]
   );
 });
+
+test("industry R&D internships are not mistaken for academic labs", () => {
+  const jobs = [
+    {
+      id: "INDUSTRIAL-RD",
+      type: "Stage M2",
+      company: "Safran",
+      role: "R&D Computer Vision Intern",
+      domain: "Image Processing",
+      whyRelevant:
+        "Applied research on industrial inspection systems",
+    },
+    {
+      id: "ACADEMIC-RD",
+      type: "Stage M2",
+      company: "Université de Nantes",
+      role: "R&D Computer Vision Intern",
+      domain: "Image Processing",
+    },
+  ];
+
+  assert.deepEqual(
+    jobDrive.filterInternships(jobs).map(
+      (job) => job.id
+    ),
+    ["INDUSTRIAL-RD"]
+  );
+});
+
+
+test("academic institutes are excluded from internship tracking", () => {
+  const jobs = [
+    {
+      id: "INRAE",
+      type: "Stage M2",
+      company: "INRAE",
+    },
+    {
+      id: "INRIA",
+      type: "Stage M2",
+      company: "Inria",
+    },
+    {
+      id: "UMR",
+      type: "Stage M2",
+      company: "UMR 1234",
+    },
+    {
+      id: "COMPANY",
+      type: "Stage M2",
+      company: "Valeo",
+    },
+  ];
+
+  assert.deepEqual(
+    jobDrive.filterInternships(jobs).map(
+      (job) => job.id
+    ),
+    ["COMPANY"]
+  );
+});
+
 
 test("internshipSpecializations returns unique sorted domains", () => {
   const jobs = [

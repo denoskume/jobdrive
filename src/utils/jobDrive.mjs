@@ -339,10 +339,61 @@ export function addDaysISO(value, amount) {
   return toDateInput(base);
 }
 
-export function filterInternships(jobs = []) {
-  return jobs.filter(
-    (job) => job.type === "Stage M2"
+const ACADEMIC_ORGANIZATION_PATTERNS = [
+  /\buniversity\b/i,
+  /université/i,
+  /universite/i,
+  /\bcollege\b/i,
+  /\bfaculty\b/i,
+  /faculté/i,
+  /faculte/i,
+  /\bgraduate school\b/i,
+  /école/i,
+  /ecole/i,
+
+  /\bcnrs\b/i,
+  /\binrae\b/i,
+  /\binria\b/i,
+  /\binsa\b/i,
+
+  /\bumr\b/i,
+  /\blaboratoire\b/i,
+  /\blaboratory\b/i,
+  /\bacademic lab\b/i,
+  /\bresearch laboratory\b/i,
+  /\bresearch institute\b/i,
+
+  /\bcentrale nantes\b/i,
+  /école centrale/i,
+  /ecole centrale/i,
+];
+
+function internshipOrganizationText(job = {}) {
+  return [
+    job.company,
+    job.role,
+    job.domain,
+    job.source,
+    job.whyRelevant,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export function isIndustryInternship(job = {}) {
+  if (job.type !== "Stage M2") {
+    return false;
+  }
+
+  const text = internshipOrganizationText(job);
+
+  return !ACADEMIC_ORGANIZATION_PATTERNS.some(
+    (pattern) => pattern.test(text)
   );
+}
+
+export function filterInternships(jobs = []) {
+  return jobs.filter(isIndustryInternship);
 }
 
 export function internshipSpecializations(jobs = []) {
