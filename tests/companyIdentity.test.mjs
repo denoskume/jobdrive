@@ -187,3 +187,83 @@ test("extractOfficialDomain rejects malformed URLs", () => {
     null
   );
 });
+
+import {
+  inferAtsIdentity,
+} from "../src/companyIdentity/companyIdentitySources.mjs";
+
+
+test("inferAtsIdentity extracts Greenhouse tenant", () => {
+  assert.deepEqual(
+    inferAtsIdentity(
+      "https://boards.greenhouse.io/examplecompany/jobs/123"
+    ),
+    {
+      tenant: "examplecompany",
+      source: "ats",
+      confidence: "low",
+    }
+  );
+});
+
+
+test("inferAtsIdentity extracts Lever tenant", () => {
+  assert.deepEqual(
+    inferAtsIdentity(
+      "https://jobs.lever.co/examplecompany/123"
+    ),
+    {
+      tenant: "examplecompany",
+      source: "ats",
+      confidence: "low",
+    }
+  );
+});
+
+
+test("inferAtsIdentity extracts SmartRecruiters tenant", () => {
+  assert.deepEqual(
+    inferAtsIdentity(
+      "https://jobs.smartrecruiters.com/examplecompany/123"
+    ),
+    {
+      tenant: "examplecompany",
+      source: "ats",
+      confidence: "low",
+    }
+  );
+});
+
+
+test("inferAtsIdentity extracts Teamtailor tenant", () => {
+  assert.deepEqual(
+    inferAtsIdentity(
+      "https://examplecompany.teamtailor.com/jobs/123"
+    ),
+    {
+      tenant: "examplecompany",
+      source: "ats",
+      confidence: "low",
+    }
+  );
+});
+
+
+test("inferAtsIdentity rejects LinkedIn", () => {
+  assert.equal(
+    inferAtsIdentity(
+      "https://linkedin.com/jobs/view/123"
+    ),
+    null
+  );
+});
+
+
+test("inferAtsIdentity rejects malformed URL", () => {
+  assert.equal(
+    inferAtsIdentity(
+      "not-a-url"
+    ),
+    null
+  );
+});

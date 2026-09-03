@@ -147,3 +147,93 @@ export function extractOfficialDomain(
 export {
   INTERMEDIARY_DOMAINS,
 };
+
+
+export function inferAtsIdentity(
+  link = ""
+) {
+  let url;
+
+  try {
+    url =
+      new URL(link);
+  } catch {
+    return null;
+  }
+
+
+  const host =
+    cleanHostname(
+      url.hostname
+    );
+
+
+  const parts =
+    url.pathname
+      .split("/")
+      .filter(Boolean);
+
+
+  let tenant = "";
+
+
+  if (
+    host ===
+      "boards.greenhouse.io" ||
+    host ===
+      "job-boards.greenhouse.io"
+  ) {
+    tenant =
+      parts[0] || "";
+  }
+
+
+  else if (
+    host ===
+    "jobs.lever.co"
+  ) {
+    tenant =
+      parts[0] || "";
+  }
+
+
+  else if (
+    host ===
+    "jobs.smartrecruiters.com"
+  ) {
+    tenant =
+      parts[0] || "";
+  }
+
+
+  else if (
+    host.endsWith(
+      ".teamtailor.com"
+    )
+  ) {
+    tenant =
+      host.split(".")[0] || "";
+  }
+
+
+  tenant =
+    String(tenant)
+      .toLowerCase()
+      .trim()
+      .replace(
+        /[^a-z0-9_-]+/g,
+        ""
+      );
+
+
+  if (!tenant) {
+    return null;
+  }
+
+
+  return {
+    tenant,
+    source: "ats",
+    confidence: "low",
+  };
+}
