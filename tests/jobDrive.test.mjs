@@ -299,3 +299,65 @@ test("sortInternships supports deadline, match, priority and company", () => {
     );
   }
 });
+
+test("normalizes company identity metadata from Google Sheet rows", () => {
+  const headers = Array.from(
+    { length: 25 },
+    (_, index) => `column-${index}`
+  );
+
+  const row = Array(25).fill("");
+
+  row[0] = "identity-1";
+  row[1] = "Stage M2";
+  row[2] = "Example Company";
+  row[3] = "AI Internship";
+
+  row[23] = "example.com";
+  row[24] = "https://cdn.example.com/logo.svg";
+
+  const [job] = normalizeJobs([
+    headers,
+    row,
+  ]);
+
+  assert.equal(
+    job.companyDomain,
+    "example.com"
+  );
+
+  assert.equal(
+    job.logoUrl,
+    "https://cdn.example.com/logo.svg"
+  );
+});
+
+
+test("company identity metadata defaults safely", () => {
+  const headers = Array.from(
+    { length: 25 },
+    (_, index) => `column-${index}`
+  );
+
+  const row = Array(25).fill("");
+
+  row[0] = "identity-2";
+  row[1] = "Stage M2";
+  row[2] = "Unknown Company";
+  row[3] = "Internship";
+
+  const [job] = normalizeJobs([
+    headers,
+    row,
+  ]);
+
+  assert.equal(
+    job.companyDomain,
+    ""
+  );
+
+  assert.equal(
+    job.logoUrl,
+    ""
+  );
+});
