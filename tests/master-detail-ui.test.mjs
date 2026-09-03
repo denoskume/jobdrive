@@ -22,7 +22,7 @@ test(
 
     assert.match(
       app,
-      /className="pro-opportunity-workspace"/
+      /className="pro-opportunity-workspace[^"]*"/
     );
 
     assert.match(

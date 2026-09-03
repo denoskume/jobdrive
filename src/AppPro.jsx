@@ -1674,7 +1674,7 @@ const detailJob =
   return (
     <div className="pro-app">
 
-      <header className="pro-topbar">
+      <header className="pro-topbar pro-reference-header pro-reference-tabs">
 
         <div className="pro-topbar-brand">
           <span className="pro-topbar-logo">
@@ -1690,19 +1690,15 @@ const detailJob =
         </div>
 
 
+
         <nav className="pro-topbar-nav">
-          {NAV_ITEMS.map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={
-                view === key ? "active" : ""
-              }
-              onClick={() => setView(key)}
-            >
-              {label}
-            </button>
-          ))}
+          <button
+            type="button"
+            className="active"
+            onClick={() => setView("overview")}
+          >
+            Overview
+          </button>
         </nav>
 
 
@@ -1720,37 +1716,8 @@ const detailJob =
         </label>
 
 
+
         <div className="pro-topbar-right">
-
-          <button
-            className="pro-topbar-refresh"
-            type="button"
-            onClick={loadJobs}
-            disabled={loading}
-          >
-            {loading ? "Syncing..." : "↻"}
-          </button>
-
-          <div className="pro-live-mini">
-            <i />
-
-            <div>
-              <strong>Live data</strong>
-              <small>Google Sheets</small>
-            </div>
-          </div>
-
-          <div className="pro-google-mini">
-            <span>D</span>
-
-            <div>
-              <strong>
-                Google connected
-              </strong>
-              <small>Private Sheet</small>
-            </div>
-          </div>
-
           <button
             className="pro-topbar-signout"
             type="button"
@@ -1758,7 +1725,6 @@ const detailJob =
           >
             Sign out
           </button>
-
         </div>
 
       </header>
@@ -1892,32 +1858,10 @@ const detailJob =
 
                 </div>
 
-
-                <div className="pro-quick-filters">
-                  {QUICK_FILTERS.map(
-                    ([key, label]) => (
-                      <button
-                        key={key || "all"}
-                        type="button"
-                        className={
-                          quickFilter === key
-                            ? "active"
-                            : ""
-                        }
-                        onClick={() =>
-                          setQuickFilter(key)
-                        }
-                      >
-                        {label}
-                      </button>
-                    )
-                  )}
-                </div>
-
               </section>
 
 
-              <div className="pro-opportunity-workspace">
+              <div className="pro-opportunity-workspace pro-reference-browser pro-reference-searchbar">
 
                 <OpportunityFeed
                   jobs={filteredJobs}
