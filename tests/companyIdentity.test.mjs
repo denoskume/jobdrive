@@ -267,3 +267,302 @@ test("inferAtsIdentity rejects malformed URL", () => {
     null
   );
 });
+
+import {
+  resolveCompanyIdentity,
+} from "../src/companyIdentity/companyIdentity.mjs";
+
+
+function createIdentityStorage() {
+  const data = new Map();
+
+  return {
+    getItem(key) {
+      return data.has(key)
+        ? data.get(key)
+        : null;
+    },
+
+    setItem(key, value) {
+      data.set(
+        key,
+        String(value)
+      );
+    },
+  };
+}
+
+
+test("resolveCompanyIdentity gives explicit logoUrl highest priority", () => {
+  const result =
+    resolveCompanyIdentity({
+      company: "Example Company",
+      logoUrl:
+        "https://cdn.example.com/logo.svg",
+      companyDomain:
+        "example.org",
+      link:
+        "https://careers.example.com/jobs/1",
+    });
+
+  assert.equal(
+    result.logoUrl,
+    "https://cdn.example.com/logo.svg"
+  );
+
+  assert.equal(
+    result.domain,
+    "example.org"
+  );
+
+  assert.equal(
+    result.source,
+    "explicit-logo"
+  );
+
+  assert.equal(
+    result.confidence,
+    "high"
+  );
+
+  assert.equal(
+    result.resolved,
+    true
+  );
+});
+
+
+test("resolveCompanyIdentity uses explicit companyDomain before URL inference", () => {
+  const result =
+    resolveCompanyIdentity({
+      company: "Example Company",
+      companyDomain:
+        "example.org",
+      link:
+        "https://careers.example.com/jobs/1",
+    });
+
+  assert.equal(
+    result.domain,
+    "example.org"
+  );
+
+  assert.equal(
+    result.source,
+    "explicit-domain"
+  );
+
+  assert.equal(
+    result.resolved,
+    true
+  );
+});
+
+
+test("resolveCompanyIdentity uses cached identity before URL inference", () => {
+  const storage =
+    createIdentityStorage();
+
+  const cache = {
+    "example company": {
+      domain:
+        "cached-example.com",
+      logoUrl: "",
+      source:
+        "cache-seed",
+      confidence:
+        "medium",
+      resolved:
+        true,
+      updatedAt:
+        new Date().toISOString(),
+    },
+  };
+
+  storage.setItem(
+    "jobdrive.companyIdentity.v1",
+    JSON.stringify(cache)
+  );
+
+  const result =
+    resolveCompanyIdentity(
+      {
+        company:
+          "Example Company",
+        link:
+          "https://careers.example.com/jobs/1",
+      },
+      {
+        storage,
+      }
+    );
+
+  assert.equal(
+    result.domain,
+    "cached-example.com"
+  );
+
+  assert.equal(
+    result.source,
+    "cache"
+  );
+});
+
+
+test("resolveCompanyIdentity infers domain from official offer URL", () => {
+  const result =
+    resolveCompanyIdentity({
+      company:
+        "Airbus",
+      link:
+        "https://careers.airbus.com/job/123",
+    });
+
+  assert.equal(
+    result.domain,
+    "airbus.com"
+  );
+
+  assert.equal(
+    result.source,
+    "offer-domain"
+  );
+
+  assert.equal(
+    result.confidence,
+    "high"
+  );
+
+  assert.equal(
+    result.resolved,
+    true
+  );
+});
+
+
+test("resolveCompanyIdentity returns ATS metadata without inventing domain", () => {
+  const result =
+    resolveCompanyIdentity({
+      company:
+        "Example Company",
+      link:
+        "https://jobs.lever.co/examplecompany/123",
+    });
+
+  assert.equal(
+    result.domain,
+    ""
+  );
+
+  assert.equal(
+    result.source,
+    "ats"
+  );
+
+  assert.equal(
+    result.confidence,
+    "low"
+  );
+
+  assert.equal(
+    result.resolved,
+    false
+  );
+
+  assert.equal(
+    result.tenant,
+    "examplecompany"
+  );
+});
+
+
+test("resolveCompanyIdentity falls back to seed alias", () => {
+  const result =
+    resolveCompanyIdentity({
+      company:
+        "Parfums Christian Dior",
+      link: "",
+    });
+
+  assert.equal(
+    result.domain,
+    "dior.com"
+  );
+
+  assert.equal(
+    result.source,
+    "seed"
+  );
+
+  assert.equal(
+    result.resolved,
+    true
+  );
+});
+
+
+test("resolveCompanyIdentity safely returns unresolved identity", () => {
+  const result =
+    resolveCompanyIdentity({
+      company:
+        "Completely Unknown Organisation",
+      link: "",
+    });
+
+  assert.deepEqual(
+    result,
+    {
+      company:
+        "Completely Unknown Organisation",
+      normalizedCompany:
+        "completely unknown organisation",
+      domain: "",
+      logoUrl: "",
+      source:
+        "fallback",
+      confidence:
+        "none",
+      resolved:
+        false,
+    }
+  );
+});
+
+
+test("resolveCompanyIdentity caches official URL resolution", () => {
+  const storage =
+    createIdentityStorage();
+
+  const result =
+    resolveCompanyIdentity(
+      {
+        company:
+          "Airbus",
+        link:
+          "https://careers.airbus.com/job/123",
+      },
+      {
+        storage,
+      }
+    );
+
+  assert.equal(
+    result.domain,
+    "airbus.com"
+  );
+
+  const raw =
+    storage.getItem(
+      "jobdrive.companyIdentity.v1"
+    );
+
+  assert.ok(raw);
+
+  const parsed =
+    JSON.parse(raw);
+
+  assert.equal(
+    parsed.airbus.domain,
+    "airbus.com"
+  );
+});
