@@ -46,7 +46,7 @@ export async function readJobs({
   spreadsheetId,
 }) {
   const range = encodeURIComponent(
-    `'${SHEET_NAME}'!A:W`
+    `'${SHEET_NAME}'!A:AG`
   );
 
   const url =
@@ -105,6 +105,17 @@ const COLUMNS = {
   lastUpdated: "W",
 };
 
+const DESCRIPTION_COLUMNS = {
+  descriptionRaw: "Z",
+  about: "AA",
+  roleMission: "AB",
+  expectations: "AC",
+  mustHaveSkills: "AD",
+  descriptionSource: "AE",
+  descriptionFetchedAt: "AF",
+  descriptionStatus: "AG",
+};
+
 function sheetValue(key, value) {
   if (key === "favorite") {
     return value ? "TRUE" : "FALSE";
@@ -136,6 +147,53 @@ export async function updateJobFields({
 
       values: [
         [sheetValue(key, value)],
+      ],
+    }));
+
+  if (!data.length) {
+    return;
+  }
+
+  const url =
+    `${GOOGLE_SHEETS_API}/${spreadsheetId}` +
+    `/values:batchUpdate`;
+
+  await apiFetch(url, {
+    method: "POST",
+
+    headers:
+      authHeaders(token),
+
+    body: JSON.stringify({
+      valueInputOption: "USER_ENTERED",
+      data,
+    }),
+  });
+}
+
+export async function updateDescriptionFields({
+  token,
+  spreadsheetId,
+  jobId,
+  patch,
+}) {
+  const row = await findRowByJobId({
+    token,
+    spreadsheetId,
+    jobId,
+  });
+
+  const data = Object.entries(patch)
+    .filter(([key]) => DESCRIPTION_COLUMNS[key])
+    .map(([key, value]) => ({
+      range:
+        `'${SHEET_NAME}'!` +
+        `${DESCRIPTION_COLUMNS[key]}${row}`,
+
+      majorDimension: "ROWS",
+
+      values: [
+        [value ?? ""],
       ],
     }));
 

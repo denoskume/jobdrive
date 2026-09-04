@@ -176,6 +176,47 @@ function splitTags(value = "") {
 }
 
 
+
+function buildOfferSummary(job) {
+  const clean = (value) =>
+    String(value || "").trim();
+
+  const fallback =
+    "Not specified in the available offer description.";
+
+  const about =
+    clean(job.about) || fallback;
+
+  const roleMission =
+    clean(job.roleMission) || fallback;
+
+  const expectations =
+    clean(job.expectations) || fallback;
+
+  const mustHaveSkills =
+    clean(job.mustHaveSkills) || fallback;
+
+  return [
+    {
+      title: "About",
+      text: about,
+    },
+    {
+      title: "Role & mission",
+      text: roleMission,
+    },
+    {
+      title: "Expectations",
+      text: expectations,
+    },
+    {
+      title: "Must-have skills",
+      text: mustHaveSkills,
+    },
+  ];
+}
+
+
 function KPI({
   label,
   value,
@@ -719,6 +760,9 @@ function JobDetail({
   const tags =
     splitTags(job.domain);
 
+  const offerSummary =
+    buildOfferSummary(job);
+
   return (
     <section className="jd-detail">
 
@@ -835,6 +879,38 @@ function JobDetail({
           </div>
 
         </div>
+
+
+        <section className="jd-offer-summary">
+
+          <div className="jd-offer-summary-heading">
+            <span>OFFER SNAPSHOT</span>
+            <h3>What you need to know</h3>
+            <p>
+              Key information extracted from the
+              available details of this internship.
+            </p>
+          </div>
+
+          <div className="jd-offer-summary-grid">
+            {offerSummary.map((item, index) => (
+              <article
+                key={item.title}
+                className="jd-offer-summary-item"
+              >
+                <span className="jd-offer-summary-number">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <div>
+                  <h4>{item.title}</h4>
+                  <p>{item.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+
+        </section>
 
 
         <section className="jd-match-card">
