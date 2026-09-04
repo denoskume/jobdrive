@@ -52,7 +52,15 @@ function doGet(e) {
       whyRelevant: row[14],
       link: row[15],
       source: row[16],
-      detectedDate: row[17]
+      detectedDate: row[17],
+      descriptionRaw: row[25] || "",
+      about: row[26] || "",
+      roleMission: row[27] || "",
+      expectations: row[28] || "",
+      mustHaveSkills: row[29] || "",
+      descriptionSource: row[30] || "",
+      descriptionFetchedAt: row[31] || "",
+      descriptionStatus: row[32] || ""
     }));
 
   return jsonResponse({
