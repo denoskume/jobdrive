@@ -18,6 +18,7 @@ import {
 import {
   readJobs,
   updateJobFields,
+  updateDescriptionFields,
 } from "./services/sheetsApi";
 
 import {
@@ -34,6 +35,14 @@ import {
   toDateInput,
 } from "./utils/jobDrive.mjs";
 
+import {
+  refreshOfferDescription,
+} from "./offerDescription/runtimeDescriptionRefresh.mjs";
+
+import {
+  fetchOfferDescription,
+} from "./services/offerDescriptionApi.js";
+
 
 const CLIENT_ID =
   import.meta.env
@@ -43,6 +52,10 @@ const SPREADSHEET_ID =
   import.meta.env
     .VITE_JOBDRIVE_SPREADSHEET_ID ||
   "1o8n6ghifDv96P9rjJ7Vrzs0D50kTNz5a6DF9jODeMD8";
+
+const OFFER_DESCRIPTION_ENDPOINT =
+  import.meta.env
+    .VITE_JOBDRIVE_APPS_SCRIPT_URL || "";
 
 
 const NAV_ITEMS = [
@@ -1444,12 +1457,63 @@ export default function AppPro() {
           const internshipResult =
             filterInternships(result);
 
-          setJobs(internshipResult);
+          let enrichedInternships =
+            internshipResult;
+
+          try {
+            enrichedInternships =
+              await Promise.all(
+                internshipResult.map(
+                  async (job) =>
+                    refreshOfferDescription({
+                      job,
+
+                      discoveryDescription:
+                        job.discoveryDescription ||
+                        "",
+
+                      fetchDescription:
+                        async (offer) =>
+                          fetchOfferDescription({
+                            endpoint:
+                              OFFER_DESCRIPTION_ENDPOINT,
+
+                            offerUrl:
+                              offer.link,
+                          }),
+
+                      persistDescription:
+                        async (patch) =>
+                          updateDescriptionFields({
+                            token,
+
+                            spreadsheetId:
+                              SPREADSHEET_ID,
+
+                            jobId:
+                              job.id,
+
+                            patch,
+                          }),
+                    })
+                )
+              );
+          } catch (descriptionError) {
+            console.warn(
+              "Offer description enrichment failed:",
+              descriptionError
+            );
+
+            enrichedInternships =
+              internshipResult;
+          }
+
+          setJobs(enrichedInternships);
           setLastUpdated(new Date());
 
           if (selectedJob) {
             const refreshed =
-              internshipResult.find(
+              enrichedInternships.find(
                 (job) =>
                   job.id ===
                   selectedJob.id
