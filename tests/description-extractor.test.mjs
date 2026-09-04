@@ -186,3 +186,62 @@ test("does not invent content from an empty description", () => {
   assert.equal(result.expectations, fallback);
   assert.equal(result.mustHaveSkills, fallback);
 });
+
+test("extracts real Ashby-style offer headings without mixing sections", () => {
+  const raw = `
+ABOUT MISTRAL
+
+Mistral provides full-stack AI solutions.
+
+THE ROLE
+
+Develop state-of-the-art multimodal AI systems.
+
+WHAT YOU WILL DO
+
+Run model training and evaluation.
+Collaborate with engineering teams.
+
+WHAT WE'RE LOOKING FOR
+
+Fluent in English with excellent communication skills.
+Expert with PyTorch or JAX.
+Writes clean, high-performance Python code.
+
+NICE TO HAVE
+
+Publications in top conferences.
+  `.trim();
+
+  const result = extractOfferSections(raw);
+
+  assert.equal(
+    result.about,
+    "Mistral provides full-stack AI solutions."
+  );
+
+  assert.equal(
+    result.roleMission,
+    "Develop state-of-the-art multimodal AI systems. Run model training and evaluation. Collaborate with engineering teams."
+  );
+
+  assert.equal(
+    result.expectations,
+    "Fluent in English with excellent communication skills."
+  );
+
+  assert.equal(
+    result.mustHaveSkills,
+    "Expert with PyTorch or JAX. Writes clean, high-performance Python code."
+  );
+
+  assert.doesNotMatch(
+    result.roleMission,
+    /PyTorch|Fluent in English/
+  );
+
+  assert.doesNotMatch(
+    result.mustHaveSkills,
+    /Publications in top conferences/
+  );
+});
