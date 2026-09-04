@@ -7,72 +7,126 @@ const dashboard = fs.readFileSync(
   "utf8"
 );
 
-test("popup contains a four-part real offer summary", () => {
+const css = fs.readFileSync(
+  "src/jobdrive-dashboard.css",
+  "utf8"
+);
+
+
+function cssRule(selector) {
+  const escaped =
+    selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  return (
+    css.match(
+      new RegExp(`${escaped}\\s*\\{([^}]*)\\}`)
+    )?.[1] || ""
+  );
+}
+
+
+test("popup defines the exact four semantic offer sections", () => {
   assert.match(
     dashboard,
-    /function buildOfferSummary/
+    /title:\s*"About"/
   );
 
   assert.match(
     dashboard,
-    /jd-offer-summary/
+    /title:\s*"Role & mission"/
   );
 
   assert.match(
     dashboard,
-    /Role & company/
+    /title:\s*"Expectations"/
   );
 
   assert.match(
     dashboard,
-    /Technical scope/
-  );
-
-  assert.match(
-    dashboard,
-    /Practical details/
-  );
-
-  assert.match(
-    dashboard,
-    /Why it matters for you/
+    /title:\s*"Must-have skills"/
   );
 });
 
-test("offer summary is built from actual job metadata", () => {
-  for (const field of [
-    "job.role",
-    "job.company",
-    "job.domain",
-    "job.location",
-    "job.contract",
-    "job.compensation",
-    "job.postedDate",
-    "job.deadline",
-    "job.whyRelevant",
-  ]) {
-    assert.match(
-      dashboard,
-      new RegExp(
-        field.replace(".", "\\.")
-      )
-    );
-  }
+
+test("popup uses persisted structured description fields", () => {
+  assert.match(
+    dashboard,
+    /clean\(job\.about\)/
+  );
+
+  assert.match(
+    dashboard,
+    /clean\(job\.roleMission\)/
+  );
+
+  assert.match(
+    dashboard,
+    /clean\(job\.expectations\)/
+  );
+
+  assert.match(
+    dashboard,
+    /clean\(job\.mustHaveSkills\)/
+  );
 });
 
-test("summary does not use fabricated generic fallback claims", () => {
+
+test("structured offer fields take precedence over fallback", () => {
+  assert.match(
+    dashboard,
+    /clean\(job\.about\)\s*\|\|\s*fallback/
+  );
+
+  assert.match(
+    dashboard,
+    /clean\(job\.roleMission\)\s*\|\|\s*fallback/
+  );
+
+  assert.match(
+    dashboard,
+    /clean\(job\.expectations\)\s*\|\|\s*fallback/
+  );
+
+  assert.match(
+    dashboard,
+    /clean\(job\.mustHaveSkills\)\s*\|\|\s*fallback/
+  );
+});
+
+
+test("offer summary is a single full-width column", () => {
+  const rule =
+    cssRule(".jd-offer-summary-grid");
+
+  assert.match(
+    rule,
+    /grid-template-columns:\s*1fr/
+  );
+
   assert.doesNotMatch(
-    dashboard,
-    /Excellent opportunity to develop your career/
-  );
-
-  assert.doesNotMatch(
-    dashboard,
-    /You will work on exciting projects/
+    rule,
+    /repeat\(2/
   );
 });
 
-test("official offer remains directly accessible after summary", () => {
+
+test("offer summary items grow naturally without fixed clipping", () => {
+  const rule =
+    cssRule(".jd-offer-summary-item");
+
+  assert.match(
+    rule,
+    /min-width:\s*0/
+  );
+
+  assert.doesNotMatch(
+    rule,
+    /(?:^|[\s;])height:\s*\d+px/
+  );
+});
+
+
+test("official offer remains directly accessible", () => {
   assert.match(
     dashboard,
     /Open official offer/
@@ -81,5 +135,36 @@ test("official offer remains directly accessible after summary", () => {
   assert.match(
     dashboard,
     /href=\{job\.link\}/
+  );
+});
+
+
+test("popup keeps existing decision context", () => {
+  assert.match(
+    dashboard,
+    /Why this matches/
+  );
+
+  assert.match(
+    dashboard,
+    /Job details/
+  );
+
+  assert.match(
+    dashboard,
+    /Your tracking/
+  );
+});
+
+
+test("popup does not fabricate generic offer content", () => {
+  assert.doesNotMatch(
+    dashboard,
+    /You will work on exciting projects/
+  );
+
+  assert.doesNotMatch(
+    dashboard,
+    /Excellent opportunity to develop your career/
   );
 });
