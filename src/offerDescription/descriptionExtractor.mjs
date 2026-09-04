@@ -21,6 +21,7 @@ const ABOUT_HEADINGS = new Set([
 
 const ROLE_HEADINGS = new Set([
   "role",
+  "the role",
   "role & mission",
   "role and mission",
   "your role",
@@ -50,6 +51,12 @@ const EXPECTATION_HEADINGS = new Set([
   "profil recherche",
   "prérequis",
   "prerequis",
+]);
+
+
+const CANDIDATE_PROFILE_HEADINGS = new Set([
+  "what we're looking for",
+  "what we are looking for",
 ]);
 
 
@@ -95,7 +102,10 @@ function headingType(line) {
   const normalized =
     normalizeHeading(line);
 
-  if (ABOUT_HEADINGS.has(normalized)) {
+  if (
+    ABOUT_HEADINGS.has(normalized) ||
+    normalized.startsWith("about ")
+  ) {
     return "about";
   }
 
@@ -105,6 +115,10 @@ function headingType(line) {
 
   if (EXPECTATION_HEADINGS.has(normalized)) {
     return "expectations";
+  }
+
+  if (CANDIDATE_PROFILE_HEADINGS.has(normalized)) {
+    return "candidateProfile";
   }
 
   if (MUST_HAVE_HEADINGS.has(normalized)) {
@@ -124,6 +138,29 @@ function cleanLine(value = "") {
     .trim()
     .replace(/^[-*•]\s*/, "")
     .trim();
+}
+
+
+
+function splitCandidateProfile(lines = []) {
+  const expectations = [];
+  const mustHaveSkills = [];
+
+  const technicalPattern =
+    /^(expert\b|proficient\b|experience\b|experienced\b|knowledge\b|hands-on\b|writes?\b.*\bcode\b)/i;
+
+  for (const line of lines) {
+    if (technicalPattern.test(line)) {
+      mustHaveSkills.push(line);
+    } else {
+      expectations.push(line);
+    }
+  }
+
+  return {
+    expectations,
+    mustHaveSkills,
+  };
 }
 
 
@@ -149,6 +186,7 @@ export function extractOfferSections(
     roleMission: [],
     expectations: [],
     mustHaveSkills: [],
+    candidateProfile: [],
   };
 
   let current = null;
@@ -177,6 +215,19 @@ export function extractOfferSections(
       sections[current].push(line);
     }
   }
+
+  const candidateProfile =
+    splitCandidateProfile(
+      sections.candidateProfile
+    );
+
+  sections.expectations.push(
+    ...candidateProfile.expectations
+  );
+
+  sections.mustHaveSkills.push(
+    ...candidateProfile.mustHaveSkills
+  );
 
   return {
     about:
