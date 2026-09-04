@@ -8,13 +8,13 @@ import {
 test("normalizes persisted offer description fields", () => {
   const header =
     Array.from(
-      { length: 33 },
+      { length: 34 },
       (_, index) => `COL-${index}`
     );
 
   const row =
     Array.from(
-      { length: 33 },
+      { length: 34 },
       () => ""
     );
 
@@ -23,17 +23,18 @@ test("normalizes persisted offer description fields", () => {
   row[2] = "Example Industry";
   row[3] = "Machine Learning Intern";
 
-  row[23] = "example.com";
-  row[24] = "https://example.com/logo.png";
+  row[23] = "97";
+  row[24] = "Excellent alignment";
+    row[25] = "Faible";
 
-  row[25] = "Full official description";
-  row[26] = "Company context";
-  row[27] = "Build ML models";
-  row[28] = "Final-year MSc student";
-  row[29] = "Python; PyTorch";
-  row[30] = "official";
-  row[31] = "2026-09-04T10:00:00Z";
-  row[32] = "live";
+  row[26] = "Full official description";
+  row[27] = "Company context";
+  row[28] = "Build ML models";
+  row[29] = "Final-year MSc student";
+  row[30] = "Python; PyTorch";
+  row[31] = "official";
+  row[32] = "2026-09-04T10:00:00Z";
+  row[33] = "live";
 
   const [job] =
     normalizeJobs([

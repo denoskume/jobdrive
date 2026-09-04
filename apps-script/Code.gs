@@ -53,14 +53,14 @@ function doGet(e) {
       link: row[15],
       source: row[16],
       detectedDate: row[17],
-      descriptionRaw: row[25] || "",
-      about: row[26] || "",
-      roleMission: row[27] || "",
-      expectations: row[28] || "",
-      mustHaveSkills: row[29] || "",
-      descriptionSource: row[30] || "",
-      descriptionFetchedAt: row[31] || "",
-      descriptionStatus: row[32] || ""
+      descriptionRaw: row[26] || "",
+      about: row[27] || "",
+      roleMission: row[28] || "",
+      expectations: row[29] || "",
+      mustHaveSkills: row[30] || "",
+      descriptionSource: row[31] || "",
+      descriptionFetchedAt: row[32] || "",
+      descriptionStatus: row[33] || ""
     }));
 
   return jsonResponse({

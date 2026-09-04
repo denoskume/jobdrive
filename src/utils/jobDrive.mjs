@@ -231,28 +231,28 @@ export function normalizeJobs(values = []) {
         String(row[24] || "").trim(),
 
       descriptionRaw:
-        String(row[25] || "").trim(),
-
-      about:
         String(row[26] || "").trim(),
 
-      roleMission:
+      about:
         String(row[27] || "").trim(),
 
-      expectations:
+      roleMission:
         String(row[28] || "").trim(),
 
-      mustHaveSkills:
+      expectations:
         String(row[29] || "").trim(),
 
-      descriptionSource:
+      mustHaveSkills:
         String(row[30] || "").trim(),
 
-      descriptionFetchedAt:
+      descriptionSource:
         String(row[31] || "").trim(),
 
-      descriptionStatus:
+      descriptionFetchedAt:
         String(row[32] || "").trim(),
+
+      descriptionStatus:
+        String(row[33] || "").trim(),
     }))
     .filter((job) => job.id);
 }
