@@ -1,7 +1,15 @@
 const SPREADSHEET_ID = "1o8n6ghifDv96P9rjJ7Vrzs0D50kTNz5a6DF9jODeMD8";
 const SHEET_NAME = "Opportunités";
 
-function doGet() {
+function doGet(e) {
+  const parameters = (e && e.parameter) || {};
+
+  if (parameters.action === "fetchOfferDescription") {
+    return jsonResponse(
+      fetchOfferDescription_(parameters.url || "")
+    );
+  }
+
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = spreadsheet.getSheetByName(SHEET_NAME);
 
@@ -58,4 +66,125 @@ function jsonResponse(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+function fetchOfferDescription_(url) {
+  const fetchedAt = new Date().toISOString();
+  const source = String(url || "").trim();
+
+  if (!/^https?:\/\//i.test(source)) {
+    return {
+      success: false,
+      description: "",
+      source: source,
+      fetchedAt: fetchedAt,
+      error: "Invalid offer URL"
+    };
+  }
+
+  if (
+    /(^|\/\/)([^/]*\.)?(linkedin\.com|indeed\.[a-z.]+)(\/|$)/i
+      .test(source)
+  ) {
+    return {
+      success: false,
+      description: "",
+      source: source,
+      fetchedAt: fetchedAt,
+      error: "Non-authoritative offer source"
+    };
+  }
+
+  try {
+    const response = UrlFetchApp.fetch(source, {
+      method: "get",
+      followRedirects: true,
+      muteHttpExceptions: true,
+      headers: {
+        "User-Agent": "Mozilla/5.0 JobDrive/1.0"
+      }
+    });
+
+    const statusCode = response.getResponseCode();
+
+    if (statusCode < 200 || statusCode >= 300) {
+      return {
+        success: false,
+        description: "",
+        source: source,
+        fetchedAt: fetchedAt,
+        error: "HTTP " + statusCode
+      };
+    }
+
+    const html = response.getContentText();
+    const description = normalizeFetchedOfferHtml_(html);
+
+    if (!description) {
+      return {
+        success: false,
+        description: "",
+        source: source,
+        fetchedAt: fetchedAt,
+        error: "No meaningful offer description found"
+      };
+    }
+
+    return {
+      success: true,
+      description: description,
+      source: source,
+      fetchedAt: fetchedAt
+    };
+  } catch (error) {
+    return {
+      success: false,
+      description: "",
+      source: source,
+      fetchedAt: fetchedAt,
+      error:
+        error && error.message
+          ? String(error.message)
+          : "Offer description fetch failed"
+    };
+  }
+}
+
+
+function normalizeFetchedOfferHtml_(html) {
+  let text = String(html || "");
+
+  if (!text.trim()) {
+    return "";
+  }
+
+  text = text
+    .replace(
+      /<(script|style|noscript)\b[^>]*>[\s\S]*?<\/\1>/gi,
+      " "
+    )
+    .replace(
+      /<\/?(h[1-6]|p|div|section|article|header|footer|li|ul|ol|br)\b[^>]*>/gi,
+      "\n"
+    )
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\r/g, "")
+    .split("\n")
+    .map(function (line) {
+      return line.replace(/[ \t]+/g, " ").trim();
+    })
+    .filter(function (line) {
+      return Boolean(line);
+    })
+    .join("\n")
+    .trim();
+
+  return text;
 }
