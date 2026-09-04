@@ -229,6 +229,30 @@ export function normalizeJobs(values = []) {
 
       logoUrl:
         String(row[24] || "").trim(),
+
+      descriptionRaw:
+        String(row[25] || "").trim(),
+
+      about:
+        String(row[26] || "").trim(),
+
+      roleMission:
+        String(row[27] || "").trim(),
+
+      expectations:
+        String(row[28] || "").trim(),
+
+      mustHaveSkills:
+        String(row[29] || "").trim(),
+
+      descriptionSource:
+        String(row[30] || "").trim(),
+
+      descriptionFetchedAt:
+        String(row[31] || "").trim(),
+
+      descriptionStatus:
+        String(row[32] || "").trim(),
     }))
     .filter((job) => job.id);
 }
