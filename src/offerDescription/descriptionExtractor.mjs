@@ -21,6 +21,8 @@ const ABOUT_HEADINGS = new Set([
 
 const ROLE_HEADINGS = new Set([
   "role",
+  "role & mission",
+  "role and mission",
   "your role",
   "mission",
   "missions",
@@ -37,6 +39,7 @@ const ROLE_HEADINGS = new Set([
 
 const EXPECTATION_HEADINGS = new Set([
   "requirements",
+  "expectations",
   "qualifications",
   "who you are",
   "profile",
@@ -53,6 +56,7 @@ const EXPECTATION_HEADINGS = new Set([
 const MUST_HAVE_HEADINGS = new Set([
   "required skills",
   "must have skills",
+  "must-have skills",
   "must-have skills",
   "skills required",
   "technical requirements",
