@@ -7,45 +7,45 @@ const source = fs.readFileSync(
   "utf8"
 );
 
-test("description persistence maps fields to Z through AG", () => {
+test("description persistence maps fields to AA through AH", () => {
   assert.match(
     source,
-    /descriptionRaw:\s*"Z"/
+    /descriptionRaw:\s*"AA"/
   );
 
   assert.match(
     source,
-    /about:\s*"AA"/
+    /about:\s*"AB"/
   );
 
   assert.match(
     source,
-    /roleMission:\s*"AB"/
+    /roleMission:\s*"AC"/
   );
 
   assert.match(
     source,
-    /expectations:\s*"AC"/
+    /expectations:\s*"AD"/
   );
 
   assert.match(
     source,
-    /mustHaveSkills:\s*"AD"/
+    /mustHaveSkills:\s*"AE"/
   );
 
   assert.match(
     source,
-    /descriptionSource:\s*"AE"/
+    /descriptionSource:\s*"AF"/
   );
 
   assert.match(
     source,
-    /descriptionFetchedAt:\s*"AF"/
+    /descriptionFetchedAt:\s*"AG"/
   );
 
   assert.match(
     source,
-    /descriptionStatus:\s*"AG"/
+    /descriptionStatus:\s*"AH"/
   );
 });
 

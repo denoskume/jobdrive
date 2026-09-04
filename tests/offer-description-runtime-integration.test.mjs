@@ -219,38 +219,38 @@ test("expired stored description is not destructively refreshed", async () => {
 });
 
 
-test("Google Sheets persistence still maps descriptions to Z through AG", () => {
+test("Google Sheets persistence maps descriptions to AA through AH", () => {
   assert.match(
     sheetsApi,
-    /descriptionRaw:\s*"Z"/
+    /descriptionRaw:\s*"AA"/
   );
   assert.match(
     sheetsApi,
-    /about:\s*"AA"/
+    /about:\s*"AB"/
   );
   assert.match(
     sheetsApi,
-    /roleMission:\s*"AB"/
+    /roleMission:\s*"AC"/
   );
   assert.match(
     sheetsApi,
-    /expectations:\s*"AC"/
+    /expectations:\s*"AD"/
   );
   assert.match(
     sheetsApi,
-    /mustHaveSkills:\s*"AD"/
+    /mustHaveSkills:\s*"AE"/
   );
   assert.match(
     sheetsApi,
-    /descriptionSource:\s*"AE"/
+    /descriptionSource:\s*"AF"/
   );
   assert.match(
     sheetsApi,
-    /descriptionFetchedAt:\s*"AF"/
+    /descriptionFetchedAt:\s*"AG"/
   );
   assert.match(
     sheetsApi,
-    /descriptionStatus:\s*"AG"/
+    /descriptionStatus:\s*"AH"/
   );
 });
 

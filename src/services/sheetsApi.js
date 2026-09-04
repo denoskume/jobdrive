@@ -46,7 +46,7 @@ export async function readJobs({
   spreadsheetId,
 }) {
   const range = encodeURIComponent(
-    `'${SHEET_NAME}'!A:AG`
+    `'${SHEET_NAME}'!A:AH`
   );
 
   const url =
@@ -106,14 +106,14 @@ const COLUMNS = {
 };
 
 const DESCRIPTION_COLUMNS = {
-  descriptionRaw: "Z",
-  about: "AA",
-  roleMission: "AB",
-  expectations: "AC",
-  mustHaveSkills: "AD",
-  descriptionSource: "AE",
-  descriptionFetchedAt: "AF",
-  descriptionStatus: "AG",
+  descriptionRaw: "AA",
+  about: "AB",
+  roleMission: "AC",
+  expectations: "AD",
+  mustHaveSkills: "AE",
+  descriptionSource: "AF",
+  descriptionFetchedAt: "AG",
+  descriptionStatus: "AH",
 };
 
 function sheetValue(key, value) {
