@@ -105,6 +105,22 @@ function fetchOfferDescription_(url) {
   }
 
   try {
+    const ashbyJob = parseAshbyJobUrl_(source);
+
+    if (ashbyJob) {
+      const ashbyDescription =
+        fetchAshbyOfferDescription_(ashbyJob);
+
+      if (ashbyDescription) {
+        return {
+          success: true,
+          description: ashbyDescription,
+          source: source,
+          fetchedAt: fetchedAt
+        };
+      }
+    }
+
     const response = UrlFetchApp.fetch(source, {
       method: "get",
       followRedirects: true,
@@ -158,6 +174,101 @@ function fetchOfferDescription_(url) {
     };
   }
 }
+
+
+
+function parseAshbyJobUrl_(url) {
+  const match = String(url || "").match(
+    /^https?:\/\/jobs\.ashbyhq\.com\/([^/?#]+)\/([^/?#]+)(?:[/?#]|$)/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  if (match[2].toLowerCase() === "application") {
+    return null;
+  }
+
+  return {
+    board: match[1],
+    jobId: match[2]
+  };
+}
+
+
+function fetchAshbyOfferDescription_(ashbyJob) {
+  if (
+    !ashbyJob ||
+    !ashbyJob.board ||
+    !ashbyJob.jobId
+  ) {
+    return "";
+  }
+
+  const endpoint =
+    "https://api.ashbyhq.com/posting-api/job-board/" +
+    encodeURIComponent(ashbyJob.board);
+
+  const response = UrlFetchApp.fetch(endpoint, {
+    method: "get",
+    followRedirects: true,
+    muteHttpExceptions: true,
+    headers: {
+      "User-Agent": "Mozilla/5.0 JobDrive/1.0"
+    }
+  });
+
+  const statusCode = response.getResponseCode();
+
+  if (statusCode < 200 || statusCode >= 300) {
+    return "";
+  }
+
+  let payload;
+
+  try {
+    payload = JSON.parse(
+      response.getContentText()
+    );
+  } catch (error) {
+    return "";
+  }
+
+  const jobs =
+    payload && Array.isArray(payload.jobs)
+      ? payload.jobs
+      : [];
+
+  const job = jobs.find(function (item) {
+    return (
+      item &&
+      String(item.id || "") ===
+        String(ashbyJob.jobId)
+    );
+  });
+
+  if (!job) {
+    return "";
+  }
+
+  const plain =
+    String(job.descriptionPlain || "").trim();
+
+  if (plain) {
+    return plain;
+  }
+
+  const html =
+    String(job.descriptionHtml || "").trim();
+
+  if (html) {
+    return normalizeFetchedOfferHtml_(html);
+  }
+
+  return "";
+}
+
 
 
 function normalizeFetchedOfferHtml_(html) {
