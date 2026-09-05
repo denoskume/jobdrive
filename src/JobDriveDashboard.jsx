@@ -91,6 +91,13 @@ function Icon({
       <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z" />
     ),
 
+    sun: (
+      <>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
+      </>
+    ),
+
     briefcase: (
       <>
         <rect x="3" y="7" width="18" height="13" rx="2" />
@@ -443,6 +450,8 @@ function Topbar({
   search,
   onSearch,
   onLogout,
+  theme,
+  onToggleTheme,
 }) {
   return (
     <header className="jd-topbar">
@@ -478,9 +487,25 @@ function Topbar({
           <b>3</b>
         </button>
 
-        <button>
+        <button
+          onClick={onToggleTheme}
+          title={
+            theme === "dark"
+              ? "Switch to light mode"
+              : "Switch to dark mode"
+          }
+          aria-label={
+            theme === "dark"
+              ? "Switch to light mode"
+              : "Switch to dark mode"
+          }
+        >
           <Icon
-            name="moon"
+            name={
+              theme === "dark"
+                ? "moon"
+                : "sun"
+            }
             size={18}
           />
         </button>
@@ -1200,6 +1225,40 @@ export default function JobDriveDashboard({
   alternateContent,
 }) {
 
+  const [theme, setTheme] =
+    useState(() => {
+      try {
+        return localStorage.getItem(
+          "jobdrive.theme"
+        ) === "light"
+          ? "light"
+          : "dark";
+      } catch {
+        return "dark";
+      }
+    });
+
+  const toggleTheme = () => {
+    setTheme((current) => {
+      const next =
+        current === "dark"
+          ? "light"
+          : "dark";
+
+      try {
+        localStorage.setItem(
+          "jobdrive.theme",
+          next
+        );
+      } catch {
+        // Theme still works without storage.
+      }
+
+      return next;
+    });
+  };
+
+
   const [detailJobId, setDetailJobId] =
     useState(null);
 
@@ -1265,7 +1324,7 @@ export default function JobDriveDashboard({
       : 0;
 
   return (
-    <div className="jd-shell">
+    <div className={`jd-shell jd-theme-${theme}`}>
 
       <Sidebar
         view={view}
@@ -1291,6 +1350,8 @@ export default function JobDriveDashboard({
       <main className="jd-main">
 
         <Topbar
+          theme={theme}
+          onToggleTheme={toggleTheme}
           search={search}
           onSearch={onSearch}
           onLogout={onLogout}

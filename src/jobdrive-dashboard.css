@@ -3067,3 +3067,154 @@ button.active {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* JOBDRIVE LIGHT THEME */
+.jd-shell.jd-theme-light {
+  --jd-bg: #f3f6fa;
+  --jd-bg-2: #eef2f7;
+  --jd-sidebar: #ffffff;
+
+  --jd-panel: #ffffff;
+  --jd-panel-2: #f8fafc;
+  --jd-panel-3: #f1f5f9;
+
+  --jd-border: #dce3eb;
+  --jd-border-2: #cbd5e1;
+
+  --jd-text: #16202b;
+  --jd-muted: #64748b;
+  --jd-dim: #8a97a6;
+
+  background: #f3f6fa;
+  color: var(--jd-text);
+}
+
+.jd-theme-light .jd-sidebar {
+  background: #ffffff;
+  border-color: #dce3eb;
+}
+
+.jd-theme-light .jd-topbar,
+.jd-theme-light .jd-feed,
+.jd-theme-light .jd-kpi,
+.jd-theme-light .jd-job-card,
+.jd-theme-light .jd-detail,
+.jd-theme-light .jd-detail-modal,
+.jd-theme-light .jd-detail-panel,
+.jd-theme-light .jd-offer-summary,
+.jd-theme-light .jd-offer-summary-item {
+  background-color: #ffffff;
+  color: #16202b;
+  border-color: #dce3eb;
+}
+
+.jd-theme-light .jd-main,
+.jd-theme-light .jd-content,
+.jd-theme-light .jd-workspace,
+.jd-theme-light .jd-job-list {
+  background: #f3f6fa;
+}
+
+.jd-theme-light .jd-search {
+  background: #f8fafc;
+  border-color: #d7e0e9;
+}
+
+.jd-theme-light .jd-search input,
+.jd-theme-light select {
+  color: #16202b;
+  background: transparent;
+}
+
+.jd-theme-light .jd-search input::placeholder {
+  color: #8a97a6;
+}
+
+.jd-theme-light .jd-search kbd,
+.jd-theme-light .jd-tag,
+.jd-theme-light .jd-job-tags span {
+  background: #edf2f7;
+  color: #526173;
+  border-color: #dce3eb;
+}
+
+.jd-theme-light .jd-nav button,
+.jd-theme-light .jd-saved button,
+.jd-theme-light .jd-top-actions button {
+  color: #526173;
+}
+
+.jd-theme-light .jd-nav button:hover,
+.jd-theme-light .jd-saved button:hover,
+.jd-theme-light .jd-top-actions button:hover {
+  background: #f1f5f9;
+  color: #182230;
+}
+
+.jd-theme-light .jd-nav button.active {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(123,80,255,.16),
+      rgba(123,80,255,.08)
+    );
+  color: #5136c9;
+}
+
+.jd-theme-light .jd-job-card:hover,
+.jd-theme-light .jd-job-card.active {
+  background: #fbfcfe;
+  border-color: #b9c5d2;
+}
+
+.jd-theme-light .jd-job-card h3,
+.jd-theme-light .jd-feed-header strong,
+.jd-theme-light .jd-kpi strong,
+.jd-theme-light .jd-brand strong,
+.jd-theme-light .jd-profile strong,
+.jd-theme-light .jd-detail h1,
+.jd-theme-light .jd-detail h2,
+.jd-theme-light .jd-detail h3,
+.jd-theme-light .jd-offer-summary strong {
+  color: #16202b;
+}
+
+.jd-theme-light .jd-job-card p,
+.jd-theme-light .jd-job-meta,
+.jd-theme-light .jd-feed-header,
+.jd-theme-light .jd-kpi small,
+.jd-theme-light .jd-kpi span,
+.jd-theme-light .jd-brand small,
+.jd-theme-light .jd-profile small,
+.jd-theme-light .jd-detail p,
+.jd-theme-light .jd-detail span {
+  color: #64748b;
+}
+
+.jd-theme-light .jd-company-logo {
+  background: #ffffff;
+  border-color: #dce3eb;
+}
+
+.jd-theme-light .jd-avatar {
+  background: #ede9fe !important;
+  color: #4c1d95 !important;
+}
+
+.jd-shell,
+.jd-sidebar,
+.jd-topbar,
+.jd-feed,
+.jd-kpi,
+.jd-job-card,
+.jd-search,
+.jd-detail,
+.jd-detail-modal,
+.jd-detail-panel,
+.jd-offer-summary-item {
+  transition:
+    background-color .18s ease,
+    color .18s ease,
+    border-color .18s ease;
+}
