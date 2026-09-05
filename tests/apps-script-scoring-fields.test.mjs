@@ -3,11 +3,20 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const discovery = fs.readFileSync("apps-script/Discovery.gs", "utf8");
+const scoringEvidenceV2 = fs.readFileSync("apps-script/ScoringEvidenceV2.gs", "utf8");
+const scoring = fs.readFileSync("apps-script/Scoring.gs", "utf8");
 const sheet = fs.readFileSync("apps-script/DiscoverySheet.gs", "utf8");
 const api = fs.readFileSync("apps-script/Code.gs", "utf8");
 
-test("discovery delegates weighted scoring to the Phase 2B scorer", () => {
-  assert.match(discovery, /scoreInternshipCandidate_\s*\(/);
+test("discovery delegates weighted scoring to the Phase 2B evidence-aware scorer", () => {
+  assert.match(discovery, /scoreInternshipCandidateEvidence_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringAlignmentScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringTechnicalQualityScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringCompanyQualityScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringPracticalFitScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringFreshnessScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringCompensationScore_\s*\(/);
+  assert.match(scoring, /var\s+SCORING_VERSION_\s*=\s*["']2\.0["']/);
   assert.doesNotMatch(discovery, /function\s+scoreDiscoveryCandidate_\s*\(/);
   assert.match(discovery, /scored\.fitScore\s*<\s*75/);
 });
