@@ -1,4 +1,4 @@
-var FRANCE_TRAVAIL_TOKEN_URL_ = "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=/partenaire";
+var FRANCE_TRAVAIL_TOKEN_URL_ = "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire";
 var FRANCE_TRAVAIL_SEARCH_URL_ = "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search";
 var FRANCE_TRAVAIL_DEFAULT_SCOPE_ = "api_offresdemploiv2 o2dsoffre";
 var FRANCE_TRAVAIL_PAGE_SIZE_ = 150;
@@ -160,4 +160,32 @@ function discoverFranceTravailPage_(source, cursor) {
   } catch (error) {
     return franceTravailResult_("fetch_error", [], cursor || "", false, String(error && error.message || error));
   }
+}
+
+function testJobDriveFranceTravailConnection() {
+  var config = franceTravailConfigStatus_();
+  if (!config.configured) {
+    return {
+      success:false,
+      status:"configuration_required",
+      reason:String(config.reason || "missing_credentials"),
+      jobsFound:0,
+      done:true,
+      error:""
+    };
+  }
+
+  var result = discoverFranceTravailPage_({
+    sourceKey:"france-travail",
+    sourceType:"france_travail"
+  }, "");
+  var success = result.status === "ok" || result.status === "empty";
+  return {
+    success:success,
+    status:String(result.status || "fetch_error"),
+    reason:success ? "" : String(result.error || "connection_failed"),
+    jobsFound:Array.isArray(result.jobs) ? result.jobs.length : 0,
+    done:Boolean(result.done),
+    error:String(result.error || "").slice(0, 500)
+  };
 }
