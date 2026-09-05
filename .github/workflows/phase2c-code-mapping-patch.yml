@@ -1,0 +1,32 @@
+name: Phase 2C Code mapping patch
+
+on:
+  push:
+    branches:
+      - feature/phase2c-action-center
+    paths:
+      - .github/workflows/phase2c-code-mapping-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase2c-action-center
+          fetch-depth: 0
+      - name: Patch Code.gs mapping
+        run: |
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgpwID0gUGF0aCgiYXBwcy1zY3JpcHQvQ29kZS5ncyIpCnMgPSBwLnJlYWRfdGV4dCgpCgpvbGQgPSAnJycgICAgICBzY29yaW5nVmVyc2lvbjogcm93WzM4XSB8fCAiIiwKICAgICAgc2NvcmluZ1VwZGF0ZWRBdDogcm93WzM5XSB8fCAiIgonJycKbmV3ID0gJycnICAgICAgc2NvcmluZ1ZlcnNpb246IHJvd1szOF0gfHwgIiIsCiAgICAgIHNjb3JpbmdVcGRhdGVkQXQ6IHJvd1szOV0gfHwgIiIsCiAgICAgIGxhc3RGb2xsb3dVcDogcm93WzQwXSB8fCAiIiwKICAgICAgZm9sbG93VXBDb3VudDogTnVtYmVyKHJvd1s0MV0gfHwgMCksCiAgICAgIGFjdGlvblByaW9yaXR5OiByb3dbNDJdIHx8ICIiLAogICAgICBhY3Rpb25SZWFzb246IHJvd1s0M10gfHwgIiIsCiAgICAgIGFjdGlvblVwZGF0ZWRBdDogcm93WzQ0XSB8fCAiIgonJycKaWYgb2xkIG5vdCBpbiBzOgogICAgcmFpc2UgU3lzdGVtRXhpdCgiQ29kZS5ncyBQaGFzZSAyQiBtYXBwaW5nIG1hcmtlciBub3QgZm91bmQiKQpwLndyaXRlX3RleHQocy5yZXBsYWNlKG9sZCwgbmV3LCAxKSkK' | base64 -d > /tmp/phase2c-code-mapping.py
+          python3 /tmp/phase2c-code-mapping.py
+      - name: Commit patch and remove one-shot workflow
+        run: |
+          rm .github/workflows/phase2c-code-mapping-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: expose phase 2C metadata in apps script API"
+          git push origin HEAD:feature/phase2c-action-center
