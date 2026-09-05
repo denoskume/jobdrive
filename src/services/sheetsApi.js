@@ -1,8 +1,10 @@
 import {
-  normalizeJobs,
-} from "../utils/jobDrive.mjs";
+  normalizeJobsWithDiscoveryMetadata,
+} from "../discovery/jobsPhase2d.mjs";
 
 const SHEET_NAME = "Opportunités";
+const DISCOVERY_SOURCES_SHEET = "Discovery Sources";
+const DISCOVERY_RUNS_SHEET = "Discovery Runs";
 
 const GOOGLE_SHEETS_API =
   "https://sheets.googleapis.com/v4/spreadsheets";
@@ -41,25 +43,54 @@ async function apiFetch(url, options = {}) {
   return body;
 }
 
-export async function readJobs({
+async function readRange({
   token,
   spreadsheetId,
+  range,
 }) {
-  const range = encodeURIComponent(
-    `'${SHEET_NAME}'!A:AS`
-  );
-
+  const encodedRange = encodeURIComponent(range);
   const url =
     `${GOOGLE_SHEETS_API}/${spreadsheetId}` +
-    `/values/${range}`;
+    `/values/${encodedRange}`;
 
   const response = await apiFetch(url, {
     headers: authHeaders(token),
   });
 
-  return normalizeJobs(
-    response.values || []
-  );
+  return response.values || [];
+}
+
+export async function readJobs({
+  token,
+  spreadsheetId,
+}) {
+  const values = await readRange({
+    token,
+    spreadsheetId,
+    range: `'${SHEET_NAME}'!A:BC`,
+  });
+
+  return normalizeJobsWithDiscoveryMetadata(values);
+}
+
+export async function readDiscoveryCoverage({
+  token,
+  spreadsheetId,
+}) {
+  const [sources, runs] = await Promise.all([
+    readRange({
+      token,
+      spreadsheetId,
+      range: `'${DISCOVERY_SOURCES_SHEET}'!A:T`,
+    }),
+    readRange({
+      token,
+      spreadsheetId,
+      range: `'${DISCOVERY_RUNS_SHEET}'!A:AA`,
+    }),
+  ]);
+
+  return { sources, runs };
 }
 
 export async function findRowByJobId({
