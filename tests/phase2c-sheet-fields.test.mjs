@@ -49,10 +49,10 @@ test("historical A:AN rows default phase 2C fields safely", () => {
   assert.equal(job.actionUpdatedAt, "");
 });
 
-test("Sheets client reads through AS and maps phase 2C writes", () => {
+test("Sheets client reads Phase 2C fields inside the expanded A:BC range and maps writes", () => {
   const source = fs.readFileSync("src/services/sheetsApi.js", "utf8");
 
-  assert.match(source, /'\$\{SHEET_NAME\}'!A:AS/);
+  assert.match(source, /'\$\{SHEET_NAME\}'!A:BC/);
   assert.match(source, /lastFollowUp:\s*"AO"/);
   assert.match(source, /followUpCount:\s*"AP"/);
   assert.match(source, /actionPriority:\s*"AQ"/);
