@@ -1,0 +1,31 @@
+name: JobDrive CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Test
+        run: npm test
+      - name: Build
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          VITE_JOBDRIVE_SPREADSHEET_ID: ${{ vars.VITE_JOBDRIVE_SPREADSHEET_ID }}
+          VITE_JOBDRIVE_APPS_SCRIPT_URL: ${{ vars.VITE_JOBDRIVE_APPS_SCRIPT_URL }}
+        run: npm run build
