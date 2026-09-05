@@ -44,6 +44,30 @@ function scoringEvidenceInternshipSignal_(candidate) {
   return "";
 }
 
+function scoringLocationEvidence_(candidate) {
+  var location = [candidate.location, candidate.country].map(function(value){ return String(value || ""); }).join(" ").toLowerCase();
+  if (/remote/.test(location) && /france/.test(location)) return "location:remote-france";
+  if (/\bfrance\b/.test(String(candidate.country || "").toLowerCase())) return "country:france";
+  if (/france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg|corse|corsica|guadeloupe|martinique|guyane|french guiana|réunion|reunion|mayotte|polynésie française|polynesie francaise|nouvelle-calédonie|nouvelle-caledonie|saint-pierre-et-miquelon/.test(location)) return "location:france";
+  return "";
+}
+
+function scoringTimingEvidence_(candidate) {
+  var text = [candidate.role,candidate.contract,candidate.descriptionRaw,candidate.expectations].map(function(value){ return String(value || ""); }).join(" ").toLowerCase();
+  if (/\b(?:january|janvier)\s+2027\b/i.test(text)) return "jan_2027";
+  if (/\b(?:february|février|fevrier)\s+2027\b/i.test(text)) return "feb_2027";
+  if (/\bflexible|negotiable|négociable|negociable\b/i.test(text)) return "flexible";
+  return "unknown";
+}
+
+function scoringDurationEvidenceLabel_(candidate, evidence) {
+  var text = [candidate.role,candidate.contract,candidate.expectations,candidate.descriptionRaw,evidence.practicalText].map(function(value){return String(value || "");}).join(" ");
+  if (/\b5\s*[-–]\s*6\s*(?:month|months|mois)\b/i.test(text)) return "5_6_months";
+  if (/\b5\s*[- ]?(?:month|months|mois)\b|\b(?:five|cinq)[ -]?(?:month|months|mois)\b/i.test(text)) return "5_months";
+  if (/\b6\s*[- ]?(?:month|months|mois)\b|\b(?:six)[ -]?(?:month|months|mois)\b/i.test(text)) return "6_months";
+  return "unknown";
+}
+
 function evaluateInternshipEligibilityEvidence_(candidate, evidence, classification) {
   candidate = candidate || {};
   evidence = evidence || {};
@@ -88,7 +112,11 @@ function evaluateInternshipEligibilityEvidence_(candidate, evidence, classificat
     rejectionReason:"",
     rejectionSignals:[],
     internshipEvidence:internshipEvidence,
-    durationEvidence:duration.explicit ? "explicit_5_6_months" : "unknown"
+    locationEvidence:scoringLocationEvidence_(candidate),
+    durationEvidence:scoringDurationEvidenceLabel_(candidate, evidence),
+    industryEvidence:"company",
+    domainEvidence:classification.domain ? [classification.domain] : [],
+    timingEvidence:scoringTimingEvidence_(candidate)
   };
 }
 
@@ -122,6 +150,10 @@ function scoreInternshipCandidateEvidence_(candidate, nowIso) {
     scoreBreakdown:scoreBreakdown,
     scoringVersion:SCORING_VERSION_,
     internshipEvidence:eligibility.internshipEvidence,
-    durationEvidence:eligibility.durationEvidence
+    locationEvidence:eligibility.locationEvidence,
+    durationEvidence:eligibility.durationEvidence,
+    industryEvidence:eligibility.industryEvidence,
+    domainEvidence:eligibility.domainEvidence,
+    timingEvidence:eligibility.timingEvidence
   };
 }
