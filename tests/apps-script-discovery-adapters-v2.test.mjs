@@ -82,3 +82,37 @@ test("Discovery adapters v2 report restricted and unsupported sources honestly",
   assertPagedResult(unsupported);
   assert.equal(unsupported.status, "unsupported");
 });
+
+test("SmartRecruiters exposes real page cursors instead of declaring a truncated scan complete", () => {
+  const firstUrl = "https://api.smartrecruiters.com/v1/companies/Acme/postings?limit=100";
+  const secondUrl = "https://api.smartrecruiters.com/v1/companies/Acme/postings?limit=100&offset=100";
+  const calls = [];
+  const context = loadAdapters((url) => {
+    calls.push(url);
+    if (url === firstUrl) {
+      return response({
+        content:[{id:"s1",name:"ML Intern",location:{city:"Paris",country:"fr"},ref:"https://jobs.smartrecruiters.com/Acme/s1"}],
+        nextPage: secondUrl,
+      });
+    }
+    if (url === secondUrl) {
+      return response({
+        content:[{id:"s2",name:"Vision Intern",location:{city:"Lyon",country:"fr"},ref:"https://jobs.smartrecruiters.com/Acme/s2"}],
+      });
+    }
+    throw new Error(`Unexpected URL ${url}`);
+  });
+
+  const first = context.discoverSourcePage_({sourceType:"smartrecruiters", tenant:"Acme"}, "");
+  assertPagedResult(first);
+  assert.equal(first.done, false);
+  assert.equal(first.nextCursor, secondUrl);
+  assert.deepEqual(first.jobs.map((job) => job.id), ["s1"]);
+
+  const second = context.discoverSourcePage_({sourceType:"smartrecruiters", tenant:"Acme"}, first.nextCursor);
+  assertPagedResult(second);
+  assert.equal(second.done, true);
+  assert.equal(second.nextCursor, "");
+  assert.deepEqual(second.jobs.map((job) => job.id), ["s2"]);
+  assert.deepEqual(calls, [firstUrl, secondUrl]);
+});
