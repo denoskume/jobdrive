@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const dashboard = fs.readFileSync("src/JobDriveDashboard.jsx", "utf8");
+const dashboardCss = fs.readFileSync("src/jobdrive-dashboard.css", "utf8");
 const appPro = fs.readFileSync("src/AppPro.jsx", "utf8");
 
 function readActionCenter() {
@@ -26,12 +27,39 @@ test("dashboard preserves Recommended as a visible sort option", () => {
   assert.match(dashboard, /Recommended/);
 });
 
+test("Overview KPI strip accounts for all six cards", () => {
+  const kpiBlock = dashboardCss.match(/\.jd-kpis\s*\{[\s\S]*?\}/)?.[0] || "";
+  assert.match(kpiBlock, /repeat\(6,\s*minmax\(0,\s*1fr\)\)/);
+});
+
 test("AppPro computes live actions and wires follow-up helpers", () => {
   assert.match(appPro, /buildActionItems/);
   assert.match(appPro, /view === "actions"/);
   assert.match(appPro, /buildCompletedFollowUpPatch/);
   assert.match(appPro, /buildScheduleFollowUpPatch/);
   assert.match(appPro, /actionKpi=\{actionKpi\}/);
+});
+
+test("JobDrawer preserves existing decision context", () => {
+  assert.match(appPro, /function DeadlineBadge/);
+  assert.match(appPro, /function FollowUpBadge/);
+  assert.match(appPro, /matchClass\(job\.fitScore\)/);
+  assert.match(appPro, /priorityClass\(job\.priority\)/);
+
+  for (const label of [
+    "Location",
+    "Mode",
+    "Contract",
+    "Compensation",
+    "Detected",
+    "Source",
+  ]) {
+    assert.match(appPro, new RegExp(`>${label}<`));
+  }
+});
+
+test("AppPro contains no hidden test-only UI scaffolding", () => {
+  assert.doesNotMatch(appPro, /<span\s+hidden/);
 });
 
 test("Action Center renders approved groups and controls", () => {
