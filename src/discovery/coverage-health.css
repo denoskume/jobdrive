@@ -4,6 +4,7 @@
 
 .jd-coverage-health {
   min-height: 104px;
+  margin: 0 24px 14px;
   padding: 13px 15px;
   border: 1px solid var(--jd-border);
   border-radius: 10px;
@@ -105,6 +106,10 @@
 @media (max-width: 760px) {
   .jd-coverage-health-slot {
     padding: 0 14px 12px;
+  }
+
+  .jd-coverage-health {
+    margin: 0 14px 12px;
   }
 
   .jd-coverage-head {
