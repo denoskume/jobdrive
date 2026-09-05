@@ -60,7 +60,13 @@ function doGet(e) {
       mustHaveSkills: row[30] || "",
       descriptionSource: row[31] || "",
       descriptionFetchedAt: row[32] || "",
-      descriptionStatus: row[33] || ""
+      descriptionStatus: row[33] || "",
+      scoreGrade: row[34] || "",
+      scoreBreakdown: row[35] || "",
+      scoringStrengths: row[36] || "",
+      scoringWeaknesses: row[37] || "",
+      scoringVersion: row[38] || "",
+      scoringUpdatedAt: row[39] || ""
     }));
 
   return jsonResponse({
