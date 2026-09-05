@@ -102,7 +102,32 @@ test("France Travail adapter uses client credentials and returns resumable curso
   assert.equal(cursor.queryIndex, 0);
   assert.equal(cursor.start, 1);
   assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /^https:\/\/entreprise\.francetravail\.fr\/connexion\/oauth2\/access_token\?realm=\/partenaire$/);
   assert.match(calls[1].url, /motsCles=/);
   assert.equal(calls[1].options.headers.Authorization, "Bearer TOKEN");
   assert.ok(!JSON.stringify(calls).includes("JOBDRIVE_FT_CLIENT_SECRET"));
+});
+
+test("France Travail exposes a safe connection check without returning credentials or token", () => {
+  const calls = [];
+  const context = loadFranceTravail({
+    properties: {
+      JOBDRIVE_FT_CLIENT_ID: "client-id",
+      JOBDRIVE_FT_CLIENT_SECRET: "client-secret",
+    },
+    fetchHandler(url) {
+      calls.push(url);
+      if (url.includes("access_token")) return makeResponse({access_token:"TOKEN", expires_in:1200});
+      return makeResponse({resultats:[]}, 200, {"Content-Range":"offres 0-0/0"});
+    },
+  });
+
+  const result = JSON.parse(JSON.stringify(context.testJobDriveFranceTravailConnection()));
+  assert.equal(result.success, true);
+  assert.equal(result.status, "empty");
+  assert.equal(result.jobsFound, 0);
+  assert.equal(Object.prototype.hasOwnProperty.call(result, "accessToken"), false);
+  assert.equal(JSON.stringify(result).includes("client-secret"), false);
+  assert.equal(JSON.stringify(result).includes("TOKEN"), false);
+  assert.equal(calls.length, 2);
 });
