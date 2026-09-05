@@ -17,6 +17,7 @@ import {
 } from "./services/googleAuth";
 
 import {
+  readDiscoveryCoverage,
   readJobs,
   updateDescriptionFields,
   updateJobFields,
@@ -33,6 +34,11 @@ import {
   statusLabel,
   toDateInput,
 } from "./utils/jobDrive.mjs";
+
+import {
+  emptyCoverageSnapshot,
+  normalizeCoverageRows,
+} from "./discovery/coverage.mjs";
 
 import {
   refreshOfferDescription,
@@ -426,6 +432,8 @@ export default function AppPro() {
   const [token, setToken] = useState("");
   const [userProfile, setUserProfile] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [coverage, setCoverage] = useState(() => emptyCoverageSnapshot());
+  const [coverageError, setCoverageError] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingFollowUpJobId, setSavingFollowUpJobId] = useState("");
@@ -448,7 +456,22 @@ export default function AppPro() {
     setError("");
 
     try {
-      const result = await readJobs({ token, spreadsheetId: SPREADSHEET_ID });
+      const [result, coverageRead] = await Promise.all([
+        readJobs({ token, spreadsheetId: SPREADSHEET_ID }),
+        readDiscoveryCoverage({ token, spreadsheetId: SPREADSHEET_ID })
+          .then((value) => ({ value, error: null }))
+          .catch((coverageReadError) => ({ value: null, error: coverageReadError })),
+      ]);
+
+      if (coverageRead.error) {
+        console.warn("Coverage read failed:", coverageRead.error);
+        setCoverage(emptyCoverageSnapshot());
+        setCoverageError(coverageRead.error.message || "Coverage read failed");
+      } else {
+        setCoverage(normalizeCoverageRows(coverageRead.value, { now: new Date() }));
+        setCoverageError("");
+      }
+
       const internshipResult = filterInternships(result);
       let enrichedInternships = internshipResult;
 
@@ -524,6 +547,8 @@ export default function AppPro() {
       expiryTimer.current = setTimeout(() => {
         setToken("");
         setJobs([]);
+        setCoverage(emptyCoverageSnapshot());
+        setCoverageError("");
         setUserProfile(null);
       }, expiresIn * 1000);
     } catch (err) {
@@ -537,6 +562,8 @@ export default function AppPro() {
     const current = token;
     setToken("");
     setJobs([]);
+    setCoverage(emptyCoverageSnapshot());
+    setCoverageError("");
     setSelectedJob(null);
     setUserProfile(null);
     if (current) await revokeGoogleToken(current);
@@ -750,6 +777,8 @@ export default function AppPro() {
         onLogout={logout}
         alternateContent={alternateContent}
         actionKpi={actionKpi}
+        coverage={coverage}
+        coverageError={coverageError}
       />
 
       <JobDrawer
