@@ -3496,3 +3496,44 @@ button.active {
   background: #f7f5ff;
 }
 
+
+/* =========================================================
+   GOOGLE PROFILE AVATAR
+   ========================================================= */
+
+.jd-avatar {
+  overflow: visible;
+}
+
+.jd-avatar-photo {
+  width: 36px;
+  height: 36px;
+
+  display: block;
+
+  object-fit: cover;
+
+  border-radius: 50%;
+
+  border:
+    1px solid var(--jd-border-2);
+
+  background: var(--jd-panel-2);
+}
+
+.jd-avatar > span {
+  width: 36px;
+  height: 36px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+}
+
+.jd-shell.jd-theme-light
+.jd-avatar-photo {
+  border-color: #d9e1ea;
+  background: #ffffff;
+}
+

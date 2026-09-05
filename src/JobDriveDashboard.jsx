@@ -457,6 +457,7 @@ function Topbar({
   notificationCount,
   notifications,
   onNotificationSelect,
+  userProfile,
 }) {
   return (
     <header className="jd-topbar">
@@ -590,9 +591,37 @@ function Topbar({
         <button
           className="jd-avatar"
           onClick={onLogout}
-          title="Sign out"
+          title={
+            userProfile?.email
+              ? `${userProfile.email} · Sign out`
+              : "Sign out"
+          }
         >
-          DK
+          {userProfile?.picture ? (
+            <img
+              className="jd-avatar-photo"
+              src={userProfile.picture}
+              alt={
+                userProfile?.name ||
+                "Google profile"
+              }
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <span>
+              {userProfile?.name
+                ? userProfile.name
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) =>
+                      part[0]?.toUpperCase()
+                    )
+                    .join("")
+                : "DK"}
+            </span>
+          )}
+
           <i />
         </button>
 
@@ -1300,6 +1329,7 @@ export default function JobDriveDashboard({
   onSpecialization,
   onLogout,
   alternateContent,
+  userProfile,
 }) {
 
   const [theme, setTheme] =
@@ -1533,6 +1563,7 @@ export default function JobDriveDashboard({
           search={search}
           onSearch={onSearch}
           onLogout={onLogout}
+          userProfile={userProfile}
           notificationsOpen={notificationsOpen}
           onToggleNotifications={toggleNotifications}
           notificationCount={notificationCount}

@@ -11,6 +11,7 @@ import JobDriveDashboard from "./JobDriveDashboard.jsx";
 import CompanyLogo from "./components/CompanyLogo.jsx";
 
 import {
+  fetchGoogleProfile,
   requestGoogleToken,
   revokeGoogleToken,
 } from "./services/googleAuth";
@@ -1392,6 +1393,9 @@ export default function AppPro() {
   const [token, setToken] =
     useState("");
 
+  const [userProfile, setUserProfile] =
+    useState(null);
+
   const [jobs, setJobs] =
     useState([]);
 
@@ -1578,6 +1582,22 @@ export default function AppPro() {
         response.access_token
       );
 
+      try {
+        const profile =
+          await fetchGoogleProfile(
+            response.access_token
+          );
+
+        setUserProfile(profile);
+      } catch (profileError) {
+        console.warn(
+          "Google profile unavailable:",
+          profileError
+        );
+
+        setUserProfile(null);
+      }
+
       const expiresIn =
         Math.max(
           Number(
@@ -1597,6 +1617,7 @@ export default function AppPro() {
           () => {
             setToken("");
             setJobs([]);
+            setUserProfile(null);
           },
           expiresIn * 1000
         );
@@ -1614,6 +1635,7 @@ export default function AppPro() {
     setToken("");
     setJobs([]);
     setSelectedJob(null);
+    setUserProfile(null);
 
     if (current) {
       await revokeGoogleToken(
@@ -1962,6 +1984,7 @@ const detailJob =
   return (
     <>
       <JobDriveDashboard
+        userProfile={userProfile}
         view={view}
         onViewChange={setView}
         jobs={filteredJobs}

@@ -83,7 +83,7 @@ export async function requestGoogleToken(
           client_id: clientId,
 
           scope:
-            "https://www.googleapis.com/auth/spreadsheets",
+            "openid email profile https://www.googleapis.com/auth/spreadsheets",
 
           callback: (response) => {
             if (
@@ -125,4 +125,42 @@ export async function revokeGoogleToken(
       () => resolve()
     );
   });
+}
+
+
+export async function fetchGoogleProfile(
+  accessToken
+) {
+  if (!accessToken) {
+    return null;
+  }
+
+  const response =
+    await fetch(
+      "https://openidconnect.googleapis.com/v1/userinfo",
+      {
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      "Unable to load Google profile."
+    );
+  }
+
+  const profile =
+    await response.json();
+
+  return {
+    name:
+      String(profile.name || ""),
+    email:
+      String(profile.email || ""),
+    picture:
+      String(profile.picture || ""),
+  };
 }
