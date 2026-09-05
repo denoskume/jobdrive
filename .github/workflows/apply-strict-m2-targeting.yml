@@ -30,6 +30,9 @@ jobs:
       - name: Apply strict targeting patch
         run: node scripts/apply-strict-m2-targeting.mjs
 
+      - name: Preserve valid legacy dashboard rows
+        run: node scripts/adjust-dashboard-compat.mjs
+
       - name: Verify tests
         run: npm test
 
