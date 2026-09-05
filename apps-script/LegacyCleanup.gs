@@ -64,14 +64,14 @@ var LEGACY_CLEANUP_OFF_TARGET_ROLE_PATTERNS_ = [
 
 var LEGACY_CLEANUP_ACADEMIC_PATTERNS_ = [
   /\buniversity\b/i,
-  /\buniversité\b/i,
+  /université/i,
   /\buniversite\b/i,
   /\bcollege\b/i,
   /\bfaculty\b/i,
-  /\bfaculté\b/i,
+  /faculté/i,
   /\bfaculte\b/i,
   /\bgraduate school\b/i,
-  /\bécole\b/i,
+  /école/i,
   /\becole\b/i,
   /\bcnrs\b/i,
   /\binrae\b/i,
