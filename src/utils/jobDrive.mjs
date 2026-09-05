@@ -557,6 +557,116 @@ const ALIGNED_INTERNSHIP_PATTERNS = [
   /\bnlp\b/i,
 ];
 
+const INTERNSHIP_EVIDENCE_PATTERNS = [
+  /\binternship\b/i,
+  /\bintern\b/i,
+  /\bstage\b/i,
+  /\bstagiaire\b/i,
+  /\bfin d['’]études\b/i,
+  /\bfin d'etudes\b/i,
+  /\bpfe\b/i,
+];
+
+const OFF_TARGET_INTERNSHIP_ROLE_PATTERNS = [
+  /\bcustomer success\b/i,
+  /\bcustomer support\b/i,
+  /\baccount (manager|executive)\b/i,
+  /\bsales\b/i,
+  /\bbusiness development\b/i,
+  /\bproduct (manager|management)\b/i,
+  /\bfull[- ]?stack\b/i,
+  /\bfront[- ]?end\b/i,
+  /\bback[- ]?end\b/i,
+  /\bweb developer\b/i,
+  /\bmobile developer\b/i,
+  /\bios developer\b/i,
+  /\bandroid developer\b/i,
+  /\bdevops\b/i,
+  /\bsite reliability\b/i,
+  /\bsre\b/i,
+  /\bpower bi\b/i,
+  /\bbusiness intelligence\b/i,
+  /\breporting analyst\b/i,
+  /\berp\b/i,
+  /\bsap consultant\b/i,
+  /\bcyber ?security\b/i,
+  /\bqa tester\b/i,
+  /\bmarketing\b/i,
+];
+
+const TARGET_ROLE_FALLBACK_PATTERNS = [
+  /\bapplied scientist\b/i,
+  /\bresearch scientist\b/i,
+  /\bresearch engineer\b/i,
+  /\bresearch intern\b/i,
+  /\br&d intern\b/i,
+];
+
+const TARGET_DURATION_PATTERN =
+  /\b(?:5|6)\s*[- ]?(?:month|months|mois)\b|\b(?:five|six|cinq|six)[ -]?(?:month|months|mois)\b/i;
+
+const ANY_DURATION_PATTERN =
+  /\b(?:[1-9]|1[0-2])\s*[- ]?(?:month|months|mois)\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|un|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze)[ -]?(?:month|months|mois)\b/i;
+
+function matchesAny(patterns, text) {
+  return patterns.some((pattern) => pattern.test(String(text || "")));
+}
+
+function internshipRoleText(job = {}) {
+  return String(job.role || "");
+}
+
+function internshipEvidenceText(job = {}) {
+  return [job.role, job.contract]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function internshipDurationText(job = {}) {
+  return [
+    job.role,
+    job.contract,
+    job.descriptionRaw,
+    job.expectations,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function isFranceInternshipLocation(job = {}) {
+  return /france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg/i
+    .test(String(job.location || ""));
+}
+
+function hasRealInternshipEvidence(job = {}) {
+  return matchesAny(
+    INTERNSHIP_EVIDENCE_PATTERNS,
+    internshipEvidenceText(job)
+  );
+}
+
+function hasCompatibleInternshipDuration(job = {}) {
+  const text = internshipDurationText(job);
+  if (TARGET_DURATION_PATTERN.test(text)) return true;
+  return !ANY_DURATION_PATTERN.test(text);
+}
+
+function isTargetTechnicalRole(job = {}) {
+  const role = internshipRoleText(job);
+
+  if (!role.trim()) {
+    return isAlignedInternship(job);
+  }
+
+  if (matchesAny(OFF_TARGET_INTERNSHIP_ROLE_PATTERNS, role)) {
+    return false;
+  }
+
+  return (
+    matchesAny(ALIGNED_INTERNSHIP_PATTERNS, role) ||
+    matchesAny(TARGET_ROLE_FALLBACK_PATTERNS, role)
+  );
+}
 
 function internshipOrganizationText(job = {}) {
   return [
@@ -576,6 +686,10 @@ function internshipTechnicalText(job = {}) {
     job.domain,
     job.whyRelevant,
     job.notes,
+    job.descriptionRaw,
+    job.roleMission,
+    job.mustHaveSkills,
+    job.expectations,
   ]
     .filter(Boolean)
     .join(" ");
@@ -606,6 +720,32 @@ export function isIndustryInternship(job = {}) {
   }
 
   if (isAcademicOrganization(job)) {
+    return false;
+  }
+
+  const contract = String(job.contract || "").trim();
+  if (/\b(?:cdi|permanent|alternance|apprentice(?:ship)?|apprenti(?:e)?|ph\.?d|cifre|postdoc(?:toral)?)\b/i.test(contract)) {
+    return false;
+  }
+
+  if (/\bfull[- ]?time\b/i.test(contract) && !hasRealInternshipEvidence(job)) {
+    return false;
+  }
+
+  const location = String(job.location || "").trim();
+  if (
+    location &&
+    /\b(?:emea|east coast|london|united kingdom|uk|germany|berlin|spain|madrid|italy|milan|united states|usa|india|bangalore|bengaluru)\b/i.test(location) &&
+    !isFranceInternshipLocation(job)
+  ) {
+    return false;
+  }
+
+  if (!hasCompatibleInternshipDuration(job)) {
+    return false;
+  }
+
+  if (!isTargetTechnicalRole(job)) {
     return false;
   }
 

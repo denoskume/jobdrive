@@ -30,19 +30,38 @@ var JOBDRIVE_DISCOVERY_SOURCES_ = [
   {key:"shifttechnology-lever",company:"Shift Technology",type:"lever",tenant:"shifttechnology",active:false,verifiedAt:"",verificationStatus:"unverified"}
 ];
 
-function discoveryText_(c){ return [c.role,c.location,c.country,c.contract,c.descriptionRaw].join(" ").toLowerCase(); }
+function discoveryLocationText_(c){
+  return [c.location,c.country].join(" ").toLowerCase();
+}
+function discoveryInternshipText_(c){
+  return [c.role,c.contract].join(" ").toLowerCase();
+}
+function discoveryDurationText_(c){
+  return [c.role,c.contract,c.descriptionRaw].join(" ").toLowerCase();
+}
+function discoveryDurationCompatible_(c){
+  var t=discoveryDurationText_(c);
+  var target=/\b(?:5|6)\s*[- ]?(?:month|months|mois)\b|\b(?:five|six|cinq|six)[ -]?(?:month|months|mois)\b/i;
+  if(target.test(t)) return true;
+  var any=/\b(?:[1-9]|1[0-2])\s*[- ]?(?:month|months|mois)\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|un|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze)[ -]?(?:month|months|mois)\b/i;
+  return !any.test(t);
+}
 
 function normalizeDiscoveryCandidate_(raw, source) {
   return { sourceKey:source.key, externalId:String(raw.id||raw.externalId||""), company:String(raw.company||source.company||"").trim(), role:String(raw.title||raw.role||"").trim(), location:String(raw.location||raw.locationName||"").trim(), country:String(raw.country||"").trim(), postedDate:String(raw.publishedAt||raw.postedDate||raw.createdAt||"").trim(), deadline:String(raw.deadline||"").trim(), link:String(raw.absoluteUrl||raw.jobUrl||raw.url||raw.applyUrl||"").trim(), source:source.type, descriptionRaw:String(raw.descriptionPlain||raw.description||raw.descriptionHtml||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim(), contract:String(raw.employmentType||raw.contract||"").trim(), compensation:String(raw.compensation||raw.salary||raw.salaryRange||"").trim(), detectedAt:new Date().toISOString() };
 }
 
 function evaluateDiscoveryCandidate_(c) {
-  var t=discoveryText_(c);
   if (!/^https?:\/\//i.test(c.link)) return {accepted:false,reason:"missing_url"};
-  var fr=/france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg/.test(t);
+  var locationText=discoveryLocationText_(c);
+  var fr=/france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg/.test(locationText);
   if (!fr) return {accepted:false,reason:"country"};
-  if (/alternance|apprenticeship|apprenti|permanent|\bcdi\b|\bphd\b|cifre|postdoc/.test(t)) return {accepted:false,reason:"internship_type"};
-  if (!/intern|internship|stage|stagiaire|final.?year|fin d['’]études|pfe|6.?month/.test(t)) return {accepted:false,reason:"internship_type"};
+
+  var internshipText=discoveryInternshipText_(c);
+  if (/alternance|apprenticeship|apprenti|permanent|\bcdi\b|\bphd\b|cifre|postdoc/.test(internshipText)) return {accepted:false,reason:"internship_type"};
+  if (!/\binternship\b|\bintern\b|\bstage\b|\bstagiaire\b|\bfin d['’]études\b|\bfin d'etudes\b|\bpfe\b/.test(internshipText)) return {accepted:false,reason:"internship_type"};
+  if (!discoveryDurationCompatible_(c)) return {accepted:false,reason:"internship_duration"};
+
   return {accepted:true,reason:"accepted"};
 }
 
@@ -99,14 +118,14 @@ function runJobDriveDiscovery() {
         var e=evaluateDiscoveryCandidate_(c);
         if(!e.accepted){
           if(e.reason==="country") summary.rejectedByCountry++;
-          else if(e.reason==="internship_type") summary.rejectedByInternshipType++;
+          else if(e.reason==="internship_type"||e.reason==="internship_duration") summary.rejectedByInternshipType++;
           else summary.rejectedByTechnicalAlignment++;
           return;
         }
 
         var scored=scoreInternshipCandidate_(c,new Date().toISOString());
         if(!scored.accepted){
-          if(scored.rejectionReason==="internship_type") summary.rejectedByInternshipType++;
+          if(scored.rejectionReason==="internship_type"||scored.rejectionReason==="internship_duration") summary.rejectedByInternshipType++;
           else if(scored.rejectionReason==="academic_policy") summary.rejectedByAcademicPolicy++;
           else summary.rejectedByTechnicalAlignment++;
           return;
