@@ -145,3 +145,114 @@ function markOpportunitySourceInactive_(canonicalJobId, sourceKey) {
     sheet.getRange(i + 1, 9).setValue(false);
   }
 }
+
+function lifecycleSeenListing_(value) {
+  if (value && typeof value === "object") {
+    var objectId = discoveryProvenanceClean_(value.id || value.externalId);
+    var objectStatus = discoveryProvenanceClean_(value.status || value.state || value.lifecycleStatus).toLowerCase();
+    return {
+      id: objectId,
+      closed: /^(closed|expired|inactive|removed|filled|archived)$/.test(objectStatus)
+    };
+  }
+  return {id: discoveryProvenanceClean_(value), closed: false};
+}
+
+function markSourceListingsSeen_(sourceKey, seenProviderIds, nowIso) {
+  sourceKey = discoveryProvenanceClean_(sourceKey);
+  nowIso = discoveryProvenanceClean_(nowIso) || new Date().toISOString();
+  var seen = {};
+  var explicitlyClosed = {};
+
+  (seenProviderIds || []).forEach(function(value) {
+    var listing = lifecycleSeenListing_(value);
+    if (!listing.id) return;
+    seen[listing.id] = true;
+    if (listing.closed) explicitlyClosed[listing.id] = true;
+  });
+
+  var sheet = ensureOpportunitySourcesSheet_();
+  var rows = sheet.getDataRange().getDisplayValues();
+  var touchedCanonicalIds = {};
+  var closedCanonicalIds = {};
+
+  for (var i = 1; i < rows.length; i++) {
+    if (discoveryProvenanceClean_(rows[i][1]) !== sourceKey) continue;
+    var externalId = discoveryProvenanceClean_(rows[i][3]);
+    if (!seen[externalId]) continue;
+    var canonicalJobId = discoveryProvenanceClean_(rows[i][0]);
+    touchedCanonicalIds[canonicalJobId] = true;
+    sheet.getRange(i + 1, 7).setValue(nowIso);
+    if (explicitlyClosed[externalId]) {
+      sheet.getRange(i + 1, 9).setValue(false);
+      closedCanonicalIds[canonicalJobId] = true;
+    } else {
+      sheet.getRange(i + 1, 9).setValue(true);
+    }
+  }
+
+  return {
+    seenExternalIds: seen,
+    explicitlyClosedExternalIds: explicitlyClosed,
+    touchedCanonicalIds: touchedCanonicalIds,
+    closedCanonicalIds: closedCanonicalIds
+  };
+}
+
+function updateOpportunityMarketLifecycle_(canonicalJobId, marketStatus, marketLastSeenAt) {
+  var book = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = book.getSheetByName(SHEET_NAME);
+  if (!sheet) return false;
+  var rows = sheet.getDataRange().getDisplayValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (discoveryProvenanceClean_(rows[i][0]) !== discoveryProvenanceClean_(canonicalJobId)) continue;
+    sheet.getRange(i + 1, 46).setValue(marketStatus);
+    if (marketLastSeenAt) sheet.getRange(i + 1, 47).setValue(marketLastSeenAt);
+    return true;
+  }
+  return false;
+}
+
+function refreshMarketLifecycleForSource_(sourceKey, seenProviderIds, nowIso) {
+  sourceKey = discoveryProvenanceClean_(sourceKey);
+  nowIso = discoveryProvenanceClean_(nowIso) || new Date().toISOString();
+  var marked = markSourceListingsSeen_(sourceKey, seenProviderIds, nowIso);
+  var sourceSheet = ensureOpportunitySourcesSheet_();
+  var rows = sourceSheet.getDataRange().getDisplayValues();
+  var touchedCanonicalIds = {};
+
+  for (var i = 1; i < rows.length; i++) {
+    if (discoveryProvenanceClean_(rows[i][1]) !== sourceKey) continue;
+    var canonicalJobId = discoveryProvenanceClean_(rows[i][0]);
+    var externalId = discoveryProvenanceClean_(rows[i][3]);
+    touchedCanonicalIds[canonicalJobId] = true;
+    if (!marked.seenExternalIds[externalId]) {
+      sourceSheet.getRange(i + 1, 9).setValue(false);
+    }
+  }
+
+  rows = sourceSheet.getDataRange().getDisplayValues();
+  var summaries = {};
+  rows.slice(1).forEach(function(row) {
+    var canonicalJobId = discoveryProvenanceClean_(row[0]);
+    if (!touchedCanonicalIds[canonicalJobId]) return;
+    if (!summaries[canonicalJobId]) summaries[canonicalJobId] = {active:false,lastSeenAt:""};
+    if (/^true$/i.test(String(row[8] || ""))) summaries[canonicalJobId].active = true;
+    var lastSeenAt = discoveryProvenanceClean_(row[6]);
+    if (lastSeenAt && lastSeenAt > summaries[canonicalJobId].lastSeenAt) summaries[canonicalJobId].lastSeenAt = lastSeenAt;
+  });
+
+  var updated = 0;
+  Object.keys(touchedCanonicalIds).forEach(function(canonicalJobId) {
+    var summary = summaries[canonicalJobId] || {active:false,lastSeenAt:""};
+    var marketStatus = summary.active ? "Active" : (marked.closedCanonicalIds[canonicalJobId] ? "Closed" : "Unknown");
+    if (updateOpportunityMarketLifecycle_(canonicalJobId, marketStatus, summary.lastSeenAt || nowIso)) updated++;
+  });
+
+  return {
+    sourceKey: sourceKey,
+    updated: updated,
+    seen: Object.keys(marked.seenExternalIds).length,
+    closed: Object.keys(marked.closedCanonicalIds).length
+  };
+}
