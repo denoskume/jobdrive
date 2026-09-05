@@ -1,0 +1,185 @@
+name: Phase 2C dashboard patch
+
+on:
+  push:
+    branches:
+      - feature/phase2c-action-center
+    paths:
+      - .github/workflows/phase2c-dashboard-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase2c-action-center
+          fetch-depth: 0
+
+      - name: Patch dashboard
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("src/JobDriveDashboard.jsx")
+          s = p.read_text()
+
+          replacements = [
+              (
+                  '''function KPI({
+            label,
+            value,
+            hint,
+            icon,
+            tone,
+          }) {
+            return (
+              <article className={`jd-kpi ${tone}`}>
+          ''',
+                  '''function KPI({
+            label,
+            value,
+            hint,
+            icon,
+            tone,
+            onClick,
+          }) {
+            return (
+              <article
+                className={`jd-kpi ${tone}`}
+                onClick={onClick}
+                role={onClick ? "button" : undefined}
+                tabIndex={onClick ? 0 : undefined}
+                onKeyDown={(event) => {
+                  if (onClick && (event.key === "Enter" || event.key === " ")) {
+                    event.preventDefault();
+                    onClick();
+                  }
+                }}
+              >
+          ''',
+              ),
+              (
+                  '''        <button
+                    className={
+                      view === "pipeline"
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      onViewChange("pipeline")
+                    }
+                  >
+                    <Icon name="pipeline" />
+                    Pipeline
+                  </button>
+          ''',
+                  '''        <button
+                    className={
+                      view === "actions"
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      onViewChange("actions")
+                    }
+                  >
+                    <Icon name="bell" />
+                    Action Center
+                  </button>
+
+                  <button
+                    className={
+                      view === "pipeline"
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      onViewChange("pipeline")
+                    }
+                  >
+                    <Icon name="pipeline" />
+                    Pipeline
+                  </button>
+          ''',
+              ),
+              (
+                  '''          >
+                    <option value="newest">
+                      Newest
+                    </option>
+          ''',
+                  '''          >
+                    <option value="recommended">
+                      Recommended
+                    </option>
+                    <option value="newest">
+                      Newest
+                    </option>
+          ''',
+              ),
+              (
+                  '''  alternateContent,
+            userProfile,
+          }) {
+          ''',
+                  '''  alternateContent,
+            userProfile,
+            actionKpi = {
+              todayCount: 0,
+              criticalCount: 0,
+              highCount: 0,
+            },
+          }) {
+          ''',
+              ),
+              (
+                  '''              <KPI
+                    label="HIGH MATCH"
+                    value={highMatch}
+                    hint="≥ 85% match"
+                    icon="target"
+                    tone="green"
+                  />
+          ''',
+                  '''              <KPI
+                    label="HIGH MATCH"
+                    value={highMatch}
+                    hint="≥ 85% match"
+                    icon="target"
+                    tone="green"
+                  />
+
+                  <KPI
+                    label="ACTIONS TODAY"
+                    value={actionKpi.todayCount}
+                    hint={`${actionKpi.criticalCount} critical · ${actionKpi.highCount} high`}
+                    icon="bell"
+                    tone="orange"
+                    onClick={() => onViewChange("actions")}
+                  />
+          ''',
+              ),
+          ]
+
+          for old, new in replacements:
+              old = old.replace("          ", "")
+              new = new.replace("          ", "")
+              if old not in s:
+                  raise SystemExit("dashboard patch marker not found:\n" + old[:160])
+              s = s.replace(old, new, 1)
+
+          p.write_text(s)
+          PY
+
+      - name: Commit dashboard patch and remove one-shot workflow
+        run: |
+          rm .github/workflows/phase2c-dashboard-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: add phase 2C action navigation and KPI"
+          git push origin HEAD:feature/phase2c-action-center
