@@ -305,6 +305,9 @@ function OpportunityFeed({
               )
             }
           >
+            <option value="recommended">
+              Recommended
+            </option>
             <option value="newest">
               Newest
             </option>
@@ -535,6 +538,31 @@ function OpportunityDetail({
   const tags =
     domainTags(job);
 
+  const scoreBreakdown =
+    job.scoreBreakdown &&
+    typeof job.scoreBreakdown === "object"
+      ? job.scoreBreakdown
+      : {};
+
+  const scoringStrengths =
+    Array.isArray(job.scoringStrengths)
+      ? job.scoringStrengths
+      : [];
+
+  const scoringWeaknesses =
+    Array.isArray(job.scoringWeaknesses)
+      ? job.scoringWeaknesses
+      : [];
+
+  const hasFitIntelligence =
+    Boolean(
+      job.scoreGrade ||
+      job.scoringVersion ||
+      Object.keys(scoreBreakdown).length ||
+      scoringStrengths.length ||
+      scoringWeaknesses.length
+    );
+
 
   return (
     <section className="pro-opportunity-detail">
@@ -689,6 +717,65 @@ function OpportunityDetail({
           </div>
 
         </section>
+
+
+        {hasFitIntelligence && (
+          <section className="pro-detail-section">
+
+            <div className="pro-detail-section-heading">
+              <h3>Fit Intelligence</h3>
+
+              {job.scoreGrade && (
+                <span>
+                  Grade {job.scoreGrade}
+                </span>
+              )}
+            </div>
+
+            <dl className="pro-detail-list">
+              {[
+                ["Technical alignment", scoreBreakdown.alignment, 45],
+                ["Technical quality", scoreBreakdown.technicalQuality, 20],
+                ["Company & environment", scoreBreakdown.companyQuality, 15],
+                ["Practical fit", scoreBreakdown.practicalFit, 10],
+                ["Freshness", scoreBreakdown.freshness, 5],
+                ["Compensation", scoreBreakdown.compensation, 5],
+              ].map(([label, value, maximum]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>
+                    {Number.isFinite(Number(value))
+                      ? `${value}/${maximum}`
+                      : "—"}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            {scoringStrengths.length > 0 && (
+              <div className="pro-detail-copy">
+                <strong>Strengths</strong>
+                <ul>
+                  {scoringStrengths.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {scoringWeaknesses.length > 0 && (
+              <div className="pro-detail-copy">
+                <strong>Watch-outs</strong>
+                <ul>
+                  {scoringWeaknesses.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+          </section>
+        )}
 
 
         <div className="pro-detail-two-column">
@@ -1424,7 +1511,7 @@ export default function AppPro() {
     useState("");
 
   const [sortMode, setSortMode] =
-    useState("newest");
+    useState("recommended");
 
   const [quickFilter, setQuickFilter] =
     useState("");
