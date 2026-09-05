@@ -1,9 +1,13 @@
 var JOBDRIVE_DISCOVERY_SOURCES_ = [
   {key:"mistral-ashby",company:"Mistral AI",type:"ashby",tenant:"mistral.ai",active:true},
-  {key:"huggingface-greenhouse",company:"Hugging Face",type:"greenhouse",tenant:"huggingface",active:true},
+  // Hugging Face no longer exposes the Greenhouse board token previously configured.
+  // Keep it disabled instead of generating a permanent 404 on every scheduled run.
+  {key:"huggingface-greenhouse",company:"Hugging Face",type:"greenhouse",tenant:"huggingface",active:false},
   {key:"datadog-greenhouse",company:"Datadog",type:"greenhouse",tenant:"datadog",active:true},
-  {key:"doctolib-lever",company:"Doctolib",type:"lever",tenant:"doctolib",active:true},
-  {key:"backmarket-lever",company:"Back Market",type:"lever",tenant:"backmarket",active:true},
+  // Doctolib currently publishes its jobs through Greenhouse.
+  {key:"doctolib-greenhouse",company:"Doctolib",type:"greenhouse",tenant:"doctolib",active:true},
+  // Back Market migrated its public job board from Lever to Ashby.
+  {key:"backmarket-ashby",company:"Back Market",type:"ashby",tenant:"backmarket",active:true},
   {key:"bosch-smartrecruiters",company:"Bosch France",type:"smartrecruiters",tenant:"BoschGroup",active:true},
   {key:"visa-smartrecruiters",company:"Visa",type:"smartrecruiters",tenant:"Visa",active:true},
   {key:"publicis-smartrecruiters",company:"Publicis Groupe",type:"smartrecruiters",tenant:"PublicisGroupe",active:true}
