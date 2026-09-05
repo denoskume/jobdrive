@@ -131,12 +131,14 @@ test("GenAI requires technical model-system evidence, not merely the label", () 
   assert.equal(technical.accepted, true);
 });
 
-test("Phase 2B scorer also accepts atypical aligned internship evidence", () => {
+test("Phase 2B scorer also accepts a strong atypically titled industrial internship", () => {
   const result = scoreInternship({
     ...base,
     role: "Algorithms Intern",
     contract: "Internship",
-    descriptionRaw: "Develop machine learning models for sensor fusion, train and benchmark algorithms in Python and PyTorch. 6 months, final-year Master internship.",
+    postedDate: "2026-09-04T10:00:00Z",
+    compensation: "Paid internship",
+    descriptionRaw: "Final-year Master internship for 6 months in an industrial R&D engineering team. Develop machine learning models and algorithms for sensor fusion, train and benchmark them in Python and PyTorch, run experiments and validation, then deploy the resulting pipeline into a real-world production system with team mentorship.",
   }, {now:new Date("2026-09-05T12:00:00Z")});
   assert.equal(result.accepted, true);
   assert.ok(result.fitScore >= 75);
