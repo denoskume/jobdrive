@@ -31,6 +31,39 @@ function franceTravailConfigStatus_() {
   return {configured:true, reason:"configured"};
 }
 
+function refreshFranceTravailRegistryConfig_() {
+  var config = franceTravailConfigStatus_();
+  if (typeof loadDiscoverySources_ !== "function" || typeof upsertDiscoverySource_ !== "function") {
+    return config;
+  }
+
+  var source = (loadDiscoverySources_() || []).filter(function(item) {
+    return String(item && item.sourceKey || "") === "france-travail";
+  })[0];
+
+  if (!source) return config;
+
+  var updated = Object.assign({}, source, {
+    active: Boolean(config.configured),
+    verificationStatus: config.configured ? "verified" : "configuration_required",
+    healthState: config.configured
+      ? (String(source.healthState || "") === "configuration_required" ? "pending" : String(source.healthState || "pending"))
+      : "configuration_required",
+    lastError: config.configured ? "" : "missing_credentials",
+    notes: config.configured
+      ? "France Travail API credentials configured."
+      : "Requires Apps Script credentials."
+  });
+
+  upsertDiscoverySource_(updated);
+  return {
+    configured:Boolean(config.configured),
+    reason:String(config.reason || ""),
+    sourceKey:"france-travail",
+    verificationStatus:String(updated.verificationStatus || "")
+  };
+}
+
 function fetchFranceTravailAccessToken_() {
   var config = franceTravailConfigStatus_();
   if (!config.configured) throw new Error(config.reason);
