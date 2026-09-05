@@ -92,8 +92,11 @@ test("Apps Script action engine matches browser decisions", () => {
     job({ status: "Accepté" }),
     job({ fitScore: 74, deadline: "2026-09-06" }),
     job({ deadline: "2026-09-05" }),
+    job({ deadline: "2026-09-06" }),
     job({ deadline: "2026-09-08", fitScore: 84 }),
+    job({ deadline: "2026-09-12", fitScore: 85 }),
     job({ deadline: "2026-10-01", fitScore: 90 }),
+    job({ deadline: "not-a-date", fitScore: 90 }),
     job({
       status: "Candidature envoyée",
       followUpDate: "2026-09-04",
@@ -101,6 +104,14 @@ test("Apps Script action engine matches browser decisions", () => {
     job({
       status: "Candidature envoyée",
       followUpDate: "2026-09-05",
+    }),
+    job({
+      status: "Candidature envoyée",
+      followUpDate: "2026-09-06",
+    }),
+    job({
+      status: "Candidature envoyée",
+      followUpDate: "2026-09-10",
     }),
     job({
       status: "Candidature envoyée",
