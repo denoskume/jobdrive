@@ -12,24 +12,23 @@
 
 ## Global Constraints
 
-- Phase 2B `fitScore`, weights `45/20/15/10/5/5`, grade, and acceptance threshold `>= 75` must not be changed by Phase 2C.
-- Calendar-sensitive action logic uses `Europe/Paris`.
+- Phase 2B `fitScore`, weights `45/20/15/10/5/5`, grade, and acceptance threshold `>= 75` are immutable in Phase 2C.
+- Calendar-sensitive logic uses `Europe/Paris`.
 - Terminal statuses are exactly `Accepté`, `Refusé`, `Expiré`.
 - Application-tracking statuses are exactly `Candidature envoyée`, `Entretien`, `Offre`.
 - Pre-application statuses are exactly `Nouveau`, `À candidater`.
-- Old pre-application rows without a trustworthy `fitScore >= 75` must not be promoted into Apply Now or Deadline Risk actions.
-- Google Sheet columns `S:W`, `X:Y:Z`, `AA:AN` keep their current meanings. Phase 2C owns only `AO:AS` plus explicit writes to existing `U` and `W` during follow-up actions.
-- `AO = lastFollowUp`, `AP = followUpCount`, `AQ = actionPriority`, `AR = actionReason`, `AS = actionUpdatedAt`.
-- `AQ:AS` are snapshots only; stale snapshots never override live action computation.
-- No paid APIs, no new backend server, no new database, no LinkedIn/Indeed scraping, no auto-application, no generated recruiter messages.
-- The existing 12-hour Discovery trigger must remain unchanged.
-- The daily Phase 2C trigger targets the 09:00 hour in `Europe/Paris` and must be idempotent.
-- A normal digest run sends at most once per Paris calendar date and sends nothing when there are no digest-worthy actions.
-- Final verification is `npm test`, `npm run build`, and `git diff --check`.
+- Old pre-application rows without `fitScore >= 75` never become Apply Now or Deadline Risk actions.
+- Existing columns `S:W`, `X:Y:Z`, and `AA:AN` retain their meanings.
+- Phase 2C fields are `AO lastFollowUp`, `AP followUpCount`, `AQ actionPriority`, `AR actionReason`, `AS actionUpdatedAt`.
+- Scheduling a first follow-up does not count as completing a follow-up: it changes `U followUpDate` and `W lastUpdated` only. `AO lastFollowUp` and `AP followUpCount` change only after `Mark Followed Up`.
+- `AQ:AS` are snapshots only; live date-sensitive action computation is authoritative.
+- No paid API, new backend server, database, LinkedIn/Indeed scraping, auto-application, or generated recruiter message.
+- The existing 12-hour Discovery trigger stays unchanged.
+- The Phase 2C trigger targets the 09:00 hour in `Europe/Paris` and is idempotent.
+- A normal digest sends at most once per Paris calendar date and sends nothing when no digest-worthy action exists.
+- Final verification is `npm test`, `npm run build`, `git diff --check`.
 
----
-
-## File Structure
+## File Map
 
 Create:
 
@@ -44,6 +43,7 @@ apps-script/ActionDigest.gs
 tests/phase2c-action-engine.test.mjs
 tests/phase2c-follow-up.test.mjs
 tests/phase2c-sheet-fields.test.mjs
+tests/phase2c-action-ui.test.mjs
 tests/apps-script-action-parity.test.mjs
 tests/apps-script-action-digest.test.mjs
 ```
@@ -58,19 +58,9 @@ src/JobDriveDashboard.jsx
 apps-script/Code.gs
 ```
 
-Responsibilities:
-
-- `actionConfig.mjs`: immutable action/status constants and deterministic order tables.
-- `actionEngine.mjs`: Europe/Paris date-key helpers, single-job action classification, action sorting/grouping, KPI computation.
-- `followUpActions.mjs`: pure +3/+7/+14/no-further-follow-up payload generation.
-- `ActionCenterView.jsx`: operational grouping/cards and follow-up controls; no Sheets logic.
-- `action-center.css`: Action Center desktop/mobile presentation only.
-- `ActionCenter.gs`: Apps Script mirror of the browser action contract, Sheet row mapping, AO:AS header/snapshot helpers.
-- `ActionDigest.gs`: digest selection/formatting, MailApp send, idempotency, daily trigger setup.
-
 ---
 
-### Task 1: Browser Action Engine
+### Task 1: Pure Browser Action Engine
 
 **Files:**
 - Create: `src/actions/actionConfig.mjs`
@@ -78,23 +68,20 @@ Responsibilities:
 - Test: `tests/phase2c-action-engine.test.mjs`
 
 **Interfaces:**
-- Produces: `ACTION_TIME_ZONE`, `ACTION_TYPES`, `ACTION_PRIORITY_ORDER`, `ACTION_TYPE_ORDER`, `TERMINAL_STATUSES`, `APPLICATION_TRACKING_STATUSES`, `PRE_APPLICATION_STATUSES`.
-- Produces: `parisDateKey(value) -> "YYYY-MM-DD" | ""`.
-- Produces: `calendarDayDelta(fromKey, toKey) -> integer | null`.
-- Produces: `evaluateAction(job, { now } = {}) -> { active, actionType, actionPriority, actionReason, actionDate, urgencyDays }`.
-- Produces: `buildActionItems(jobs, { now } = {}) -> Array<{ job, action }>`.
-- Produces: `sortActionItems(items) -> sorted copy`.
-- Produces: `groupActionItems(items) -> { overdue, today, deadlineRisk, applyNow, upcoming }`.
-- Produces: `actionKpi(items) -> { todayCount, criticalCount, highCount }`, where `todayCount = Critical + High` only.
+- Produces: `ACTION_TIME_ZONE`, action/status constants and deterministic order maps.
+- Produces: `parisDateKey(value)`.
+- Produces: `calendarDayDelta(fromValue, toValue)`.
+- Produces: `evaluateAction(job, { now } = {})`.
+- Produces: `buildActionItems(jobs, { now } = {})`.
+- Produces: `sortActionItems(items)`, `groupActionItems(items)`, `actionKpi(items)`.
 
-- [ ] **Step 1: Write the failing action-engine tests**
+- [ ] **Step 1: Write the failing engine tests**
 
-Create `tests/phase2c-action-engine.test.mjs` with fixed-time fixtures so every boundary is deterministic:
+Create `tests/phase2c-action-engine.test.mjs`:
 
 ```js
 import test from "node:test";
 import assert from "node:assert/strict";
-
 import {
   actionKpi,
   buildActionItems,
@@ -122,24 +109,23 @@ function job(overrides = {}) {
   };
 }
 
-test("terminal statuses produce no active action", () => {
+test("terminal statuses never create actions", () => {
   for (const status of ["Accepté", "Refusé", "Expiré"]) {
-    const action = evaluateAction(job({ status }), { now: NOW });
-    assert.equal(action.active, false);
-    assert.equal(action.actionType, "NONE");
-    assert.equal(action.actionPriority, "None");
+    const result = evaluateAction(job({ status }), { now: NOW });
+    assert.equal(result.active, false);
+    assert.equal(result.actionType, "NONE");
+    assert.equal(result.actionPriority, "None");
   }
 });
 
-test("old pre-application rows without fitScore >= 75 are not promoted", () => {
+test("pre-application rows below the Phase 2B threshold stay inactive", () => {
   for (const fitScore of [0, 74]) {
-    const action = evaluateAction(job({ fitScore, deadline: "2026-09-06" }), { now: NOW });
-    assert.equal(action.active, false);
-    assert.equal(action.actionType, "NONE");
+    const result = evaluateAction(job({ fitScore, deadline: "2026-09-06" }), { now: NOW });
+    assert.equal(result.actionType, "NONE");
   }
 });
 
-test("follow-up precedence covers overdue today tomorrow and future", () => {
+test("application follow-up states have precedence", () => {
   const cases = [
     ["2026-09-04", "FOLLOW_UP_OVERDUE", "Critical"],
     ["2026-09-05", "FOLLOW_UP_TODAY", "Critical"],
@@ -147,35 +133,22 @@ test("follow-up precedence covers overdue today tomorrow and future", () => {
     ["2026-09-10", "UPCOMING_FOLLOW_UP", "Normal"],
   ];
 
-  for (const [followUpDate, actionType, priority] of cases) {
-    const action = evaluateAction(job({
-      status: "Candidature envoyée",
-      followUpDate,
-    }), { now: NOW });
-
-    assert.equal(action.actionType, actionType);
-    assert.equal(action.actionPriority, priority);
+  for (const [followUpDate, actionType, actionPriority] of cases) {
+    const result = evaluateAction(job({ status: "Candidature envoyée", followUpDate }), { now: NOW });
+    assert.equal(result.actionType, actionType);
+    assert.equal(result.actionPriority, actionPriority);
   }
 });
 
-test("applied rows without follow-up become schedule actions", () => {
-  const fresh = evaluateAction(job({
-    status: "Candidature envoyée",
-    appliedDate: "2026-09-04",
-  }), { now: NOW });
-
-  const old = evaluateAction(job({
-    status: "Candidature envoyée",
-    appliedDate: "2026-09-01",
-  }), { now: NOW });
-
+test("application without a next follow-up becomes Schedule Follow-up", () => {
+  const fresh = evaluateAction(job({ status: "Candidature envoyée", appliedDate: "2026-09-04" }), { now: NOW });
+  const old = evaluateAction(job({ status: "Candidature envoyée", appliedDate: "2026-09-01" }), { now: NOW });
   assert.equal(fresh.actionType, "SCHEDULE_FOLLOW_UP");
   assert.equal(fresh.actionPriority, "Normal");
-  assert.equal(old.actionType, "SCHEDULE_FOLLOW_UP");
   assert.equal(old.actionPriority, "High");
 });
 
-test("deadline risk boundaries follow the approved matrix", () => {
+test("deadline matrix matches the approved thresholds", () => {
   const cases = [
     [90, "2026-09-05", "Critical"],
     [75, "2026-09-06", "Critical"],
@@ -185,28 +158,26 @@ test("deadline risk boundaries follow the approved matrix", () => {
     [84, "2026-09-12", "Normal"],
   ];
 
-  for (const [fitScore, deadline, priority] of cases) {
-    const action = evaluateAction(job({ fitScore, deadline }), { now: NOW });
-    assert.equal(action.actionType, "DEADLINE_RISK");
-    assert.equal(action.actionPriority, priority);
+  for (const [fitScore, deadline, actionPriority] of cases) {
+    const result = evaluateAction(job({ fitScore, deadline }), { now: NOW });
+    assert.equal(result.actionType, "DEADLINE_RISK");
+    assert.equal(result.actionPriority, actionPriority);
   }
 });
 
-test("distant or missing deadlines become Apply Now according to fit", () => {
-  for (const [fitScore, priority] of [[90, "High"], [85, "High"], [75, "Normal"]]) {
-    const action = evaluateAction(job({ fitScore, deadline: "2026-10-01" }), { now: NOW });
-    assert.equal(action.actionType, "APPLY_NOW");
-    assert.equal(action.actionPriority, priority);
+test("distant or missing deadlines create Apply Now by score", () => {
+  for (const [fitScore, actionPriority] of [[90, "High"], [85, "High"], [75, "Normal"]]) {
+    const result = evaluateAction(job({ fitScore, deadline: "2026-10-01" }), { now: NOW });
+    assert.equal(result.actionType, "APPLY_NOW");
+    assert.equal(result.actionPriority, actionPriority);
   }
 });
 
 test("passed deadline produces no active pre-application action", () => {
-  const action = evaluateAction(job({ deadline: "2026-09-04" }), { now: NOW });
-  assert.equal(action.active, false);
-  assert.equal(action.actionType, "NONE");
+  assert.equal(evaluateAction(job({ deadline: "2026-09-04" }), { now: NOW }).actionType, "NONE");
 });
 
-test("sorting is priority then action type then date then score then recency then id", () => {
+test("action ordering is deterministic", () => {
   const items = buildActionItems([
     job({ id: "apply", fitScore: 95 }),
     job({ id: "deadline", fitScore: 85, deadline: "2026-09-08" }),
@@ -214,40 +185,27 @@ test("sorting is priority then action type then date then score then recency the
     job({ id: "overdue", status: "Candidature envoyée", followUpDate: "2026-09-04" }),
   ], { now: NOW });
 
-  assert.deepEqual(
-    sortActionItems(items).map((item) => item.job.id),
-    ["overdue", "today", "deadline", "apply"]
-  );
+  assert.deepEqual(sortActionItems(items).map((item) => item.job.id), ["overdue", "today", "deadline", "apply"]);
 });
 
-test("grouping and KPI exclude Normal backlog from Actions Today", () => {
+test("Actions Today counts only Critical plus High", () => {
   const items = buildActionItems([
     job({ id: "critical", deadline: "2026-09-05" }),
     job({ id: "high", fitScore: 90 }),
     job({ id: "normal", fitScore: 75 }),
   ], { now: NOW });
 
-  const groups = groupActionItems(items);
-  const kpi = actionKpi(items);
-
-  assert.equal(groups.deadlineRisk.length, 1);
-  assert.equal(groups.applyNow.length, 2);
-  assert.deepEqual(kpi, {
-    todayCount: 2,
-    criticalCount: 1,
-    highCount: 1,
-  });
+  assert.equal(groupActionItems(items).deadlineRisk.length, 1);
+  assert.deepEqual(actionKpi(items), { todayCount: 2, criticalCount: 1, highCount: 1 });
 });
 
-test("malformed dates are safe and repeat evaluation is deterministic", () => {
+test("malformed dates are safe and identical inputs are deterministic", () => {
   const input = job({ deadline: "not-a-date" });
-  const first = evaluateAction(input, { now: NOW });
-  const second = evaluateAction(input, { now: NOW });
-  assert.deepEqual(first, second);
+  assert.deepEqual(evaluateAction(input, { now: NOW }), evaluateAction(input, { now: NOW }));
 });
 ```
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 Run:
 
@@ -255,11 +213,9 @@ Run:
 node --test tests/phase2c-action-engine.test.mjs
 ```
 
-Expected: FAIL because `src/actions/actionEngine.mjs` does not exist yet.
+Expected: FAIL because the action modules do not exist.
 
-- [ ] **Step 3: Add immutable action configuration**
-
-Create `src/actions/actionConfig.mjs`:
+- [ ] **Step 3: Add `actionConfig.mjs`**
 
 ```js
 export const ACTION_TIME_ZONE = "Europe/Paris";
@@ -280,7 +236,6 @@ export const APPLICATION_TRACKING_STATUSES = new Set(["Candidature envoyée", "E
 export const PRE_APPLICATION_STATUSES = new Set(["Nouveau", "À candidater"]);
 
 export const ACTION_PRIORITY_ORDER = Object.freeze({ Critical: 0, High: 1, Normal: 2, None: 3 });
-
 export const ACTION_TYPE_ORDER = Object.freeze({
   FOLLOW_UP_OVERDUE: 0,
   FOLLOW_UP_TODAY: 1,
@@ -293,128 +248,56 @@ export const ACTION_TYPE_ORDER = Object.freeze({
 });
 ```
 
-- [ ] **Step 4: Implement the pure browser action engine**
+- [ ] **Step 4: Implement `actionEngine.mjs` with exact reason semantics**
 
-Create `src/actions/actionEngine.mjs`. Use Europe/Paris date keys rather than local-machine midnight. The implementation must follow this shape:
+Use `Intl.DateTimeFormat` with `timeZone: "Europe/Paris"` to derive a `YYYY-MM-DD` Paris key, then compare date keys through UTC midnight arithmetic so DST cannot shift calendar-day deltas.
 
-```js
-import {
-  ACTION_PRIORITY_ORDER,
-  ACTION_TIME_ZONE,
-  ACTION_TYPE_ORDER,
-  ACTION_TYPES,
-  APPLICATION_TRACKING_STATUSES,
-  PRE_APPLICATION_STATUSES,
-  TERMINAL_STATUSES,
-} from "./actionConfig.mjs";
+Return these exact reason forms so browser/Apps Script parity is testable:
 
-const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
-
-export function parisDateKey(value) {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: ACTION_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-
-  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${map.year}-${map.month}-${map.day}`;
-}
-
-function normalizeDateKey(value) {
-  const text = String(value || "").trim();
-  if (DATE_KEY.test(text)) return text;
-  return parisDateKey(value);
-}
-
-export function calendarDayDelta(fromKey, toKey) {
-  const from = normalizeDateKey(fromKey);
-  const to = normalizeDateKey(toKey);
-  if (!from || !to) return null;
-  const fromMs = Date.parse(`${from}T00:00:00Z`);
-  const toMs = Date.parse(`${to}T00:00:00Z`);
-  return Math.round((toMs - fromMs) / 86400000);
-}
-
-function none(reason = "No active action") {
-  return {
-    active: false,
-    actionType: ACTION_TYPES.NONE,
-    actionPriority: "None",
-    actionReason: reason,
-    actionDate: "",
-    urgencyDays: null,
-  };
-}
-
-function active(type, priority, reason, actionDate = "", urgencyDays = null) {
-  return {
-    active: true,
-    actionType: type,
-    actionPriority: priority,
-    actionReason: reason,
-    actionDate,
-    urgencyDays,
-  };
-}
+```text
+Terminal status
+Phase 2B fit score below 75 or unavailable
+Application deadline has passed
+Application deadline is today
+Application deadline is tomorrow
+Application deadline in N days
+Follow-up overdue by N days
+Follow-up due today
+Follow-up due tomorrow
+Follow-up scheduled in N days
+No follow-up scheduled
+No follow-up scheduled after N days
+Strong Phase 2B fit; application not yet submitted
+No active action
 ```
 
-Implement `evaluateAction()` in this exact decision order:
+Decision order:
 
-1. terminal status → `NONE`;
-2. application-tracking status → follow-up rules, then schedule-follow-up rules;
-3. unknown/non-pre-application status → `NONE`;
-4. pre-application with `fitScore < 75` → `NONE`;
-5. valid passed deadline → `NONE`;
-6. valid deadline 0–1 days → Critical Deadline Risk;
-7. valid deadline 2–3 days → Critical when score >=85 else High;
-8. valid deadline 4–7 days → High when score >=85 else Normal;
-9. otherwise score >=85 → High Apply Now;
-10. otherwise score 75–84 → Normal Apply Now.
-
-For application statuses with no follow-up, compute `appliedAgeDays = calendarDayDelta(appliedDate, todayKey)`. Use High when `appliedAgeDays >= 3`, otherwise Normal. Missing `appliedDate` stays Normal.
-
-Implement `buildActionItems()` as a safe per-row loop that catches one malformed row and returns a `NONE` action for that row rather than throwing for the entire list. Filter to `action.active === true` before returning.
-
-Implement `sortActionItems()` with the spec order, then nearest `actionDate`, `fitScore` descending, `postedDate` descending, `detectedDate` descending, stable `job.id` lexical order.
-
-Implement `groupActionItems()` mapping:
-
-```js
-FOLLOW_UP_OVERDUE -> overdue
-FOLLOW_UP_TODAY -> today
-DEADLINE_RISK -> deadlineRisk
-APPLY_NOW -> applyNow
-FOLLOW_UP_TOMORROW | UPCOMING_FOLLOW_UP | SCHEDULE_FOLLOW_UP -> upcoming
+```text
+terminal
+application tracking with followUpDate
+application tracking without followUpDate
+unknown/non-pre-application status
+pre-application fitScore < 75
+passed deadline
+0-1 day deadline
+2-3 day deadline
+4-7 day deadline
+distant/missing deadline Apply Now
 ```
 
-Implement `actionKpi()` so only `Critical` and `High` active items count toward `todayCount`.
+Use the approved priority matrix. `buildActionItems()` catches a single-row evaluation failure, produces a safe inactive result for that row, and continues evaluating the rest. `sortActionItems()` follows priority, action-type order, nearest action date, fitScore descending, publication date descending, detected date descending, then stable Job ID. `groupActionItems()` maps to `overdue`, `today`, `deadlineRisk`, `applyNow`, `upcoming`. `actionKpi()` counts only Critical and High.
 
-- [ ] **Step 5: Run the focused tests and verify GREEN**
-
-Run:
+- [ ] **Step 5: Verify GREEN and regressions**
 
 ```bash
 node --test tests/phase2c-action-engine.test.mjs
-```
-
-Expected: all tests PASS.
-
-- [ ] **Step 6: Run the existing suite to detect regressions**
-
-Run:
-
-```bash
 npm test
 ```
 
-Expected: existing Phase 2A/2B tests plus the new action-engine tests PASS.
+Expected: PASS.
 
-- [ ] **Step 7: Commit Task 1**
+- [ ] **Step 6: Commit Task 1**
 
 ```bash
 git add src/actions/actionConfig.mjs src/actions/actionEngine.mjs tests/phase2c-action-engine.test.mjs
@@ -423,7 +306,7 @@ git commit -m "feat: add deterministic phase 2C action engine"
 
 ---
 
-### Task 2: Follow-up Payloads and A:AS Sheet Contract
+### Task 2: Follow-up Calculations and A:AS Sheet Contract
 
 **Files:**
 - Create: `src/actions/followUpActions.mjs`
@@ -433,25 +316,25 @@ git commit -m "feat: add deterministic phase 2C action engine"
 - Test: `tests/phase2c-sheet-fields.test.mjs`
 
 **Interfaces:**
-- Consumes: `parisDateKey()` from Task 1.
-- Produces: `buildFollowUpPatch(job, choice, { now } = {}) -> patch` where `choice` is `3`, `7`, `14`, or `"none"`.
-- Extends normalized jobs with `lastFollowUp`, `followUpCount`, `actionPriority`, `actionReason`, `actionUpdatedAt`.
-- Extends `updateJobFields()` writable fields through `AS`.
+- Produces: `buildCompletedFollowUpPatch(job, choice, { now })` for `3`, `7`, `14`, `"none"`.
+- Produces: `buildScheduleFollowUpPatch(days, { now })` for first scheduling; this never changes follow-up count or last-follow-up timestamp.
+- Extends normalized jobs and writable Sheet fields through AS.
 
-- [ ] **Step 1: Write failing follow-up and Sheet tests**
-
-Create `tests/phase2c-follow-up.test.mjs`:
+- [ ] **Step 1: Write failing follow-up tests**
 
 ```js
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildFollowUpPatch } from "../src/actions/followUpActions.mjs";
+import {
+  buildCompletedFollowUpPatch,
+  buildScheduleFollowUpPatch,
+} from "../src/actions/followUpActions.mjs";
 
 const NOW = new Date("2026-09-05T08:00:00.000Z");
 
 for (const [choice, expected] of [[3, "2026-09-08"], [7, "2026-09-12"], [14, "2026-09-19"]]) {
-  test(`follow-up +${choice} builds one atomic tracking patch`, () => {
-    const patch = buildFollowUpPatch({ followUpCount: 2 }, choice, { now: NOW });
+  test(`completed follow-up +${choice} increments once`, () => {
+    const patch = buildCompletedFollowUpPatch({ followUpCount: 2 }, choice, { now: NOW });
     assert.equal(patch.followUpDate, expected);
     assert.equal(patch.followUpCount, 3);
     assert.equal(patch.lastFollowUp, NOW.toISOString());
@@ -459,80 +342,34 @@ for (const [choice, expected] of [[3, "2026-09-08"], [7, "2026-09-12"], [14, "20
   });
 }
 
-test("no further follow-up clears date and increments once", () => {
-  const patch = buildFollowUpPatch({ followUpCount: 4 }, "none", { now: NOW });
+test("No further follow-up clears date and increments completion count", () => {
+  const patch = buildCompletedFollowUpPatch({ followUpCount: 4 }, "none", { now: NOW });
   assert.equal(patch.followUpDate, "");
   assert.equal(patch.followUpCount, 5);
-  assert.equal(patch.lastFollowUp, NOW.toISOString());
 });
 
-test("malformed follow-up count starts from zero", () => {
-  assert.equal(buildFollowUpPatch({ followUpCount: "bad" }, 3, { now: NOW }).followUpCount, 1);
-});
-```
-
-Create `tests/phase2c-sheet-fields.test.mjs`:
-
-```js
-import test from "node:test";
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { normalizeJobs } from "../src/utils/jobDrive.mjs";
-
-test("A:AS Phase 2C fields normalize safely", () => {
-  const header = Array(45).fill("");
-  const row = Array(45).fill("");
-  row[0] = "JOB-1";
-  row[1] = "Stage M2";
-  row[40] = "2026-09-05T08:00:00.000Z";
-  row[41] = "3";
-  row[42] = "Critical";
-  row[43] = "Follow-up is overdue";
-  row[44] = "2026-09-05T08:01:00.000Z";
-
-  const [job] = normalizeJobs([header, row]);
-  assert.equal(job.lastFollowUp, "2026-09-05T08:00:00.000Z");
-  assert.equal(job.followUpCount, 3);
-  assert.equal(job.actionPriority, "Critical");
-  assert.equal(job.actionReason, "Follow-up is overdue");
-  assert.equal(job.actionUpdatedAt, "2026-09-05T08:01:00.000Z");
-});
-
-test("old A:AN rows get safe Phase 2C defaults", () => {
-  const header = Array(40).fill("");
-  const row = Array(40).fill("");
-  row[0] = "OLD-1";
-  row[1] = "Stage M2";
-  const [job] = normalizeJobs([header, row]);
-  assert.equal(job.lastFollowUp, "");
-  assert.equal(job.followUpCount, 0);
-  assert.equal(job.actionPriority, "");
-  assert.equal(job.actionReason, "");
-  assert.equal(job.actionUpdatedAt, "");
-});
-
-test("Sheets API reads A:AS and exposes AO:AS writable mappings", () => {
-  const code = fs.readFileSync("src/services/sheetsApi.js", "utf8");
-  assert.match(code, /'\$\{SHEET_NAME\}'!A:AS/);
-  assert.match(code, /lastFollowUp:\s*"AO"/);
-  assert.match(code, /followUpCount:\s*"AP"/);
-  assert.match(code, /actionPriority:\s*"AQ"/);
-  assert.match(code, /actionReason:\s*"AR"/);
-  assert.match(code, /actionUpdatedAt:\s*"AS"/);
+test("first scheduling does not pretend a follow-up happened", () => {
+  const patch = buildScheduleFollowUpPatch(7, { now: NOW });
+  assert.deepEqual(patch, {
+    followUpDate: "2026-09-12",
+    lastUpdated: NOW.toISOString(),
+  });
 });
 ```
 
-- [ ] **Step 2: Run focused tests and verify RED**
+Create `tests/phase2c-sheet-fields.test.mjs` and assert row indices `40..44` normalize as AO:AS; old 40-column rows default to `lastFollowUp:""`, `followUpCount:0`, and empty action snapshot strings. Read source text and assert `sheetsApi.js` uses `A:AS` and mappings `AO`, `AP`, `AQ`, `AR`, `AS`.
+
+- [ ] **Step 2: Verify RED**
 
 ```bash
 node --test tests/phase2c-follow-up.test.mjs tests/phase2c-sheet-fields.test.mjs
 ```
 
-Expected: FAIL because the new module and mappings do not exist.
+Expected: FAIL.
 
-- [ ] **Step 3: Implement pure follow-up patch generation**
+- [ ] **Step 3: Implement `followUpActions.mjs`**
 
-Create `src/actions/followUpActions.mjs`. Use the Paris date key from Task 1 and UTC arithmetic on the date key itself so DST does not shift the calendar result:
+Use `parisDateKey()` from Task 1 plus UTC date-key addition:
 
 ```js
 import { parisDateKey } from "./actionEngine.mjs";
@@ -543,28 +380,30 @@ function addDateKeyDays(key, days) {
   return date.toISOString().slice(0, 10);
 }
 
-export function buildFollowUpPatch(job = {}, choice, { now = new Date() } = {}) {
-  const isoNow = now instanceof Date ? now.toISOString() : new Date(now).toISOString();
-  const currentCount = Number.isFinite(Number(job.followUpCount)) ? Number(job.followUpCount) : 0;
+function nextDate(days, now) {
+  return addDateKeyDays(parisDateKey(now), days);
+}
 
-  if (![3, 7, 14, "none"].includes(choice)) {
-    throw new Error("Unsupported follow-up action");
-  }
+export function buildScheduleFollowUpPatch(days, { now = new Date() } = {}) {
+  if (![3, 7, 14].includes(days)) throw new Error("Unsupported follow-up schedule");
+  return { followUpDate: nextDate(days, now), lastUpdated: now.toISOString() };
+}
 
-  const today = parisDateKey(now);
-
+export function buildCompletedFollowUpPatch(job = {}, choice, { now = new Date() } = {}) {
+  if (![3, 7, 14, "none"].includes(choice)) throw new Error("Unsupported follow-up action");
+  const current = Number.isFinite(Number(job.followUpCount)) ? Number(job.followUpCount) : 0;
   return {
-    lastFollowUp: isoNow,
-    followUpCount: currentCount + 1,
-    followUpDate: choice === "none" ? "" : addDateKeyDays(today, choice),
-    lastUpdated: isoNow,
+    lastFollowUp: now.toISOString(),
+    followUpCount: current + 1,
+    followUpDate: choice === "none" ? "" : nextDate(choice, now),
+    lastUpdated: now.toISOString(),
   };
 }
 ```
 
-- [ ] **Step 4: Extend job normalization through AS**
+- [ ] **Step 4: Extend normalization and Sheets API**
 
-Modify the `normalizeJobs()` row mapping in `src/utils/jobDrive.mjs` after `scoringUpdatedAt`:
+In `normalizeJobs()` after `scoringUpdatedAt` add:
 
 ```js
 lastFollowUp: String(row[40] || "").trim(),
@@ -574,14 +413,7 @@ actionReason: String(row[43] || "").trim(),
 actionUpdatedAt: String(row[44] || "").trim(),
 ```
 
-Do not move or reinterpret indices `18..39`.
-
-- [ ] **Step 5: Extend Sheets read/write mappings**
-
-In `src/services/sheetsApi.js`:
-
-1. change the read range from `A:AN` to `A:AS`;
-2. add to `COLUMNS`:
+In `sheetsApi.js`, change `A:AN` to `A:AS` and extend `COLUMNS`:
 
 ```js
 lastFollowUp: "AO",
@@ -591,9 +423,9 @@ actionReason: "AR",
 actionUpdatedAt: "AS",
 ```
 
-Keep row lookup by stable Job ID in column A and keep `DESCRIPTION_COLUMNS` unchanged.
+Keep stable Job ID lookup in column A and keep `DESCRIPTION_COLUMNS` unchanged.
 
-- [ ] **Step 6: Run focused tests and full suite**
+- [ ] **Step 5: Verify GREEN**
 
 ```bash
 node --test tests/phase2c-follow-up.test.mjs tests/phase2c-sheet-fields.test.mjs
@@ -602,7 +434,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit Task 2**
+- [ ] **Step 6: Commit Task 2**
 
 ```bash
 git add src/actions/followUpActions.mjs src/utils/jobDrive.mjs src/services/sheetsApi.js tests/phase2c-follow-up.test.mjs tests/phase2c-sheet-fields.test.mjs
@@ -611,7 +443,7 @@ git commit -m "feat: add phase 2C follow-up and sheet fields"
 
 ---
 
-### Task 3: Action Center UI, KPI, and Atomic Follow-up Flow
+### Task 3: Action Center UI, KPI, and Atomic Tracking Writes
 
 **Files:**
 - Create: `src/actions/ActionCenterView.jsx`
@@ -621,220 +453,85 @@ git commit -m "feat: add phase 2C follow-up and sheet fields"
 - Test: `tests/phase2c-action-ui.test.mjs`
 
 **Interfaces:**
-- Consumes: `buildActionItems`, `groupActionItems`, `actionKpi`, `evaluateAction` from Task 1.
-- Consumes: `buildFollowUpPatch` from Task 2.
-- Consumes: existing `updateJobFields()` stable-ID write path.
-- Produces: `ActionCenterView({ items, onOpenDetails, onMarkFollowUp, savingJobId })`.
-- Extends `JobDriveDashboard` props with `actionKpi` and uses existing `onViewChange`.
+- Consumes Task 1 action computation and Task 2 follow-up patches.
+- Produces `ActionCenterView({ items, onOpenDetails, onScheduleFollowUp, onMarkFollowUp, savingJobId })`.
+- Extends `JobDriveDashboard` with `actionKpi`.
 
-- [ ] **Step 1: Write failing static UI/integration tests**
+- [ ] **Step 1: Write failing UI wiring tests**
 
-Create `tests/phase2c-action-ui.test.mjs`:
+Create a static-source test that asserts:
 
 ```js
-import test from "node:test";
-import assert from "node:assert/strict";
-import fs from "node:fs";
-
-test("dashboard exposes Action Center navigation and Actions Today KPI", () => {
-  const code = fs.readFileSync("src/JobDriveDashboard.jsx", "utf8");
-  assert.match(code, /onViewChange\("actions"\)/);
-  assert.match(code, /Action Center/);
-  assert.match(code, /ACTIONS TODAY/);
-  assert.match(code, /actionKpi\.todayCount/);
-  assert.match(code, /actionKpi\.criticalCount/);
-});
-
-test("AppPro wires live action items and Action Center view", () => {
-  const code = fs.readFileSync("src/AppPro.jsx", "utf8");
-  assert.match(code, /buildActionItems/);
-  assert.match(code, /actionKpi/);
-  assert.match(code, /view === "actions"/);
-  assert.match(code, /ActionCenterView/);
-  assert.match(code, /buildFollowUpPatch/);
-  assert.match(code, /updateJobFields/);
-});
-
-test("Action Center renders required operational groups", () => {
-  const code = fs.readFileSync("src/actions/ActionCenterView.jsx", "utf8");
-  for (const label of ["Overdue Follow-up", "Follow-up Today", "Deadline Risk", "Apply Now", "Upcoming"]) {
-    assert.match(code, new RegExp(label));
-  }
-  assert.match(code, /Mark Followed Up/);
-  assert.match(code, /\+3 days/);
-  assert.match(code, /\+7 days/);
-  assert.match(code, /\+14 days/);
-  assert.match(code, /No further follow-up/);
-});
+assert.match(fs.readFileSync("src/JobDriveDashboard.jsx", "utf8"), /onViewChange\("actions"\)/);
+assert.match(fs.readFileSync("src/JobDriveDashboard.jsx", "utf8"), /ACTIONS TODAY/);
+assert.match(fs.readFileSync("src/AppPro.jsx", "utf8"), /buildActionItems/);
+assert.match(fs.readFileSync("src/AppPro.jsx", "utf8"), /view === "actions"/);
+assert.match(fs.readFileSync("src/AppPro.jsx", "utf8"), /buildCompletedFollowUpPatch/);
+assert.match(fs.readFileSync("src/AppPro.jsx", "utf8"), /buildScheduleFollowUpPatch/);
 ```
 
-- [ ] **Step 2: Run the focused test and verify RED**
+Assert `ActionCenterView.jsx` contains the group labels `Overdue Follow-up`, `Follow-up Today`, `Deadline Risk`, `Apply Now`, `Upcoming`, plus both `Schedule Follow-up` and `Mark Followed Up` controls.
+
+- [ ] **Step 2: Verify RED**
 
 ```bash
 node --test tests/phase2c-action-ui.test.mjs
 ```
 
-Expected: FAIL because the Action Center component and wiring are absent.
+Expected: FAIL.
 
-- [ ] **Step 3: Implement `ActionCenterView` as a presentational component**
+- [ ] **Step 3: Implement presentational Action Center**
 
-Create `src/actions/ActionCenterView.jsx` and import `./action-center.css`.
+`ActionCenterView.jsx` calls `groupActionItems(items)` and renders only non-empty groups. Every card shows available company, role, fit score, grade, domain, status, action priority/reason, relevant dates, follow-up count, official URL, and `Open Details`.
 
-The component must:
+For `SCHEDULE_FOLLOW_UP`, render `Schedule Follow-up` with `+3`, `+7`, `+14` only and call `onScheduleFollowUp(job, days)`.
 
-- call `groupActionItems(items)` once;
-- render only non-empty groups;
-- render one card per `{ job, action }`;
-- show company, role, fitScore, scoreGrade, domain, status, actionPriority, actionReason, deadline/follow-up/applied dates, followUpCount and official link when present;
-- expose `Open Details` through `onOpenDetails(job)`;
-- render `Mark Followed Up` only for follow-up action types or application-tracking statuses;
-- open a compact local menu with buttons `+3 days`, `+7 days`, `+14 days`, `No further follow-up`;
-- call `onMarkFollowUp(job, 3|7|14|"none")` without mutating the job locally;
-- disable follow-up buttons while `savingJobId === job.id`.
+For application-tracking rows that already have a follow-up context, render `Mark Followed Up` with `+3`, `+7`, `+14`, `No further follow-up` and call `onMarkFollowUp(job, choice)`.
 
-Use a group definition like:
+Never mutate a job inside the presentational component.
 
-```js
-const GROUPS = [
-  ["overdue", "Overdue Follow-up"],
-  ["today", "Follow-up Today"],
-  ["deadlineRisk", "Deadline Risk"],
-  ["applyNow", "Apply Now"],
-  ["upcoming", "Upcoming"],
-];
-```
+- [ ] **Step 4: Add mobile-safe CSS**
 
-Do not add a network call to this component.
-
-- [ ] **Step 4: Add Action Center styles with mobile safety**
-
-Create `src/actions/action-center.css` with focused class names such as `.jd-action-center`, `.jd-action-section`, `.jd-action-card`, `.jd-action-priority`, `.jd-action-followup-menu`.
-
-Required responsive rule:
-
-```css
-@media (max-width: 760px) {
-  .jd-action-card {
-    grid-template-columns: 1fr;
-  }
-
-  .jd-action-card-actions,
-  .jd-action-followup-menu {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .jd-action-card-actions button,
-  .jd-action-card-actions a,
-  .jd-action-followup-menu button {
-    min-height: 44px;
-  }
-}
-```
-
-Do not introduce horizontal scrolling as a required interaction.
+Create `action-center.css` with focused `.jd-action-*` classes. Under `@media (max-width: 760px)`, force action cards to one column, allow action controls to wrap, and give buttons/links `min-height: 44px`. No horizontal scrolling is required to reach a primary action.
 
 - [ ] **Step 5: Wire live actions into `AppPro.jsx`**
 
-Import:
-
-```js
-import ActionCenterView from "./actions/ActionCenterView.jsx";
-import { actionKpi as calculateActionKpi, buildActionItems, evaluateAction } from "./actions/actionEngine.mjs";
-import { buildFollowUpPatch } from "./actions/followUpActions.mjs";
-```
-
-Add state:
+Import the new component and helpers. Add:
 
 ```js
 const [savingFollowUpJobId, setSavingFollowUpJobId] = useState("");
-```
-
-Add memoized live action data from unfiltered `jobs`:
-
-```js
 const actionItems = useMemo(() => buildActionItems(jobs), [jobs]);
 const actionKpi = useMemo(() => calculateActionKpi(actionItems), [actionItems]);
 ```
 
-Add an atomic handler. The key requirement is no optimistic UI mutation before the Sheet write succeeds:
+Add one helper that enriches any successful tracking patch with a fresh snapshot:
 
 ```js
-async function markFollowedUp(job, choice) {
-  setSavingFollowUpJobId(job.id);
-  setError("");
-
-  try {
-    const now = new Date();
-    const trackingPatch = buildFollowUpPatch(job, choice, { now });
-    const nextJob = { ...job, ...trackingPatch };
-    const nextAction = evaluateAction(nextJob, { now });
-    const patch = {
-      ...trackingPatch,
-      actionPriority: nextAction.actionPriority,
-      actionReason: nextAction.actionReason,
-      actionUpdatedAt: now.toISOString(),
-    };
-
-    await updateJobFields({
-      token,
-      spreadsheetId: SPREADSHEET_ID,
-      jobId: job.id,
-      patch,
-    });
-
-    const localUpdate = { ...job, ...patch };
-    setJobs((current) => current.map((item) => item.id === job.id ? localUpdate : item));
-    if (selectedJob?.id === job.id) setSelectedJob(localUpdate);
-    setLastUpdated(new Date());
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setSavingFollowUpJobId("");
-  }
+function withActionSnapshot(job, patch, now) {
+  const nextJob = { ...job, ...patch };
+  const action = evaluateAction(nextJob, { now });
+  return {
+    ...patch,
+    actionPriority: action.actionPriority,
+    actionReason: action.actionReason,
+    actionUpdatedAt: now.toISOString(),
+  };
 }
 ```
 
-Update `saveJob()` so status/follow-up edits also persist a fresh action snapshot in the same batch. After the existing status/applied-date defaults are prepared, compute:
+`markFollowedUp(job, choice)` builds a completed-follow-up patch, adds a snapshot, calls `updateJobFields`, and only after successful resolution updates React state.
 
-```js
-const nextJob = { ...job, ...patch };
-const nextAction = evaluateAction(nextJob, { now: new Date(now) });
-patch.actionPriority = nextAction.actionPriority;
-patch.actionReason = nextAction.actionReason;
-patch.actionUpdatedAt = now;
-```
+`scheduleFollowUp(job, days)` builds a first-schedule patch, adds a snapshot, calls `updateJobFields`, and only after success updates React state. It must not change `lastFollowUp` or `followUpCount`.
 
-Do not alter `fitScore`, `priority`, Phase 2B metadata, or description fields.
+Update existing `saveJob()` to add a fresh action snapshot to status/follow-up edits without modifying Phase 2B fields.
 
-Add `view === "actions"` to `alternateContent`:
+For `view === "actions"`, set `alternateContent` to `ActionCenterView` and pass handlers.
 
-```jsx
-<ActionCenterView
-  items={actionItems}
-  onOpenDetails={setSelectedJob}
-  onMarkFollowUp={markFollowedUp}
-  savingJobId={savingFollowUpJobId}
-/>
-```
+- [ ] **Step 6: Add navigation and KPI in `JobDriveDashboard.jsx`**
 
-- [ ] **Step 6: Add Action Center navigation and KPI to `JobDriveDashboard.jsx`**
+Add Sidebar button `Action Center` calling `onViewChange("actions")`.
 
-Extend the component props with `actionKpi`.
-
-Add a Sidebar button:
-
-```jsx
-<button
-  className={view === "actions" ? "active" : ""}
-  onClick={() => onViewChange("actions")}
->
-  <Icon name="bell" />
-  Action Center
-</button>
-```
-
-Make `KPI` accept optional `onClick`. Preserve existing KPI styling while making the action KPI keyboard/click accessible. Add on Overview:
+Extend `KPI` with optional `onClick` while retaining the existing `jd-kpi` class. Add:
 
 ```jsx
 <KPI
@@ -847,9 +544,9 @@ Make `KPI` accept optional `onClick`. Preserve existing KPI styling while making
 />
 ```
 
-Pass `actionKpi={actionKpi}` from `AppPro` to `JobDriveDashboard`.
+Pass `actionKpi` from AppPro. This KPI intentionally excludes Normal backlog.
 
-- [ ] **Step 7: Run focused tests, full suite, and build**
+- [ ] **Step 7: Verify GREEN and build**
 
 ```bash
 node --test tests/phase2c-action-ui.test.mjs
@@ -868,120 +565,66 @@ git commit -m "feat: add phase 2C action center interface"
 
 ---
 
-### Task 4: Apps Script Action Parity and AO:AS Snapshot Helpers
+### Task 4: Apps Script Action Parity and Snapshot Helpers
 
 **Files:**
 - Create: `apps-script/ActionCenter.gs`
 - Modify: `apps-script/Code.gs`
 - Test: `tests/apps-script-action-parity.test.mjs`
-- Test: `tests/phase2c-sheet-fields.test.mjs`
+- Extend: `tests/phase2c-sheet-fields.test.mjs`
 
 **Interfaces:**
-- Consumes: the Task 1 browser action contract as the behavior reference.
-- Produces: `evaluateJobDriveAction_(job, nowIso) -> same action object shape`.
-- Produces: `ensureActionCenterHeaders_(sheet)`.
-- Produces: `actionJobFromRow_(row) -> normalized subset`.
-- Produces: `refreshActionSnapshotRow_(sheet, rowNumber, job, nowIso)`.
-- Extends `doGet()` job JSON with Phase 2C fields for diagnostic parity.
+- Produces: `evaluateJobDriveAction_(job, nowIso)` with the same fields and exact reason strings as Task 1.
+- Produces: `actionJobFromRow_(row)`, `ensureActionCenterHeaders_(sheet)`, `refreshActionSnapshotRow_(sheet, rowNumber, job, nowIso)`.
 
-- [ ] **Step 1: Write failing browser ↔ Apps Script parity tests**
+- [ ] **Step 1: Write failing parity tests**
 
-Create `tests/apps-script-action-parity.test.mjs`. Follow the same Node `vm` technique already used by `tests/apps-script-scoring-parity.test.mjs`: load `apps-script/ActionCenter.gs` into a sandbox and compare `evaluateJobDriveAction_()` with browser `evaluateAction()` for representative fixtures.
+Use the same Node `vm` pattern as `tests/apps-script-scoring-parity.test.mjs`. Compare browser `evaluateAction()` and Apps Script `evaluateJobDriveAction_()` for fixed fixtures covering terminal, score below 75, deadline risk, Apply Now, overdue/today follow-up, and Schedule Follow-up. Assert deep equality for `active`, `actionType`, `actionPriority`, `actionReason`, `actionDate`, `urgencyDays`.
 
-Use at least these fixtures:
+Extend the Sheet test to assert `ActionCenter.gs` owns headers exactly:
 
-```js
-[
-  { id: "terminal", status: "Accepté", fitScore: 95 },
-  { id: "old-row", status: "Nouveau", fitScore: 0, deadline: "2026-09-06" },
-  { id: "deadline-critical", status: "Nouveau", fitScore: 90, deadline: "2026-09-08" },
-  { id: "apply-high", status: "À candidater", fitScore: 92 },
-  { id: "followup-overdue", status: "Candidature envoyée", fitScore: 90, followUpDate: "2026-09-04" },
-  { id: "followup-today", status: "Entretien", fitScore: 90, followUpDate: "2026-09-05" },
-  { id: "schedule-high", status: "Candidature envoyée", fitScore: 90, appliedDate: "2026-09-01" },
-]
-```
-
-Use `NOW = "2026-09-05T08:00:00.000Z"` and assert deep equality on:
-
-```js
-active
-actionType
+```text
+lastFollowUp
+followUpCount
 actionPriority
 actionReason
-actionDate
-urgencyDays
+actionUpdatedAt
 ```
 
-Extend `tests/phase2c-sheet-fields.test.mjs` with static assertions that `ActionCenter.gs` defines AO:AS header names and `Code.gs` exposes `lastFollowUp`, `followUpCount`, `actionPriority`, `actionReason`, `actionUpdatedAt` from indices `40..44`.
+and `Code.gs` exposes row indices `40..44` without moving older fields.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 node --test tests/apps-script-action-parity.test.mjs tests/phase2c-sheet-fields.test.mjs
 ```
 
-Expected: FAIL because `ActionCenter.gs` does not exist and `Code.gs` does not expose Phase 2C fields.
+Expected: FAIL.
 
-- [ ] **Step 3: Implement the Apps Script action mirror**
+- [ ] **Step 3: Implement `ActionCenter.gs`**
 
-Create `apps-script/ActionCenter.gs` as ES5-compatible Apps Script code. Keep constants and decision order semantically identical to Task 1. Use helper names suffixed with `_`.
+Use ES5-compatible Apps Script code and `Utilities.formatDate(new Date(value), "Europe/Paris", "yyyy-MM-dd")` for Paris keys.
 
 Required functions:
 
-```js
-var JOBDRIVE_ACTION_TIME_ZONE_ = "Europe/Paris";
-
-function actionParisDateKey_(value) { ... }
-function actionCalendarDayDelta_(fromValue, toValue) { ... }
-function evaluateJobDriveAction_(job, nowIso) { ... }
-function actionJobFromRow_(row) { ... }
-function ensureActionCenterHeaders_(sheet) { ... }
-function refreshActionSnapshotRow_(sheet, rowNumber, job, nowIso) { ... }
+```text
+actionParisDateKey_
+actionCalendarDayDelta_
+evaluateJobDriveAction_
+actionJobFromRow_
+ensureActionCenterHeaders_
+refreshActionSnapshotRow_
 ```
 
-For Apps Script Paris date keys, use:
+`actionJobFromRow_()` maps only the required fields using existing indices, including `lastFollowUp row[40]`, `followUpCount row[41]`, `actionPriority row[42]`, `actionReason row[43]`, `actionUpdatedAt row[44]`.
 
-```js
-Utilities.formatDate(new Date(value), JOBDRIVE_ACTION_TIME_ZONE_, "yyyy-MM-dd")
-```
+`ensureActionCenterHeaders_()` writes row 1 columns 41–45 only when needed.
 
-`actionJobFromRow_()` maps only fields needed by Phase 2C:
+`refreshActionSnapshotRow_()` writes only `AQ:AS`. It never writes `S:W`, `X:Z`, or `AA:AN`.
 
-```js
-{
-  id: row[0] || "",
-  company: row[2] || "",
-  role: row[3] || "",
-  deadline: row[10] || "",
-  status: row[11] || "Nouveau",
-  fitScore: Number(row[13] || 0),
-  link: row[15] || "",
-  detectedDate: row[17] || "",
-  appliedDate: row[19] || "",
-  followUpDate: row[20] || "",
-  postedDate: row[9] || "",
-  lastFollowUp: row[40] || "",
-  followUpCount: Number(row[41] || 0),
-  actionPriority: row[42] || "",
-  actionReason: row[43] || "",
-  actionUpdatedAt: row[44] || ""
-}
-```
+- [ ] **Step 4: Extend `Code.gs` diagnostic mapping**
 
-`ensureActionCenterHeaders_()` must write exactly:
-
-```js
-["lastFollowUp", "followUpCount", "actionPriority", "actionReason", "actionUpdatedAt"]
-```
-
-to row 1 columns 41–45 (`AO:AS`) only when the current values differ.
-
-`refreshActionSnapshotRow_()` must write only `AQ:AS` for the supplied row. It must never write `S:W`, `X:Z`, or `AA:AN`.
-
-- [ ] **Step 4: Extend Apps Script diagnostic JSON mapping**
-
-In `apps-script/Code.gs`, extend each returned job object after `scoringUpdatedAt`:
+After `scoringUpdatedAt`, add:
 
 ```js
 lastFollowUp: row[40] || "",
@@ -991,16 +634,14 @@ actionReason: row[43] || "",
 actionUpdatedAt: row[44] || ""
 ```
 
-Do not change existing indices.
-
-- [ ] **Step 5: Run parity and full tests**
+- [ ] **Step 5: Verify GREEN**
 
 ```bash
 node --test tests/apps-script-action-parity.test.mjs tests/phase2c-sheet-fields.test.mjs
 npm test
 ```
 
-Expected: browser and Apps Script fixtures match exactly and the full suite passes.
+Expected: PASS.
 
 - [ ] **Step 6: Commit Task 4**
 
@@ -1011,50 +652,47 @@ git commit -m "feat: mirror phase 2C action engine in apps script"
 
 ---
 
-### Task 5: Daily Gmail Digest, Snapshot Refresh, and Idempotent Trigger
+### Task 5: Gmail Digest, Snapshot Refresh, and Idempotent Trigger
 
 **Files:**
 - Create: `apps-script/ActionDigest.gs`
 - Test: `tests/apps-script-action-digest.test.mjs`
 
 **Interfaces:**
-- Consumes: `evaluateJobDriveAction_`, `actionJobFromRow_`, `ensureActionCenterHeaders_` from Task 4.
-- Produces: `buildJobDriveActionDigest_(nowIso) -> { dateKey, subject, body, items }` without sending.
-- Produces: `resolveJobDriveDigestRecipient_() -> email | ""`.
-- Produces: `runJobDriveActionDigest() -> summary`.
-- Produces: `installJobDriveActionDigestTrigger() -> existing or created trigger`.
+- Consumes Task 4 Apps Script action helpers.
+- Produces: `buildJobDriveActionDigest_(jobs, nowIso)` as a formatting/selection function with no mail send.
+- Produces: `resolveJobDriveDigestRecipient_()`.
+- Produces: `runJobDriveActionDigest()`.
+- Produces: `installJobDriveActionDigestTrigger()`.
 
 - [ ] **Step 1: Write failing digest tests**
 
-Create `tests/apps-script-action-digest.test.mjs` using `vm` with stubs for `Utilities`, `SpreadsheetApp`, `PropertiesService`, `Session`, `MailApp`, `ScriptApp`, and `console`.
+Use `vm` stubs for `Utilities`, `SpreadsheetApp`, `PropertiesService`, `Session`, `MailApp`, `ScriptApp`, and `console`. Cover:
 
-Test these behaviors explicitly:
-
-```js
-// 1. digest-worthy: overdue/today/tomorrow, Critical/High deadline risk, High Apply Now
-// 2. Normal Apply Now and Normal future follow-up omitted from email
-// 3. empty eligible set => MailApp.sendEmail not called
-// 4. JOBDRIVE_DIGEST_EMAIL property wins over Session effective user
-// 5. missing both recipient sources => no send and summary reports configuration error
-// 6. JOBDRIVE_LAST_DIGEST_DATE equal to Paris date => duplicate normal send skipped
-// 7. MailApp failure => sent-date property is not written
-// 8. successful send => sent-date property written after MailApp.sendEmail
-// 9. install function does not create a second trigger when handler already exists
+```text
+overdue/today/tomorrow follow-ups included
+Critical/High Deadline Risk included
+High Apply Now included
+Normal Apply Now omitted
+Normal future follow-up omitted
+empty digest sends no email
+JOBDRIVE_DIGEST_EMAIL overrides effective-user fallback
+missing recipient sends nothing
+same JOBDRIVE_LAST_DIGEST_DATE skips duplicate normal send
+failed MailApp send does not set sent-date property
+successful send sets sent-date property only after send
+existing runJobDriveActionDigest trigger prevents duplicate trigger creation
 ```
 
-Also assert snapshot refresh writes `AQ:AS` for evaluated rows but does not write tracking/scoring columns.
-
-- [ ] **Step 2: Run the focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 node --test tests/apps-script-action-digest.test.mjs
 ```
 
-Expected: FAIL because `apps-script/ActionDigest.gs` does not exist.
+Expected: FAIL.
 
 - [ ] **Step 3: Implement digest selection and formatting**
-
-Create `apps-script/ActionDigest.gs`.
 
 Use Script Property keys:
 
@@ -1063,47 +701,20 @@ var JOBDRIVE_DIGEST_EMAIL_PROPERTY_ = "JOBDRIVE_DIGEST_EMAIL";
 var JOBDRIVE_LAST_DIGEST_DATE_PROPERTY_ = "JOBDRIVE_LAST_DIGEST_DATE";
 ```
 
-Define digest-worthy predicate exactly as:
-
-```js
-function isDigestWorthyAction_(action) {
-  if (!action || !action.active) return false;
-
-  if ([
-    "FOLLOW_UP_OVERDUE",
-    "FOLLOW_UP_TODAY",
-    "FOLLOW_UP_TOMORROW"
-  ].indexOf(action.actionType) >= 0) return true;
-
-  if (action.actionType === "DEADLINE_RISK") {
-    return action.actionPriority === "Critical" || action.actionPriority === "High";
-  }
-
-  if (action.actionType === "APPLY_NOW") {
-    return action.actionPriority === "High";
-  }
-
-  return false;
-}
-```
-
-`buildJobDriveActionDigest_(nowIso)` must:
-
-1. open `SPREADSHEET_ID` / `SHEET_NAME`;
-2. call `ensureActionCenterHeaders_()`;
-3. read current rows through column AS;
-4. evaluate each non-empty row independently with `evaluateJobDriveAction_()`;
-5. collect digest-worthy actions;
-6. refresh `AQ:AS` snapshots for evaluated rows;
-7. return subject/body/items without sending.
-
-Use subject:
+Digest-worthy logic is exactly:
 
 ```text
-JobDrive Action Digest — 05 Sep 2026
+FOLLOW_UP_OVERDUE always
+FOLLOW_UP_TODAY always
+FOLLOW_UP_TOMORROW always
+DEADLINE_RISK only Critical or High
+APPLY_NOW only High
+all Normal future noise omitted
 ```
 
-Create body sections in this order when non-empty:
+`buildJobDriveActionDigest_(jobs, nowIso)` evaluates supplied normalized jobs and returns `{ dateKey, subject, body, items }` without sending mail or changing the idempotency key.
+
+Sections are emitted only when non-empty and ordered:
 
 ```text
 OVERDUE FOLLOW-UP
@@ -1113,38 +724,24 @@ APPLY NOW
 TOMORROW
 ```
 
-Each item includes only available real values: company, role, action reason, fit score, relevant date, status, URL.
+- [ ] **Step 4: Implement the scheduled runner**
 
-- [ ] **Step 4: Implement recipient resolution and idempotent send**
+`runJobDriveActionDigest()`:
 
-Recipient resolution:
+1. derives the current Paris date key;
+2. skips if `JOBDRIVE_LAST_DIGEST_DATE` already equals today;
+3. opens `SPREADSHEET_ID` / `SHEET_NAME` and ensures AO:AS headers;
+4. reads rows through AS and evaluates every non-empty row independently;
+5. refreshes `AQ:AS` snapshots for evaluated rows;
+6. builds digest content from normalized jobs;
+7. skips send if items are empty;
+8. resolves recipient first from `JOBDRIVE_DIGEST_EMAIL`, then `Session.getEffectiveUser().getEmail()`;
+9. skips with a clear configuration result if no recipient exists;
+10. calls `MailApp.sendEmail({ to, subject, body })`;
+11. only after successful send writes `JOBDRIVE_LAST_DIGEST_DATE`;
+12. returns a summary object with `sent`, `count`, `dateKey`, and `skipped` when applicable.
 
-```js
-function resolveJobDriveDigestRecipient_() {
-  var properties = PropertiesService.getScriptProperties();
-  var configured = String(properties.getProperty(JOBDRIVE_DIGEST_EMAIL_PROPERTY_) || "").trim();
-  if (configured) return configured;
-
-  try {
-    return String(Session.getEffectiveUser().getEmail() || "").trim();
-  } catch (error) {
-    return "";
-  }
-}
-```
-
-`runJobDriveActionDigest()` must:
-
-1. compute Paris date key;
-2. return `{ sent:false, skipped:"already_sent" }` if property already equals today;
-3. build digest;
-4. return `{ sent:false, skipped:"empty" }` if no items;
-5. resolve recipient, and if missing return `{ sent:false, skipped:"missing_recipient" }` without setting sent-date;
-6. call `MailApp.sendEmail({ to, subject, body })`;
-7. only after successful send set `JOBDRIVE_LAST_DIGEST_DATE` to today;
-8. return `{ sent:true, count, recipient, dateKey }`.
-
-Do not catch MailApp errors merely to mark success. If caught for logging, rethrow after logging and leave the property unchanged.
+A MailApp exception may be logged but must be rethrown or reported as failure without writing the sent-date property.
 
 - [ ] **Step 5: Implement idempotent trigger setup**
 
@@ -1166,9 +763,9 @@ function installJobDriveActionDigestTrigger() {
 }
 ```
 
-Do not call `installJobDriveActionDigestTrigger()` automatically from module load, Discovery, or deployment code.
+Do not call this installer automatically from Discovery, module load, or deployment.
 
-- [ ] **Step 6: Run digest tests and full suite**
+- [ ] **Step 6: Verify GREEN**
 
 ```bash
 node --test tests/apps-script-action-digest.test.mjs
@@ -1186,102 +783,88 @@ git commit -m "feat: add phase 2C daily action digest"
 
 ---
 
-### Task 6: Full Regression Gate, Build, Diff Review, and Production Handoff
+### Task 6: Regression Gate and Production Handoff
 
 **Files:**
-- Verify all files changed by Tasks 1–5.
-- No new production file is required unless a regression found by this task needs a focused fix.
+- Verify all files changed in Tasks 1–5.
+- Modify only if verification exposes a concrete regression.
 
 **Interfaces:**
-- Verifies the complete Phase 2C contract against the approved spec.
-- Produces a merge-ready branch and an exact post-merge operational checklist.
+- Produces a merge-ready Phase 2C branch and exact post-merge deployment steps.
 
-- [ ] **Step 1: Run the complete automated suite from a clean branch state**
+- [ ] **Step 1: Run the complete suite**
 
 ```bash
 npm test
 ```
 
-Expected: zero failed tests, including existing Discovery/Phase 2B tests and all Phase 2C tests.
+Expected: zero failures, including existing Discovery and Phase 2B tests.
 
-- [ ] **Step 2: Run the production build**
+- [ ] **Step 2: Run production build**
 
 ```bash
 npm run build
 ```
 
-Expected: Vite exits `0` and produces `dist/` successfully.
+Expected: exit code 0.
 
-- [ ] **Step 3: Run whitespace/diff validation**
+- [ ] **Step 3: Run diff validation**
 
 ```bash
 git diff --check
 ```
 
-Expected: no output and exit code `0`.
+Expected: no output and exit code 0.
 
-- [ ] **Step 4: Review the branch diff against `main`**
+- [ ] **Step 4: Review branch diff against `main`**
 
 ```bash
 git diff --stat main...HEAD
-git diff main...HEAD -- \
-  src/actions \
-  src/AppPro.jsx \
-  src/JobDriveDashboard.jsx \
-  src/services/sheetsApi.js \
-  src/utils/jobDrive.mjs \
-  apps-script/ActionCenter.gs \
-  apps-script/ActionDigest.gs \
-  apps-script/Code.gs \
-  tests
+git diff main...HEAD -- src/actions src/AppPro.jsx src/JobDriveDashboard.jsx src/services/sheetsApi.js src/utils/jobDrive.mjs apps-script/ActionCenter.gs apps-script/ActionDigest.gs apps-script/Code.gs tests
 ```
 
-Verify manually from the diff that:
-
-- no Phase 2B scoring weight or threshold changed;
-- no Discovery source registry or 12-hour trigger changed;
-- no existing column meaning through AN changed;
-- only explicit tracking updates touch U/W/AO:AS;
-- no email address or secret is hard-coded;
-- no trigger is automatically recreated on deploy;
-- Action Center uses live action computation rather than `AQ:AS` snapshots as truth.
-
-- [ ] **Step 5: Confirm the final test count and CI workflow expectations**
-
-The existing `.github/workflows/ci.yml` already runs:
+Confirm from the diff:
 
 ```text
-npm test
-npm run build
-git diff --check
+Phase 2B weights and score threshold unchanged
+Discovery source registry unchanged
+runJobDriveDiscovery 12-hour trigger unchanged
+S:AN meanings unchanged
+AO:AS only used for Phase 2C metadata
+first scheduling does not increment followUpCount
+completed follow-up increments followUpCount exactly once
+no personal email or secret hard-coded
+Action Center computes live state rather than trusting AQ:AS
+Phase 2C trigger installer is not called automatically
 ```
 
-Do not add a second redundant CI workflow. Push the branch and confirm the existing PR CI is green.
+- [ ] **Step 5: Push and use the existing CI workflow**
 
-- [ ] **Step 6: Create/update the Phase 2C pull request**
+The current CI already runs `npm test`, `npm run build`, and `git diff --check`. Do not create a duplicate workflow. Confirm the PR CI is green.
 
-PR title:
+- [ ] **Step 6: Create/update the PR**
+
+Title:
 
 ```text
 Phase 2C: application action center and smart follow-ups
 ```
 
-PR body must summarize:
+Body summary:
 
 ```text
 - deterministic Europe/Paris action engine
 - Action Center + Actions Today KPI
-- atomic +3/+7/+14/no-further follow-up flow
-- AO:AS persistence without reusing S:AN
-- browser/Apps Script action parity
+- first-time follow-up scheduling without false completion count
+- atomic +3/+7/+14/no-further completed-follow-up flow
+- AO:AS persistence without repurposing S:AN
+- browser/Apps Script parity
 - one daily idempotent Gmail digest
 - dedicated 09:00 Europe/Paris trigger setup
 - Phase 2A Discovery and Phase 2B scoring preserved
 ```
 
-- [ ] **Step 7: After merge, synchronize Apps Script exactly once**
-
-From an up-to-date Codespaces `main`:
+- [ ] **Step 7: After merge, synchronize Apps Script once from current `main`**
 
 ```bash
 git checkout main
@@ -1289,52 +872,50 @@ git pull --ff-only
 npx clasp push
 ```
 
-The push output must include:
+The output must include both:
 
 ```text
 apps-script/ActionCenter.gs
 apps-script/ActionDigest.gs
 ```
 
-Do not treat a `clasp push` from a stale local `main` as production completion.
+- [ ] **Step 8: Configure digest recipient only when needed**
 
-- [ ] **Step 8: Configure recipient only if needed**
-
-If `Session.getEffectiveUser().getEmail()` is empty or not the desired recipient, set the Apps Script Script Property:
+If the effective-user fallback is empty or undesirable, set Apps Script Script Property:
 
 ```text
-JOBDRIVE_DIGEST_EMAIL=<desired email address>
+JOBDRIVE_DIGEST_EMAIL=<desired recipient>
 ```
 
-Do not commit this address to GitHub.
+Never commit that address to GitHub.
 
 - [ ] **Step 9: Install the Phase 2C trigger exactly once**
 
-Run the Apps Script setup function once:
+Run Apps Script function:
 
 ```text
 installJobDriveActionDigestTrigger
 ```
 
-Then verify Apps Script has one trigger for `runJobDriveActionDigest` and the existing `runJobDriveDiscovery` 12-hour trigger remains present and unchanged.
+Verify one `runJobDriveActionDigest` trigger exists and the existing `runJobDriveDiscovery` trigger is still present.
 
 - [ ] **Step 10: Production smoke test**
 
-Verify with the live Sheet and deployed GitHub Pages UI:
+Verify:
 
 ```text
-Google OAuth login works
-Action Center opens
-Actions Today KPI matches live Critical + High actions
-old rows without Phase 2C fields still load
-one real follow-up +3 write persists after refresh
-Follow-up Count increments once
+Google OAuth login
+A:AS live read
+Action Center navigation
+Actions Today KPI = live Critical + High count
+old rows without AO:AS still load
+Schedule Follow-up changes date without incrementing count
+Mark Followed Up +3 persists and increments count once
 Last Follow-up persists in AO
-Phase 2B score and Fit Intelligence are unchanged
-A:AS read succeeds
-one preview/current digest contains only eligible action categories
-no duplicate normal digest is sent for the same Paris date
-mobile Action Center has no horizontal-scroll requirement
+Phase 2B Fit Intelligence unchanged
+one useful digest can be generated/sent
+no duplicate normal digest for the same Paris date
+mobile Action Center needs no horizontal scrolling
 ```
 
-If the smoke test changes a real row temporarily, restore the original tracking values before declaring rollout complete.
+Restore any temporary real-row tracking edits after the smoke test.
