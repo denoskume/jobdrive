@@ -18,12 +18,16 @@ test("discovery keeps France as a mandatory orchestration gate", () => {
   assert.match(discovery, /rejectedByCountry/);
 });
 
-test("discovery keeps explicit internship-positive gating before scoring", () => {
-  assert.match(
-    discovery,
-    /intern\|internship\|stage\|stagiaire\|final\.\?year\|fin d\[/
-  );
+test("discovery keeps word-bounded internship-positive gating before scoring", () => {
+  assert.match(discovery, /discoveryInternshipText_/);
+  assert.match(discovery, /\\binternship\\b\|\\bintern\\b/);
   assert.match(discovery, /reason\s*:\s*["']internship_type["']/);
+  assert.doesNotMatch(discovery, /if\s*\(!\/intern\|internship/);
+});
+
+test("discovery rejects explicit durations outside the 5-6 month target", () => {
+  assert.match(discovery, /discoveryDurationCompatible_/);
+  assert.match(discovery, /reason\s*:\s*["']internship_duration["']/);
 });
 
 test("Sheet insert expands to AI:AN without taking ownership of tracking fields", () => {
