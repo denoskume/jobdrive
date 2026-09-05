@@ -53,3 +53,44 @@ test("notification panel renders real incoming jobs", () => {
     /job\.role/
   );
 });
+
+test("notification state belongs to JobDriveDashboard rather than Sidebar", () => {
+  const sidebarStart =
+    dashboard.indexOf("function Sidebar(");
+
+  const dashboardStart =
+    dashboard.indexOf(
+      "export default function JobDriveDashboard"
+    );
+
+  const sidebarSource =
+    dashboard.slice(
+      sidebarStart,
+      dashboardStart
+    );
+
+  const rootSource =
+    dashboard.slice(
+      dashboardStart
+    );
+
+  assert.doesNotMatch(
+    sidebarSource,
+    /const \[notificationsOpen/
+  );
+
+  assert.match(
+    rootSource,
+    /const \[notificationsOpen/
+  );
+
+  assert.match(
+    rootSource,
+    /const notificationCount/
+  );
+
+  assert.match(
+    rootSource,
+    /const newJobNotifications/
+  );
+});

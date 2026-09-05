@@ -260,107 +260,6 @@ function Sidebar({
   onAI,
   onShortlist,
 }) {
-  const [notificationsOpen, setNotificationsOpen] =
-    useState(false);
-
-  const [seenJobIds, setSeenJobIds] =
-    useState(() => {
-      try {
-        const raw =
-          localStorage.getItem(
-            "jobdrive.seenJobIds"
-          );
-
-        const parsed =
-          raw
-            ? JSON.parse(raw)
-            : [];
-
-        return Array.isArray(parsed)
-          ? parsed
-          : [];
-      } catch {
-        return [];
-      }
-    });
-
-  const currentJobIds =
-    jobs
-      .map((job) => String(job.id || ""))
-      .filter(Boolean);
-
-  const hasSeenBaseline =
-    seenJobIds.length > 0;
-
-  const newJobNotifications =
-    hasSeenBaseline
-      ? jobs.filter(
-          (job) =>
-            job.id &&
-            !seenJobIds.includes(
-              String(job.id)
-            )
-        )
-      : [];
-
-  const notificationCount =
-    newJobNotifications.length;
-
-  useEffect(() => {
-    if (
-      !jobs.length ||
-      seenJobIds.length
-    ) {
-      return;
-    }
-
-    try {
-      localStorage.setItem(
-        "jobdrive.seenJobIds",
-        JSON.stringify(
-          currentJobIds
-        )
-      );
-    } catch {
-      // Notifications still work in-session.
-    }
-
-    setSeenJobIds(
-      currentJobIds
-    );
-  }, [jobs]);
-
-  const markNotificationsRead = () => {
-    try {
-      localStorage.setItem(
-        "jobdrive.seenJobIds",
-        JSON.stringify(
-          currentJobIds
-        )
-      );
-    } catch {
-      // Keep working without persistence.
-    }
-
-    setSeenJobIds(
-      currentJobIds
-    );
-  };
-
-  const toggleNotifications = () => {
-    setNotificationsOpen(
-      (current) => {
-        const next = !current;
-
-        if (next) {
-          markNotificationsRead();
-        }
-
-        return next;
-      }
-    );
-  };
-
   const [detailJobId, setDetailJobId] =
     useState(null);
 
@@ -1436,6 +1335,107 @@ export default function JobDriveDashboard({
     });
   };
 
+
+  const [notificationsOpen, setNotificationsOpen] =
+    useState(false);
+
+  const [seenJobIds, setSeenJobIds] =
+    useState(() => {
+      try {
+        const raw =
+          localStorage.getItem(
+            "jobdrive.seenJobIds"
+          );
+
+        const parsed =
+          raw
+            ? JSON.parse(raw)
+            : [];
+
+        return Array.isArray(parsed)
+          ? parsed
+          : [];
+      } catch {
+        return [];
+      }
+    });
+
+  const currentJobIds =
+    jobs
+      .map((job) => String(job.id || ""))
+      .filter(Boolean);
+
+  const hasSeenBaseline =
+    seenJobIds.length > 0;
+
+  const newJobNotifications =
+    hasSeenBaseline
+      ? jobs.filter(
+          (job) =>
+            job.id &&
+            !seenJobIds.includes(
+              String(job.id)
+            )
+        )
+      : [];
+
+  const notificationCount =
+    newJobNotifications.length;
+
+  useEffect(() => {
+    if (
+      !jobs.length ||
+      seenJobIds.length
+    ) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        "jobdrive.seenJobIds",
+        JSON.stringify(
+          currentJobIds
+        )
+      );
+    } catch {
+      // Notifications still work in-session.
+    }
+
+    setSeenJobIds(
+      currentJobIds
+    );
+  }, [jobs]);
+
+  const markNotificationsRead = () => {
+    try {
+      localStorage.setItem(
+        "jobdrive.seenJobIds",
+        JSON.stringify(
+          currentJobIds
+        )
+      );
+    } catch {
+      // Keep working without persistence.
+    }
+
+    setSeenJobIds(
+      currentJobIds
+    );
+  };
+
+  const toggleNotifications = () => {
+    setNotificationsOpen(
+      (current) => {
+        const next = !current;
+
+        if (next) {
+          markNotificationsRead();
+        }
+
+        return next;
+      }
+    );
+  };
 
   const [detailJobId, setDetailJobId] =
     useState(null);
