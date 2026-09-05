@@ -1,4 +1,5 @@
 var DISCOVERY_RUNTIME_BUDGET_MS = 240000;
+var DISCOVERY_LIFECYCLE_SCAN_PREFIX_ = "JOBDRIVE_DISCOVERY_SCAN_STARTED_";
 
 function discoveryLocationText_(c){
   return [c.location,c.country].join(" ").toLowerCase();
@@ -15,6 +16,33 @@ function discoveryDurationCompatible_(c){
   if(target.test(t)) return true;
   var any=/\b(?:[1-9]|1[0-2])\s*[- ]?(?:month|months|mois)\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|un|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze)[ -]?(?:month|months|mois)\b/i;
   return !any.test(t);
+}
+
+function discoveryLifecycleScanPropertyKey_(sourceKey) {
+  return DISCOVERY_LIFECYCLE_SCAN_PREFIX_ + String(sourceKey || "source").replace(/[^a-z0-9_.-]+/gi, "_").slice(0, 120);
+}
+
+function discoveryLifecycleScanStartedAt_(source, nowIso) {
+  source = source || {};
+  nowIso = String(nowIso || new Date().toISOString());
+  var cursor = String(source.cursor || "").trim();
+  var fallback = cursor ? String(source.lastAttemptAt || nowIso) : nowIso;
+  if (typeof PropertiesService === "undefined" || !PropertiesService.getScriptProperties) return fallback;
+  var properties = PropertiesService.getScriptProperties();
+  var key = discoveryLifecycleScanPropertyKey_(source.sourceKey || source.key || "");
+  if (!cursor) {
+    properties.setProperty(key, nowIso);
+    return nowIso;
+  }
+  var existing = String(properties.getProperty(key) || "").trim();
+  if (existing) return existing;
+  properties.setProperty(key, fallback);
+  return fallback;
+}
+
+function clearDiscoveryLifecycleScanStartedAt_(sourceKey) {
+  if (typeof PropertiesService === "undefined" || !PropertiesService.getScriptProperties) return;
+  PropertiesService.getScriptProperties().deleteProperty(discoveryLifecycleScanPropertyKey_(sourceKey));
 }
 
 function normalizeDiscoveryCandidate_(raw, source) {
@@ -142,6 +170,7 @@ function runDiscoveryBatch_(options) {
 
     summary.sourcesAttempted++;
     var sourceStartedMs=Date.now();
+    var lifecycleScanStartedAt=discoveryLifecycleScanStartedAt_(source,new Date().toISOString());
     try {
       var result=discoverSourcePage_(source,source.cursor||"");
       var elapsedMs=Date.now()-sourceStartedMs;
@@ -186,12 +215,20 @@ function runDiscoveryBatch_(options) {
         else summary.duplicatesSkipped++;
       });
 
+      var lifecycleListings=lifecycleListingsFromSourceResult_(result.jobs);
+      var lifecycleSeenAt=new Date().toISOString();
+      if(typeof markSourceListingsSeen_==="function"){
+        markSourceListingsSeen_(source.sourceKey||source.key||"",lifecycleListings,lifecycleSeenAt);
+      }
+
       if(result.done===true && (result.status==="ok"||result.status==="empty") && typeof refreshMarketLifecycleForSource_==="function"){
         refreshMarketLifecycleForSource_(
           source.sourceKey||source.key||"",
-          lifecycleListingsFromSourceResult_(result.jobs),
-          new Date().toISOString()
+          lifecycleListings,
+          lifecycleSeenAt,
+          lifecycleScanStartedAt
         );
+        clearDiscoveryLifecycleScanStartedAt_(source.sourceKey||source.key||"");
       }
     } catch(error){
       var message=String(error&&error.message||error);
