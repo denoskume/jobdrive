@@ -187,6 +187,7 @@ test("AppPro defaults to recommended ranking and exposes Fit Intelligence", () =
   const code = fs.readFileSync("src/AppPro.jsx", "utf8");
 
   assert.match(code, /useState\("recommended"\)/);
+  assert.doesNotMatch(code, /useState\("newest"\)/);
   assert.match(code, /<option value="recommended">/);
   assert.match(code, /Fit Intelligence/);
   assert.match(code, /job\.scoreGrade/);
