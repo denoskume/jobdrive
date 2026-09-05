@@ -90,6 +90,16 @@ function sourceHealthEntry_(source, status, jobsFound, elapsedMs, error) {
   };
 }
 
+function lifecycleListingsFromSourceResult_(jobs) {
+  return (jobs || []).map(function(raw) {
+    var id = String(raw.id || raw.externalId || "").trim();
+    if (!id) return null;
+    var status = String(raw.lifecycleStatus || raw.status || raw.state || "").trim();
+    if (!status && (raw.closed === true || raw.expired === true)) status = raw.expired === true ? "expired" : "closed";
+    return status ? {id:id,status:status} : id;
+  }).filter(function(value) { return value != null; });
+}
+
 function runDiscoveryBatch_(options) {
   options=options||{};
   var mode=options.mode==="backfill"?"backfill":"continuous";
@@ -175,6 +185,14 @@ function runDiscoveryBatch_(options) {
         else if(action==="updated") summary.updated++;
         else summary.duplicatesSkipped++;
       });
+
+      if(result.done===true && (result.status==="ok"||result.status==="empty") && typeof refreshMarketLifecycleForSource_==="function"){
+        refreshMarketLifecycleForSource_(
+          source.sourceKey||source.key||"",
+          lifecycleListingsFromSourceResult_(result.jobs),
+          new Date().toISOString()
+        );
+      }
     } catch(error){
       var message=String(error&&error.message||error);
       persistDiscoverySourceHealth_(source,{status:"fetch_error",jobs:[],error:message},new Date().toISOString());
