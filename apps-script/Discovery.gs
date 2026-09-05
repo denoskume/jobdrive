@@ -1,11 +1,28 @@
 var DISCOVERY_RUNTIME_BUDGET_MS = 240000;
 var DISCOVERY_LIFECYCLE_SCAN_PREFIX_ = "JOBDRIVE_DISCOVERY_SCAN_STARTED_";
+var DISCOVERY_DESCRIPTION_INTERNSHIP_PATTERNS_ = [
+  /\binternship\b/i,
+  /\bintern\b/i,
+  /\bstagiaire\b/i,
+  /\bfin d['’]études\b/i,
+  /\bfin d'etudes\b/i,
+  /\bpfe\b/i,
+  /\bstage\s+(?:de\b|d['’]|en\b|chez\b|au\b|à\b|pour\b|fin\b|\d+\s*(?:mois|months?)\b)/i,
+  /\b(?:ce|cet|un|une|notre|votre|le|la)\s+stage\b/i,
+  /\b(?:offre|convention|durée|duree|période|periode)\s+(?:de|du)\s+stage\b/i
+];
 
 function discoveryLocationText_(c){
   return [c.location,c.country].join(" ").toLowerCase();
 }
 function discoveryInternshipText_(c){
   return [c.role,c.contract,c.descriptionRaw].join(" ").toLowerCase();
+}
+function discoveryHasInternshipEvidence_(c){
+  var titleOrContract = [c.role,c.contract].join(" ");
+  if (/\binternship\b|\bintern\b|\bstage\b|\bstagiaire\b|\bfin d['’]études\b|\bfin d'etudes\b|\bpfe\b/i.test(titleOrContract)) return true;
+  var description = String(c.descriptionRaw || "");
+  return DISCOVERY_DESCRIPTION_INTERNSHIP_PATTERNS_.some(function(pattern){ return pattern.test(description); });
 }
 function discoveryDurationText_(c){
   return [c.role,c.contract,c.descriptionRaw].join(" ").toLowerCase();
@@ -73,7 +90,7 @@ function evaluateDiscoveryCandidate_(c) {
 
   var internshipText=discoveryInternshipText_(c);
   if (/alternance|apprenticeship|apprenti|permanent|\bcdi\b|\bphd\b|cifre|postdoc/.test(internshipText)) return {accepted:false,reason:"internship_type"};
-  if (!/\binternship\b|\bintern\b|\bstage\b|\bstagiaire\b|\bfin d['’]études\b|\bfin d'etudes\b|\bpfe\b/.test(internshipText)) return {accepted:false,reason:"internship_type"};
+  if (!discoveryHasInternshipEvidence_(c)) return {accepted:false,reason:"internship_type"};
   if (!discoveryDurationCompatible_(c)) return {accepted:false,reason:"internship_duration"};
 
   return {accepted:true,reason:"accepted"};

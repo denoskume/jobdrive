@@ -28,16 +28,29 @@ var EVIDENCE_EXTRA_OFF_TARGET_PATTERNS_ = [
   /\bfinance analyst\b/i
 ];
 
+var EVIDENCE_DESCRIPTION_INTERNSHIP_PATTERNS_ = [
+  /\binternship\b/i,
+  /\bintern\b/i,
+  /\bstagiaire\b/i,
+  /\bfin d['’]études\b/i,
+  /\bfin d'etudes\b/i,
+  /\bpfe\b/i,
+  /\bstage\s+(?:de\b|d['’]|en\b|chez\b|au\b|à\b|pour\b|fin\b|\d+\s*(?:mois|months?)\b)/i,
+  /\b(?:ce|cet|un|une|notre|votre|le|la)\s+stage\b/i,
+  /\b(?:offre|convention|durée|duree|période|periode)\s+(?:de|du)\s+stage\b/i
+];
+
 function scoringEvidenceInternshipSignal_(candidate) {
   var fields = [
-    ["title", candidate.role],
-    ["contract", candidate.contract],
-    ["description", candidate.descriptionRaw]
+    ["title", candidate.role, INTERNSHIP_POSITIVE_PATTERNS_],
+    ["contract", candidate.contract, INTERNSHIP_POSITIVE_PATTERNS_],
+    ["description", candidate.descriptionRaw, EVIDENCE_DESCRIPTION_INTERNSHIP_PATTERNS_]
   ];
   for (var i = 0; i < fields.length; i++) {
     var value = String(fields[i][1] || "");
-    for (var j = 0; j < INTERNSHIP_POSITIVE_PATTERNS_.length; j++) {
-      var match = value.match(INTERNSHIP_POSITIVE_PATTERNS_[j]);
+    var patterns = fields[i][2];
+    for (var j = 0; j < patterns.length; j++) {
+      var match = value.match(patterns[j]);
       if (match) return fields[i][0] + ":" + String(match[0] || "match").toLowerCase();
     }
   }

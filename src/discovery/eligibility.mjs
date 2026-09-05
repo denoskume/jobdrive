@@ -11,6 +11,14 @@ const INTERNSHIP_POS = [
   /\bfin d['’]études\b/i, /\bfin d'etudes\b/i, /\bpfe\b/i,
 ];
 
+const DESCRIPTION_INTERNSHIP_POS = [
+  /\binternship\b/i, /\bintern\b/i, /\bstagiaire\b/i,
+  /\bfin d['’]études\b/i, /\bfin d'etudes\b/i, /\bpfe\b/i,
+  /\bstage\s+(?:de\b|d['’]|en\b|chez\b|au\b|à\b|pour\b|fin\b|\d+\s*(?:mois|months?)\b)/i,
+  /\b(?:ce|cet|un|une|notre|votre|le|la)\s+stage\b/i,
+  /\b(?:offre|convention|durée|duree|période|periode)\s+(?:de|du)\s+stage\b/i,
+];
+
 const INTERNSHIP_NEG = [
   /\balternance\b/i, /\bapprentice(ship)?\b/i, /\bapprenti(e)?\b/i,
   /\bpermanent\b/i, /\bcdi\b/i, /\bph\.?d\b/i, /\bcifre\b/i,
@@ -119,7 +127,7 @@ export function isFranceCompatible(candidate = {}) {
 export function internshipEvidence(candidate = {}) {
   return firstPatternEvidence(INTERNSHIP_POS, candidate.role, "title") ||
     firstPatternEvidence(INTERNSHIP_POS, candidate.contract, "contract") ||
-    firstPatternEvidence(INTERNSHIP_POS, candidate.descriptionRaw, "description");
+    firstPatternEvidence(DESCRIPTION_INTERNSHIP_POS, candidate.descriptionRaw, "description");
 }
 
 export function isInternshipCompatible(candidate = {}) {
