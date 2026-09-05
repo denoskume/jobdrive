@@ -4,7 +4,7 @@ function discoveryLocationText_(c){
   return [c.location,c.country].join(" ").toLowerCase();
 }
 function discoveryInternshipText_(c){
-  return [c.role,c.contract].join(" ").toLowerCase();
+  return [c.role,c.contract,c.descriptionRaw].join(" ").toLowerCase();
 }
 function discoveryDurationText_(c){
   return [c.role,c.contract,c.descriptionRaw].join(" ").toLowerCase();
@@ -40,7 +40,7 @@ function normalizeDiscoveryCandidate_(raw, source) {
 function evaluateDiscoveryCandidate_(c) {
   if (!/^https?:\/\//i.test(c.link)) return {accepted:false,reason:"missing_url"};
   var locationText=discoveryLocationText_(c);
-  var fr=/france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg/.test(locationText);
+  var fr=/france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg|corse|corsica|guadeloupe|martinique|guyane|french guiana|réunion|reunion|mayotte|polynésie française|polynesie francaise|nouvelle-calédonie|nouvelle-caledonie|saint-pierre-et-miquelon/.test(locationText);
   if (!fr) return {accepted:false,reason:"country"};
 
   var internshipText=discoveryInternshipText_(c);
@@ -98,7 +98,7 @@ function runJobDriveDiscovery() {
     summary.sourcesAttempted++;
     var sourceStartedMs=Date.now();
     try {
-      var result=discoverSourceJobs_(source);
+      var result=discoverSourcePage_(source,source.cursor||"");
       var elapsedMs=Date.now()-sourceStartedMs;
       persistDiscoverySourceHealth_(source,result,new Date().toISOString());
       if(result.status==="fetch_error"){
@@ -106,8 +106,8 @@ function runJobDriveDiscovery() {
         summary.sourceHealth.push(sourceHealthEntry_(source,"fetch_error",0,elapsedMs,result.error));
         continue;
       }
-      if(result.status==="unsupported"){
-        summary.sourceHealth.push(sourceHealthEntry_(source,"unsupported",0,elapsedMs,""));
+      if(result.status==="unsupported"||result.status==="restricted"||result.status==="configuration_required"){
+        summary.sourceHealth.push(sourceHealthEntry_(source,result.status,0,elapsedMs,result.error||""));
         continue;
       }
 
@@ -125,7 +125,7 @@ function runJobDriveDiscovery() {
           return;
         }
 
-        var scored=scoreInternshipCandidate_(c,new Date().toISOString());
+        var scored=scoreInternshipCandidateEvidence_(c,new Date().toISOString());
         if(!scored.accepted){
           if(scored.rejectionReason==="internship_type"||scored.rejectionReason==="internship_duration") summary.rejectedByInternshipType++;
           else if(scored.rejectionReason==="academic_policy") summary.rejectedByAcademicPolicy++;
