@@ -95,7 +95,7 @@ Phase 2C does not:
 
 ## Action engine contract
 
-The action engine receives a normalized JobDrive opportunity and the current time.
+The action engine receives a normalized JobDrive opportunity and an explicit current time.
 
 It returns a deterministic object with at least:
 
@@ -124,7 +124,7 @@ Supported `actionPriority` values:
 - `Normal`
 - `None`
 
-The engine must produce the same result for the same job, current date and timezone.
+The engine must produce the same result for the same normalized job and current instant.
 
 ## Status policy
 
@@ -147,6 +147,24 @@ Pre-application statuses are:
 
 Phase 2C must not silently change a status. Status transitions remain user-owned actions.
 
+## Calendar and timezone semantics
+
+All day-based Phase 2C classifications use `Europe/Paris` as the canonical timezone.
+
+This applies to:
+
+- deadline day comparisons;
+- follow-up day comparisons;
+- applied-age calculations;
+- digest date/idempotency;
+- trigger intent.
+
+Date-only values such as `2026-09-10` are calendar dates, not UTC-midnight instants.
+
+ISO timestamps such as Last Follow-up and Last Updated are stored as timestamps, then converted to the Paris calendar day only when a day-based comparison is required.
+
+Frontend and Apps Script implementations must use equivalent date semantics and parity tests must cover timezone-sensitive fixtures.
+
 ## Follow-up rules
 
 For application-tracking statuses with a populated `followUpDate`:
@@ -162,13 +180,19 @@ For an application-tracking status with no `followUpDate`:
 
 - return `SCHEDULE_FOLLOW_UP`;
 - default priority is `Normal`;
-- if an `appliedDate` exists and is at least 3 calendar days old, priority becomes `High`.
+- if an `appliedDate` exists and is at least 3 Paris calendar days old, priority becomes `High`.
+
+Follow-up tracking remains active regardless of whether an already-applied historical row has a current Phase 2B score. A user must not lose follow-up visibility because a legacy score is missing.
 
 Missing or malformed dates must not crash the engine.
 
 ## Pre-application rules
 
 For `Nouveau` and `À candidater`, use the Phase 2B score and deadline without modifying either.
+
+Only pre-application opportunities with a numeric `fitScore >= 75` are promoted into Apply Now or Deadline Risk actions.
+
+A legacy pre-application row with a missing or lower score remains visible elsewhere in JobDrive but returns `NONE` from Phase 2C until it has a qualifying score. Phase 2C must not invent one.
 
 ### Passed deadline
 
@@ -182,7 +206,7 @@ A separate visible expired-deadline warning may remain in the opportunity detail
 
 ### Deadline today or tomorrow
 
-For every eligible stored internship with `fitScore >= 75`:
+For every qualifying stored internship with `fitScore >= 75`:
 
 - return `DEADLINE_RISK`;
 - priority `Critical`.
@@ -281,20 +305,24 @@ The original job posting remains the source of truth for offer content.
 
 Add an Action Center KPI to the Overview page.
 
+Label:
+
+`ACTIONS TODAY`
+
+The KPI counts current `Critical` and `High` actions only. `Normal` Upcoming backlog is not included in the headline count.
+
 Minimum display:
 
-- total active actions today;
+- number of current Critical + High actions;
 - number of Critical actions.
 
 Example:
 
-`ACTIONS TODAY`
-
 `6 active · 2 critical`
 
-Selecting the KPI opens `Action Center`.
+Selecting the KPI opens `Action Center`, where the full Critical/High/Normal backlog remains available.
 
-The KPI must be calculated from the current normalized jobs, not from a hard-coded counter.
+The KPI must be calculated from the current normalized jobs and current Paris date, not from a hard-coded counter or stale AQ:AS snapshots.
 
 ## Follow-up completion flow
 
@@ -309,7 +337,7 @@ For `+3`, `+7` or `+14`:
 
 - `Last Follow-up` = current ISO timestamp;
 - `Follow-up Count` = previous count + 1;
-- existing `followUpDate` = selected future date;
+- existing `followUpDate` = selected future Paris calendar date;
 - existing `lastUpdated` = current ISO timestamp.
 
 For `No further follow-up`:
@@ -364,8 +392,8 @@ Reason: action urgency changes as calendar time advances even when a row is not 
 
 Therefore:
 
-- the frontend computes current action state from live row data and today's date;
-- the Apps Script digest computes current action state from live row data and today's date;
+- the frontend computes current action state from live row data and the current Paris date;
+- the Apps Script digest computes current action state from live row data and the current Paris date;
 - `AQ:AS` store the most recently evaluated backend snapshot for observability and diagnostics;
 - the daily action job refreshes `AQ:AS`;
 - a successful follow-up/status-related write refreshes the affected row's action snapshot when possible.
@@ -388,7 +416,7 @@ Default Follow-up Count is `0`.
 
 ## Daily Gmail digest
 
-Phase 2C sends at most one operational digest per calendar day.
+Phase 2C sends at most one operational digest per Paris calendar day.
 
 The digest includes only useful current actions, prioritizing:
 
@@ -397,7 +425,8 @@ The digest includes only useful current actions, prioritizing:
 - follow-ups due tomorrow;
 - Critical deadline risks;
 - High deadline risks;
-- High Apply Now opportunities.
+- High Apply Now opportunities;
+- High Schedule Follow-up items.
 
 Normal future items are omitted from email by default to reduce noise.
 
@@ -414,6 +443,7 @@ Suggested sections:
 - `DEADLINE RISK`
 - `APPLY NOW`
 - `TOMORROW`
+- `SCHEDULE FOLLOW-UP`
 
 Each digest item includes when available:
 
@@ -451,6 +481,8 @@ A normal scheduled run sends at most once for a given Paris calendar date.
 
 A separate preview/build function may generate digest content without sending and without updating the idempotency key.
 
+If there is nothing to send, the send-success key is not advanced merely to suppress a later genuinely useful digest on the same day.
+
 A failed send must not mark the digest date as successfully sent.
 
 ## Reminder schedule
@@ -483,8 +515,6 @@ src/actions/
   followUpActions.mjs
 ```
 
-Responsibilities:
-
 ### `actionConfig.mjs`
 
 Owns:
@@ -492,14 +522,15 @@ Owns:
 - action types;
 - action priority ordering;
 - terminal/application/pre-application status sets;
-- deterministic thresholds.
+- deterministic thresholds;
+- canonical timezone name.
 
 ### `actionEngine.mjs`
 
 Owns:
 
 - current action classification;
-- urgency calculation;
+- Paris calendar urgency calculation;
 - action reason;
 - deterministic sorting.
 
@@ -634,7 +665,10 @@ Automated coverage must include at least:
 - follow-up tomorrow → High;
 - future follow-up → Normal;
 - applied with no follow-up → Schedule Follow-up;
-- applied for at least 3 days with no follow-up → High Schedule Follow-up;
+- applied for at least 3 Paris calendar days with no follow-up → High Schedule Follow-up;
+- already-applied legacy row without fit score still receives follow-up actions;
+- pre-application row without fit score receives no Phase 2C promotion;
+- pre-application row below score 75 receives no Phase 2C promotion;
 - deadline today → Critical Deadline Risk;
 - deadline tomorrow → Critical Deadline Risk;
 - deadline in 2–3 days with score >=85 → Critical;
@@ -645,6 +679,7 @@ Automated coverage must include at least:
 - score 85–89 with distant or missing deadline → High Apply Now;
 - score 75–84 with distant or missing deadline → Normal Apply Now;
 - passed deadline produces no active Apply Now action;
+- Europe/Paris date boundary behavior;
 - action sorting priority order;
 - action sorting tie-breakers;
 - malformed date safety;
@@ -660,10 +695,12 @@ Automated coverage must include at least:
 - X:Y:Z remain untouched;
 - AA:AN remain untouched;
 - browser / Apps Script action parity for representative fixtures;
+- KPI excludes Normal Upcoming backlog;
 - digest excludes Normal noise;
 - digest includes overdue/today/tomorrow/critical/high actions;
 - empty digest sends no email;
-- digest idempotency prevents duplicate normal sends;
+- empty digest does not prevent a later same-day useful digest;
+- digest idempotency prevents duplicate successful normal sends;
 - failed email does not set the sent-date key;
 - Phase 2B scoring tests remain green;
 - Discovery tests remain green;
@@ -726,13 +763,14 @@ After merge:
 
 Phase 2C is complete when JobDrive can:
 
-1. calculate the next action for every non-terminal tracked internship without changing its fit score;
-2. surface urgent application deadlines and strong Apply Now opportunities;
-3. surface overdue, today, tomorrow and upcoming follow-ups;
-4. identify applications that need a follow-up date;
-5. order actions deterministically by urgency and relevance;
-6. let the user complete and reschedule a follow-up in one flow;
-7. persist Last Follow-up and Follow-up Count without corrupting existing Sheet fields;
-8. expose a useful Action Center and Overview KPI on desktop and mobile;
-9. send at most one useful Gmail digest per day and send nothing when there is no useful action;
-10. preserve Phase 2A Discovery, Phase 2B scoring, Google OAuth, tracking, descriptions, company identity, Pipeline, Favorites and GitHub Pages behavior.
+1. calculate a deterministic current action or `NONE` for every tracked non-terminal internship without changing its fit score;
+2. surface urgent application deadlines and strong Apply Now opportunities only when a qualifying Phase 2B score exists;
+3. preserve follow-up visibility for already-applied legacy rows even when their current fit score is missing;
+4. surface overdue, today, tomorrow and upcoming follow-ups using Europe/Paris calendar semantics;
+5. identify applications that need a follow-up date;
+6. order actions deterministically by urgency and relevance;
+7. let the user complete and reschedule a follow-up in one flow;
+8. persist Last Follow-up and Follow-up Count without corrupting existing Sheet fields;
+9. expose a useful Action Center and focused Overview KPI on desktop and mobile;
+10. send at most one useful Gmail digest per Paris day and send nothing when there is no useful action;
+11. preserve Phase 2A Discovery, Phase 2B scoring, Google OAuth, tracking, descriptions, company identity, Pipeline, Favorites and GitHub Pages behavior.
