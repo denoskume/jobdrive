@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { normalizeJobs } from "../src/utils/jobDrive.mjs";
+import { normalizeJobsWithDiscoveryMetadata } from "../src/discovery/jobsPhase2d.mjs";
 
 test("new A:BC rows normalize Phase 2D lifecycle and evidence metadata", () => {
   const header = Array(55).fill("");
@@ -21,7 +21,7 @@ test("new A:BC rows normalize Phase 2D lifecycle and evidence metadata", () => {
   row[53] = '["Machine Learning","Time Series"]';
   row[54] = "jan_2027";
 
-  const [job] = normalizeJobs([header, row]);
+  const [job] = normalizeJobsWithDiscoveryMetadata([header, row]);
   assert.equal(job.marketStatus, "Active");
   assert.equal(job.marketLastSeenAt, "2026-09-05T18:00:00Z");
   assert.equal(job.canonicalSourceKey, "greenhouse:acme");
@@ -38,7 +38,7 @@ test("old A:AS rows keep safe Phase 2D defaults", () => {
   const header = Array(45).fill("");
   const row = Array(45).fill("");
   row[0] = "OLD-1";
-  const [job] = normalizeJobs([header, row]);
+  const [job] = normalizeJobsWithDiscoveryMetadata([header, row]);
   assert.equal(job.marketStatus, "");
   assert.equal(job.marketLastSeenAt, "");
   assert.equal(job.canonicalSourceKey, "");
