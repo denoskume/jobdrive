@@ -39,8 +39,8 @@ test("discovery rejects explicit durations outside the 5-6 month target", () => 
   assert.match(discovery, /reason\s*:\s*["']internship_duration["']/);
 });
 
-test("Sheet insert expands to AI:AN without taking ownership of tracking fields", () => {
-  assert.match(sheet, /Array\(40\)\.fill\(["']{2}\)/);
+test("Sheet insert expands through BC without taking ownership of tracking fields", () => {
+  assert.match(sheet, /Array\(55\)\.fill\(["']{2}\)/);
   assert.match(sheet, /row\[34\]\s*=\s*scored\.grade/);
   assert.match(sheet, /row\[35\]\s*=\s*JSON\.stringify\(scored\.scoreBreakdown/);
   assert.match(sheet, /row\[36\]\s*=\s*JSON\.stringify\(scored\.strengths/);
@@ -53,6 +53,11 @@ test("Sheet insert expands to AI:AN without taking ownership of tracking fields"
   assert.doesNotMatch(sheet, /row\[20\]\s*=\s*scored/);
   assert.doesNotMatch(sheet, /row\[21\]\s*=\s*scored/);
   assert.doesNotMatch(sheet, /row\[22\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[40\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[41\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[42\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[43\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[44\]\s*=\s*scored/);
 });
 
 test("Apps Script defines exact scoring headers in AI through AN", () => {
