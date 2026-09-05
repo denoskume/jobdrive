@@ -8,11 +8,22 @@ const dashboard =
     "utf8"
   );
 
+const main =
+  fs.readFileSync(
+    "src/main.jsx",
+    "utf8"
+  );
+
 const css =
   fs.readFileSync(
     "src/jobdrive-dashboard.css",
     "utf8"
   );
+
+const lightThemeCss =
+  fs.existsSync("src/light-theme.css")
+    ? fs.readFileSync("src/light-theme.css", "utf8")
+    : "";
 
 test("theme button toggles dark and light modes", () => {
   assert.match(
@@ -53,4 +64,28 @@ test("dashboard provides light theme styles", () => {
     dashboard,
     /name=\{\s*theme === "dark"\s*\? "moon"\s*:\s*"sun"/
   );
+});
+
+test("light mode loads a final global surface override", () => {
+  assert.match(main, /import "\.\/light-theme\.css";/);
+});
+
+test("light mode covers every fullscreen detail surface", () => {
+  const requiredSelectors = [
+    ".jd-shell.jd-theme-light .jd-detail-backdrop",
+    ".jd-shell.jd-theme-light .jd-detail-modal",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-detail-header",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-detail-scroll",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-match-card",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-info-card",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-skills",
+    ".jd-shell.jd-theme-light .jd-detail-close",
+  ];
+
+  for (const selector of requiredSelectors) {
+    assert.ok(
+      lightThemeCss.includes(selector),
+      `missing light-theme override for ${selector}`
+    );
+  }
 });
