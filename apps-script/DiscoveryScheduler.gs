@@ -6,18 +6,30 @@ function discoverySchedulerTime_(value) {
   return isFinite(time) ? time : 0;
 }
 
-function discoverySchedulerEligible_(source, nowIso) {
+function discoverySchedulerEligible_(source, nowIso, options) {
+  options = options || {};
   if (!source || source.active !== true) return false;
   if (["restricted", "configuration_required", "unsupported"].indexOf(String(source.verificationStatus || "")) >= 0) return false;
   if (String(source.verificationStatus || "") !== "verified") return false;
+
+  if (options.mode === "backfill") {
+    if (String(source.cursor || "").trim()) return true;
+    var rotationStartedAt = discoverySchedulerTime_(options.rotationStartedAt);
+    var lastAttemptAt = discoverySchedulerTime_(source.lastAttemptAt);
+    if (rotationStartedAt && lastAttemptAt >= rotationStartedAt) return false;
+    return true;
+  }
+
   var next = discoverySchedulerTime_(source.nextEligibleScanAt);
   var now = discoverySchedulerTime_(nowIso) || Date.now();
   if (next && next > now) return false;
   return true;
 }
 
-function discoverySchedulerTier_(source, nowIso) {
+function discoverySchedulerTier_(source, nowIso, options) {
+  options = options || {};
   if (String(source.cursor || "").trim()) return 0;
+  if (options.mode === "backfill") return 1;
   var now = discoverySchedulerTime_(nowIso) || Date.now();
   var last = discoverySchedulerTime_(source.lastSuccessfulScanAt);
   if (!last || now - last >= DISCOVERY_STALE_SOURCE_MS_) return 1;
@@ -28,9 +40,9 @@ function selectDiscoveryBatch_(sources, nowIso, options) {
   options = options || {};
   var maxSources = Math.max(1, Number(options.maxSources || 25));
   return (sources || []).filter(function(source) {
-    return discoverySchedulerEligible_(source, nowIso);
+    return discoverySchedulerEligible_(source, nowIso, options);
   }).sort(function(a, b) {
-    var tierDelta = discoverySchedulerTier_(a, nowIso) - discoverySchedulerTier_(b, nowIso);
+    var tierDelta = discoverySchedulerTier_(a, nowIso, options) - discoverySchedulerTier_(b, nowIso, options);
     if (tierDelta) return tierDelta;
     var priorityDelta = Number(b.priority || 0) - Number(a.priority || 0);
     if (priorityDelta) return priorityDelta;
