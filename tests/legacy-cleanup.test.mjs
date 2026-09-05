@@ -133,7 +133,11 @@ test("cleanup marks explicit off-target legacy rows but keeps aligned or uncerta
     "location_outside_france"
   );
   assert.equal(
-    cleanup.legacyCleanupRejectionReason_(row({ contract: "Internship - 3 months", descriptionRaw: "Three-month ML internship." })),
+    cleanup.legacyCleanupRejectionReason_(row({
+      contract: "Internship - 3 months",
+      descriptionRaw: "Three-month ML internship.",
+      expectations: "Master student available for three months.",
+    })),
     "duration_outside_target"
   );
   assert.equal(
@@ -143,6 +147,18 @@ test("cleanup marks explicit off-target legacy rows but keeps aligned or uncerta
   assert.equal(cleanup.legacyCleanupRejectionReason_(row()), "");
   assert.equal(
     cleanup.legacyCleanupRejectionReason_(row({ location: "", contract: "", descriptionRaw: "", expectations: "" })),
+    ""
+  );
+});
+
+test("cleanup stays conservative when duration evidence conflicts", () => {
+  const cleanup = loadCleanup();
+  assert.equal(
+    cleanup.legacyCleanupRejectionReason_(row({
+      contract: "Internship - 3 months",
+      descriptionRaw: "Three-month ML internship.",
+      expectations: "Final-year MSc student available for six months.",
+    })),
     ""
   );
 });
@@ -188,8 +204,14 @@ test("preview reports archiveable and protected out-of-scope rows without modify
   assert.equal(result.scanned, 3);
   assert.equal(result.archiveable, 1);
   assert.equal(result.protected, 1);
-  assert.deepEqual(result.archiveableRows.map((item) => item.id), ["BAD-1"]);
-  assert.deepEqual(result.protectedRows.map((item) => item.id), ["BAD-2"]);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result.archiveableRows.map((item) => item.id))),
+    ["BAD-1"]
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result.protectedRows.map((item) => item.id))),
+    ["BAD-2"]
+  );
   assert.equal(JSON.stringify(source.rows), before);
 });
 
