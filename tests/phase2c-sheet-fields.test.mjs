@@ -66,3 +66,34 @@ test("Sheets client reads through AS and maps phase 2C writes", () => {
   assert.match(source, /notes:\s*"V"/);
   assert.match(source, /lastUpdated:\s*"W"/);
 });
+
+test("Apps Script ActionCenter owns AO:AS headers and AQ:AS snapshots only", () => {
+  const source = fs.readFileSync("apps-script/ActionCenter.gs", "utf8");
+
+  for (const header of [
+    "lastFollowUp",
+    "followUpCount",
+    "actionPriority",
+    "actionReason",
+    "actionUpdatedAt",
+  ]) {
+    assert.match(source, new RegExp(`"${header}"`));
+  }
+
+  assert.match(source, /getRange\(1,\s*41,\s*1,\s*5\)/);
+  assert.match(source, /getRange\(rowNumber,\s*43,\s*1,\s*3\)/);
+  assert.doesNotMatch(source, /getRange\(rowNumber,\s*19/);
+  assert.doesNotMatch(source, /getRange\(rowNumber,\s*27/);
+  assert.doesNotMatch(source, /getRange\(rowNumber,\s*35/);
+});
+
+test("Apps Script read API exposes AO:AS without moving Phase 2B fields", () => {
+  const source = fs.readFileSync("apps-script/Code.gs", "utf8");
+
+  assert.match(source, /scoringUpdatedAt:\s*row\[39\]/);
+  assert.match(source, /lastFollowUp:\s*row\[40\]/);
+  assert.match(source, /followUpCount:\s*Number\(row\[41\]/);
+  assert.match(source, /actionPriority:\s*row\[42\]/);
+  assert.match(source, /actionReason:\s*row\[43\]/);
+  assert.match(source, /actionUpdatedAt:\s*row\[44\]/);
+});
