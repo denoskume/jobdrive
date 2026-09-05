@@ -49,6 +49,7 @@ function loadDigestContext({
   properties = {},
   effectiveEmail = "owner@example.com",
   mailError = null,
+  snapshotError = null,
   triggers = [],
 } = {}) {
   assert.equal(fs.existsSync(ACTION_CENTER), true);
@@ -78,6 +79,9 @@ function loadDigestContext({
           return this.getValues().map((values) => values.map(String));
         },
         setValues(values) {
+          if (snapshotError && row > 1 && column === 43 && numColumns === 3) {
+            throw snapshotError;
+          }
           for (let r = 0; r < numRows; r += 1) {
             for (let c = 0; c < numColumns; c += 1) {
               sheetRows[row - 1 + r][column - 1 + c] = values[r][c];
@@ -313,6 +317,19 @@ test("successful send marks sent-date only after MailApp succeeds and refreshes 
   assert.equal(snapshotWrites.length, 1);
   assert.equal(snapshotWrites[0].row, 2);
   assert.equal(snapshotWrites[0].values[0], "Critical");
+});
+
+test("snapshot write failure does not suppress a live digest action", () => {
+  const { context, sent, propertyStore } = loadDigestContext({
+    rows: [makeRow({ id: "urgent", deadline: "2026-09-05" })],
+    snapshotError: new Error("snapshot failed"),
+  });
+
+  const result = context.runJobDriveActionDigest();
+  assert.equal(result.sent, true);
+  assert.equal(result.count, 1);
+  assert.equal(sent.length, 1);
+  assert.equal(propertyStore.JOBDRIVE_LAST_DIGEST_DATE, "2026-09-05");
 });
 
 test("trigger installer is idempotent and targets 09:00 Europe/Paris", () => {
