@@ -1,0 +1,145 @@
+/* Final light-mode surface overrides.
+   Loaded after the dashboard styles so every visible surface follows the selected theme. */
+
+.jd-shell.jd-theme-light .jd-detail-backdrop {
+  background: rgba(226, 232, 240, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal {
+  background: #f8fafc !important;
+  background-image: none !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.18);
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-detail {
+  background: #f8fafc !important;
+  color: #16202b !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-detail-header {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-bottom-color: #dce3eb !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-detail-scroll {
+  background: #f3f6fa !important;
+  background-image: none !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-status-row {
+  border-bottom-color: #dce3eb !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-match-card,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-info-card,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-skills,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-offer-summary,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-offer-summary-item {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #16202b !important;
+  border-color: #dce3eb !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-detail-title h1,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-detail-title h2,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-match-card h3,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-info-card h3,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-skills h3,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-offer-summary-heading h3,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-offer-summary-item h4 {
+  color: #16202b !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-detail-title p,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-match-card p,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-info-card dt,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-offer-summary-heading p,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-offer-summary-item p,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-deadline {
+  color: #64748b !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-info-card dd {
+  color: #334155 !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-stage {
+  background: #f3efff !important;
+  border-color: #cfc1ff !important;
+  color: #6541d8 !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-badges .match {
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  color: #15803d !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-badges .priority {
+  background: #fff7ed !important;
+  border-color: #fed7aa !important;
+  color: #c2410c !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-badges .status,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-track-status {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-deadline strong {
+  color: #15803d !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-match-ring {
+  background: conic-gradient(
+    #65c84b var(--score),
+    #e2e8f0 0
+  ) !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-match-ring::after {
+  background: #ffffff !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-match-ring strong {
+  color: #16202b !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-match-ring span {
+  color: #15803d !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-skills span {
+  background: #eef2f7 !important;
+  border-color: #dce3eb !important;
+  color: #526173 !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-modal .jd-save,
+.jd-shell.jd-theme-light .jd-detail-modal .jd-update {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-close {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.jd-shell.jd-theme-light .jd-detail-close:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.jd-shell.jd-theme-light .jd-detail-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
