@@ -70,3 +70,10 @@ test("Discovery Runs schema contains the approved audit fields and no secret-bea
   }
   assert.doesNotMatch(code, /accessToken|Authorization|client_secret/i);
 });
+
+test("the shared discovery batch persists every completed run to the coverage audit", () => {
+  const discovery = fs.readFileSync("apps-script/Discovery.gs", "utf8");
+  assert.match(discovery, /summary\.mode\s*=\s*mode/);
+  assert.match(discovery, /appendDiscoveryRun_\s*\(summary\)/);
+  assert.match(discovery, /summary\.rotationCompleted/);
+});
