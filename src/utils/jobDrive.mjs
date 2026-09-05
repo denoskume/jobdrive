@@ -187,6 +187,42 @@ function booleanValue(value) {
   );
 }
 
+function parseJsonObject(value) {
+  if (!value) return {};
+
+  try {
+    const parsed =
+      typeof value === "string"
+        ? JSON.parse(value)
+        : value;
+
+    return parsed &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed)
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function parseJsonArray(value) {
+  if (!value) return [];
+
+  try {
+    const parsed =
+      typeof value === "string"
+        ? JSON.parse(value)
+        : value;
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export function normalizeJobs(values = []) {
   if (!Array.isArray(values) || values.length < 2) {
     return [];
@@ -265,6 +301,24 @@ export function normalizeJobs(values = []) {
 
       descriptionStatus:
         String(row[33] || "").trim(),
+
+      scoreGrade:
+        String(row[34] || "").trim(),
+
+      scoreBreakdown:
+        parseJsonObject(row[35]),
+
+      scoringStrengths:
+        parseJsonArray(row[36]),
+
+      scoringWeaknesses:
+        parseJsonArray(row[37]),
+
+      scoringVersion:
+        String(row[38] || "").trim(),
+
+      scoringUpdatedAt:
+        String(row[39] || "").trim(),
     }))
     .filter((job) => job.id);
 }
@@ -440,6 +494,9 @@ const ALIGNED_INTERNSHIP_PATTERNS = [
   /\bai\b/i,
   /\bgenerative ai\b/i,
   /\bmultimodal\b/i,
+  /\brepresentation learning\b/i,
+  /\bcontrastive learning\b/i,
+  /\bself[- ]supervised\b/i,
 
   /\bcomputer vision\b/i,
   /\bvision artificielle\b/i,
@@ -448,10 +505,17 @@ const ALIGNED_INTERNSHIP_PATTERNS = [
   /\bimage segmentation\b/i,
   /\bobject detection\b/i,
   /\bperception\b/i,
+  /\bmedical imaging\b/i,
+  /\bimagerie médicale\b/i,
+  /\bimagerie medicale\b/i,
 
   /\bsignal processing\b/i,
   /\bsignal analysis\b/i,
   /\bdigital signal\b/i,
+  /\bbiomedical signal/i,
+  /\bsignal biomédical/i,
+  /\bsignal biomedical/i,
+  /\b(ecg|eeg|emg)\b/i,
 
   /\baudio processing\b/i,
   /\baudio analysis\b/i,
@@ -461,6 +525,12 @@ const ALIGNED_INTERNSHIP_PATTERNS = [
 
   /\btime series\b/i,
   /\btime-series\b/i,
+
+  /\bremote sensing\b/i,
+  /\bgeospatial\b/i,
+  /\bsatellite\b/i,
+  /\btélédétection\b/i,
+  /\bteledetection\b/i,
 
   /\bstatistical learning\b/i,
   /\bstatistical analysis\b/i,
@@ -566,6 +636,57 @@ export function sortInternships(
   };
 
   return result.sort((a, b) => {
+    if (mode === "recommended") {
+      const scoreDelta =
+        Number(b.fitScore || 0) -
+        Number(a.fitScore || 0);
+
+      if (scoreDelta) return scoreDelta;
+
+      const priorityDelta =
+        (priorityOrder[a.priority] ?? 99) -
+        (priorityOrder[b.priority] ?? 99);
+
+      if (priorityDelta) return priorityDelta;
+
+      const deadlineA = sortableDate(
+        a.deadline,
+        Number.POSITIVE_INFINITY
+      );
+      const deadlineB = sortableDate(
+        b.deadline,
+        Number.POSITIVE_INFINITY
+      );
+
+      if (deadlineA !== deadlineB) {
+        return deadlineA - deadlineB;
+      }
+
+      const postedA = sortableDate(
+        a.postedDate,
+        Number.NEGATIVE_INFINITY
+      );
+      const postedB = sortableDate(
+        b.postedDate,
+        Number.NEGATIVE_INFINITY
+      );
+
+      if (postedA !== postedB) {
+        return postedB - postedA;
+      }
+
+      return (
+        sortableDate(
+          b.detectedDate,
+          Number.NEGATIVE_INFINITY
+        ) -
+        sortableDate(
+          a.detectedDate,
+          Number.NEGATIVE_INFINITY
+        )
+      );
+    }
+
     if (mode === "deadline") {
       return (
         sortableDate(
