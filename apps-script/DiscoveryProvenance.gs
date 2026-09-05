@@ -158,6 +158,11 @@ function lifecycleSeenListing_(value) {
   return {id: discoveryProvenanceClean_(value), closed: false};
 }
 
+function lifecycleTime_(value) {
+  var time = new Date(discoveryProvenanceClean_(value)).getTime();
+  return isFinite(time) ? time : 0;
+}
+
 function markSourceListingsSeen_(sourceKey, seenProviderIds, nowIso) {
   sourceKey = discoveryProvenanceClean_(sourceKey);
   nowIso = discoveryProvenanceClean_(nowIso) || new Date().toISOString();
@@ -213,9 +218,11 @@ function updateOpportunityMarketLifecycle_(canonicalJobId, marketStatus, marketL
   return false;
 }
 
-function refreshMarketLifecycleForSource_(sourceKey, seenProviderIds, nowIso) {
+function refreshMarketLifecycleForSource_(sourceKey, seenProviderIds, nowIso, scanStartedAt) {
   sourceKey = discoveryProvenanceClean_(sourceKey);
   nowIso = discoveryProvenanceClean_(nowIso) || new Date().toISOString();
+  scanStartedAt = discoveryProvenanceClean_(scanStartedAt);
+  var scanStartedMs = lifecycleTime_(scanStartedAt);
   var marked = markSourceListingsSeen_(sourceKey, seenProviderIds, nowIso);
   var sourceSheet = ensureOpportunitySourcesSheet_();
   var rows = sourceSheet.getDataRange().getDisplayValues();
@@ -225,8 +232,10 @@ function refreshMarketLifecycleForSource_(sourceKey, seenProviderIds, nowIso) {
     if (discoveryProvenanceClean_(rows[i][1]) !== sourceKey) continue;
     var canonicalJobId = discoveryProvenanceClean_(rows[i][0]);
     var externalId = discoveryProvenanceClean_(rows[i][3]);
+    var seenOnCurrentPage = Boolean(marked.seenExternalIds[externalId]);
+    var seenEarlierThisScan = scanStartedMs > 0 && lifecycleTime_(rows[i][6]) >= scanStartedMs;
     touchedCanonicalIds[canonicalJobId] = true;
-    if (!marked.seenExternalIds[externalId]) {
+    if (!seenOnCurrentPage && !seenEarlierThisScan) {
       sourceSheet.getRange(i + 1, 9).setValue(false);
     }
   }
@@ -239,7 +248,7 @@ function refreshMarketLifecycleForSource_(sourceKey, seenProviderIds, nowIso) {
     if (!summaries[canonicalJobId]) summaries[canonicalJobId] = {active:false,lastSeenAt:""};
     if (/^true$/i.test(String(row[8] || ""))) summaries[canonicalJobId].active = true;
     var lastSeenAt = discoveryProvenanceClean_(row[6]);
-    if (lastSeenAt && lastSeenAt > summaries[canonicalJobId].lastSeenAt) summaries[canonicalJobId].lastSeenAt = lastSeenAt;
+    if (lastSeenAt && lifecycleTime_(lastSeenAt) > lifecycleTime_(summaries[canonicalJobId].lastSeenAt)) summaries[canonicalJobId].lastSeenAt = lastSeenAt;
   });
 
   var updated = 0;
