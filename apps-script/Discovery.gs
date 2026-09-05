@@ -51,8 +51,29 @@ function evaluateDiscoveryCandidate_(c) {
   return {accepted:true,reason:"accepted"};
 }
 
-function createDiscoveryRunSummary_(){
-  return {startedAt:new Date().toISOString(),finishedAt:"",sourcesAttempted:0,sourcesSucceeded:0,rawJobsFound:0,normalizedJobs:0,rejectedByCountry:0,rejectedByInternshipType:0,rejectedByAcademicPolicy:0,rejectedByTechnicalAlignment:0,rejectedByScore:0,duplicatesSkipped:0,inserted:0,updated:0,sourceErrors:[],sourceHealth:[],runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,runtimeBudgetReached:false,sourcesSkippedByBudget:0};
+function createDiscoveryRunSummary_(mode, startedAt){
+  return {
+    mode:mode||"continuous",
+    startedAt:startedAt||new Date().toISOString(),
+    finishedAt:"",
+    sourcesAttempted:0,
+    sourcesSucceeded:0,
+    rawJobsFound:0,
+    normalizedJobs:0,
+    rejectedByCountry:0,
+    rejectedByInternshipType:0,
+    rejectedByAcademicPolicy:0,
+    rejectedByTechnicalAlignment:0,
+    rejectedByScore:0,
+    duplicatesSkipped:0,
+    inserted:0,
+    updated:0,
+    sourceErrors:[],
+    sourceHealth:[],
+    runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,
+    runtimeBudgetReached:false,
+    sourcesSkippedByBudget:0
+  };
 }
 
 function sourceHealthEntry_(source, status, jobsFound, elapsedMs, error) {
@@ -67,9 +88,13 @@ function sourceHealthEntry_(source, status, jobsFound, elapsedMs, error) {
   };
 }
 
-function runJobDriveDiscovery() {
+function runDiscoveryBatch_(options) {
+  options=options||{};
+  var mode=options.mode==="backfill"?"backfill":"continuous";
+  var now=options.now instanceof Date?options.now:new Date();
+  var nowIso=now.toISOString();
   var startedMs=Date.now();
-  var summary=createDiscoveryRunSummary_();
+  var summary=createDiscoveryRunSummary_(mode,nowIso);
   var sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   if(!sheet) throw new Error("Sheet not found");
   ensureDiscoveryScoringHeaders_(sheet);
@@ -77,10 +102,15 @@ function runJobDriveDiscovery() {
   var index=loadExistingDiscoveryIndex_(sheet);
 
   seedDiscoveryRegistry_();
-  var nowIso=new Date().toISOString();
-  verifyPendingDiscoverySources_(5, nowIso);
+  if(typeof refreshFranceTravailRegistryConfig_==="function") refreshFranceTravailRegistryConfig_();
+  verifyPendingDiscoverySources_(5,nowIso);
   var registeredSources=loadDiscoverySources_();
-  var activeSources=selectDiscoveryBatch_(registeredSources,nowIso,{maxSources:25,runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,mode:"continuous"});
+  var activeSources=selectDiscoveryBatch_(registeredSources,nowIso,{
+    maxSources:25,
+    runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,
+    mode:mode,
+    rotationStartedAt:options.rotationStartedAt||""
+  });
 
   registeredSources.filter(function(s){return !s.active;}).forEach(function(source){
     summary.sourceHealth.push(sourceHealthEntry_(source,"inactive",0,0,""));
@@ -137,7 +167,7 @@ function runJobDriveDiscovery() {
 
         if(scored.fitScore<75){ summary.rejectedByScore++; return; }
         var action=upsertDiscoveredCandidate_(sheet,c,scored,index);
-        registerDiscoveredCareerSource_(c.link, source.sourceKey||source.key||"");
+        registerDiscoveredCareerSource_(c.link,source.sourceKey||source.key||"");
         if(action==="inserted") summary.inserted++;
         else if(action==="updated") summary.updated++;
         else summary.duplicatesSkipped++;
@@ -153,6 +183,10 @@ function runJobDriveDiscovery() {
   summary.finishedAt=new Date().toISOString();
   console.log(JSON.stringify(summary));
   return summary;
+}
+
+function runJobDriveDiscovery() {
+  return runDiscoveryBatch_({mode:"continuous",now:new Date()});
 }
 
 function removeJobDriveDiscoveryTriggers(){ ScriptApp.getProjectTriggers().forEach(function(t){ if(t.getHandlerFunction()==="runJobDriveDiscovery") ScriptApp.deleteTrigger(t); }); }
