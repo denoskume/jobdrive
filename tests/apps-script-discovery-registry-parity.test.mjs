@@ -24,5 +24,7 @@ const identity = (source) => ({
 });
 
 test("browser and Apps Script discovery registries are identical", () => {
-  assert.deepEqual(loadAppsScriptSources().map(identity), DISCOVERY_SOURCES.map(identity));
+  const actual = JSON.parse(JSON.stringify(loadAppsScriptSources().map(identity)));
+  const expected = DISCOVERY_SOURCES.map(identity);
+  assert.deepEqual(actual, expected);
 });
