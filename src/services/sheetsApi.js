@@ -46,7 +46,7 @@ export async function readJobs({
   spreadsheetId,
 }) {
   const range = encodeURIComponent(
-    `'${SHEET_NAME}'!A:AH`
+    `'${SHEET_NAME}'!A:AN`
   );
 
   const url =
