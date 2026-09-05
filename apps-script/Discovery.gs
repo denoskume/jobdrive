@@ -73,6 +73,7 @@ function runJobDriveDiscovery() {
   var sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   if(!sheet) throw new Error("Sheet not found");
   ensureDiscoveryScoringHeaders_(sheet);
+  ensureDiscoveryLifecycleHeaders_(sheet);
   var index=loadExistingDiscoveryIndex_(sheet);
 
   seedDiscoveryRegistry_();
