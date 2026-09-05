@@ -77,7 +77,8 @@ function runJobDriveDiscovery() {
 
   seedDiscoveryRegistry_();
   var registeredSources=loadDiscoverySources_();
-  var activeSources=registeredSources.filter(function(s){return s.active&&s.verificationStatus==="verified";});
+  var nowIso=new Date().toISOString();
+  var activeSources=selectDiscoveryBatch_(registeredSources,nowIso,{maxSources:25,runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,mode:"continuous"});
 
   registeredSources.filter(function(s){return !s.active;}).forEach(function(source){
     summary.sourceHealth.push(sourceHealthEntry_(source,"inactive",0,0,""));
@@ -99,6 +100,7 @@ function runJobDriveDiscovery() {
     try {
       var result=discoverSourceJobs_(source);
       var elapsedMs=Date.now()-sourceStartedMs;
+      persistDiscoverySourceHealth_(source,result,new Date().toISOString());
       if(result.status==="fetch_error"){
         summary.sourceErrors.push({source:source.sourceKey||source.key,error:result.error});
         summary.sourceHealth.push(sourceHealthEntry_(source,"fetch_error",0,elapsedMs,result.error));
@@ -139,6 +141,7 @@ function runJobDriveDiscovery() {
       });
     } catch(error){
       var message=String(error&&error.message||error);
+      persistDiscoverySourceHealth_(source,{status:"fetch_error",jobs:[],error:message},new Date().toISOString());
       summary.sourceErrors.push({source:source.sourceKey||source.key,error:message});
       summary.sourceHealth.push(sourceHealthEntry_(source,"fetch_error",0,Date.now()-sourceStartedMs,message));
     }
