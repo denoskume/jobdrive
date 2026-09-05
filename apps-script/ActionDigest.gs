@@ -259,9 +259,10 @@ function runJobDriveActionDigest() {
     if (!row[0]) return;
 
     var job = actionJobFromRow_(row);
+    jobs.push(job);
+
     try {
       refreshActionSnapshotRow_(sheet, index + 2, job, nowIso);
-      jobs.push(job);
     } catch (error) {
       console.log(
         "JobDrive action snapshot skipped for " +
