@@ -72,7 +72,9 @@ function createDiscoveryRunSummary_(mode, startedAt){
     sourceHealth:[],
     runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,
     runtimeBudgetReached:false,
-    sourcesSkippedByBudget:0
+    sourcesSkippedByBudget:0,
+    rotationCompleted:false,
+    lastRotationCompletedAt:""
   };
 }
 
@@ -95,6 +97,7 @@ function runDiscoveryBatch_(options) {
   var nowIso=now.toISOString();
   var startedMs=Date.now();
   var summary=createDiscoveryRunSummary_(mode,nowIso);
+  summary.mode=mode;
   var sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   if(!sheet) throw new Error("Sheet not found");
   ensureDiscoveryScoringHeaders_(sheet);
@@ -181,6 +184,17 @@ function runDiscoveryBatch_(options) {
   }
 
   summary.finishedAt=new Date().toISOString();
+  if(mode==="backfill"&&options.rotationStartedAt&&typeof isBackfillRotationComplete_==="function"){
+    summary.rotationCompleted=isBackfillRotationComplete_(loadDiscoverySources_(),options.rotationStartedAt);
+    if(summary.rotationCompleted) summary.lastRotationCompletedAt=summary.finishedAt;
+  }
+  if(typeof appendDiscoveryRun_==="function"){
+    try {
+      appendDiscoveryRun_(summary);
+    } catch(auditError) {
+      summary.auditError=String(auditError&&auditError.message||auditError);
+    }
+  }
   console.log(JSON.stringify(summary));
   return summary;
 }
