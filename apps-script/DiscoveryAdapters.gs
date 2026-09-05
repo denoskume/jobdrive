@@ -91,12 +91,33 @@ function normalizeSmartRecruitersJobs_(source, data) {
   });
 }
 
+function smartRecruitersPageUrl_(source, offset, limit) {
+  return "https://api.smartrecruiters.com/v1/companies/" +
+    encodeURIComponent(source.tenant) +
+    "/postings?limit=" + encodeURIComponent(limit) +
+    "&offset=" + encodeURIComponent(offset);
+}
+
 function discoverSmartRecruitersPage_(source, cursor) {
-  var url = String(cursor || "").trim() || ("https://api.smartrecruiters.com/v1/companies/" + encodeURIComponent(source.tenant) + "/postings?limit=100");
+  var defaultLimit = 100;
+  var url = String(cursor || "").trim() || smartRecruitersPageUrl_(source, 0, defaultLimit);
   if (!/^https:\/\/api\.smartrecruiters\.com\//i.test(url)) throw new Error("Invalid SmartRecruiters cursor URL");
+
   var data = discoveryFetchJson_(url);
   var jobs = normalizeSmartRecruitersJobs_(source, data);
-  var next = String(data.nextPage || data.links && data.links.next || "").trim();
+  var next = "";
+  var hasPaginationMetadata = Number.isFinite(Number(data.offset)) && Number.isFinite(Number(data.limit)) && Number.isFinite(Number(data.totalFound));
+
+  if (hasPaginationMetadata) {
+    var offset = Math.max(0, Number(data.offset));
+    var limit = Math.max(1, Math.min(100, Number(data.limit)));
+    var totalFound = Math.max(0, Number(data.totalFound));
+    var nextOffset = offset + limit;
+    if (nextOffset < totalFound) next = smartRecruitersPageUrl_(source, nextOffset, limit);
+  } else {
+    next = String(data.nextPage || data.links && data.links.next || "").trim();
+  }
+
   if (next && !/^https:\/\/api\.smartrecruiters\.com\//i.test(next)) throw new Error("Invalid SmartRecruiters next page URL");
   return discoveryAdapterResult_(jobs.length ? "ok" : "empty", jobs, next, !next, "");
 }
