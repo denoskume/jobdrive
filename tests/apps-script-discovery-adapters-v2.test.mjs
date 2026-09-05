@@ -107,12 +107,12 @@ test("SmartRecruiters exposes real page cursors instead of declaring a truncated
   assertPagedResult(first);
   assert.equal(first.done, false);
   assert.equal(first.nextCursor, secondUrl);
-  assert.deepEqual(first.jobs.map((job) => job.id), ["s1"]);
+  assert.deepEqual(Array.from(first.jobs, (job) => job.id), ["s1"]);
 
   const second = context.discoverSourcePage_({sourceType:"smartrecruiters", tenant:"Acme"}, first.nextCursor);
   assertPagedResult(second);
   assert.equal(second.done, true);
   assert.equal(second.nextCursor, "");
-  assert.deepEqual(second.jobs.map((job) => job.id), ["s2"]);
+  assert.deepEqual(Array.from(second.jobs, (job) => job.id), ["s2"]);
   assert.deepEqual(calls, [firstUrl, secondUrl]);
 });
