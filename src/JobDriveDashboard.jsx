@@ -260,6 +260,107 @@ function Sidebar({
   onAI,
   onShortlist,
 }) {
+  const [notificationsOpen, setNotificationsOpen] =
+    useState(false);
+
+  const [seenJobIds, setSeenJobIds] =
+    useState(() => {
+      try {
+        const raw =
+          localStorage.getItem(
+            "jobdrive.seenJobIds"
+          );
+
+        const parsed =
+          raw
+            ? JSON.parse(raw)
+            : [];
+
+        return Array.isArray(parsed)
+          ? parsed
+          : [];
+      } catch {
+        return [];
+      }
+    });
+
+  const currentJobIds =
+    jobs
+      .map((job) => String(job.id || ""))
+      .filter(Boolean);
+
+  const hasSeenBaseline =
+    seenJobIds.length > 0;
+
+  const newJobNotifications =
+    hasSeenBaseline
+      ? jobs.filter(
+          (job) =>
+            job.id &&
+            !seenJobIds.includes(
+              String(job.id)
+            )
+        )
+      : [];
+
+  const notificationCount =
+    newJobNotifications.length;
+
+  useEffect(() => {
+    if (
+      !jobs.length ||
+      seenJobIds.length
+    ) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        "jobdrive.seenJobIds",
+        JSON.stringify(
+          currentJobIds
+        )
+      );
+    } catch {
+      // Notifications still work in-session.
+    }
+
+    setSeenJobIds(
+      currentJobIds
+    );
+  }, [jobs]);
+
+  const markNotificationsRead = () => {
+    try {
+      localStorage.setItem(
+        "jobdrive.seenJobIds",
+        JSON.stringify(
+          currentJobIds
+        )
+      );
+    } catch {
+      // Keep working without persistence.
+    }
+
+    setSeenJobIds(
+      currentJobIds
+    );
+  };
+
+  const toggleNotifications = () => {
+    setNotificationsOpen(
+      (current) => {
+        const next = !current;
+
+        if (next) {
+          markNotificationsRead();
+        }
+
+        return next;
+      }
+    );
+  };
+
   const [detailJobId, setDetailJobId] =
     useState(null);
 
@@ -452,6 +553,11 @@ function Topbar({
   onLogout,
   theme,
   onToggleTheme,
+  notificationsOpen,
+  onToggleNotifications,
+  notificationCount,
+  notifications,
+  onNotificationSelect,
 }) {
   return (
     <header className="jd-topbar">
@@ -479,13 +585,85 @@ function Topbar({
 
       <div className="jd-top-actions">
 
-        <button>
-          <Icon
-            name="bell"
-            size={18}
-          />
-          <b>3</b>
-        </button>
+        <div className="jd-notification-wrap">
+          <button
+            onClick={onToggleNotifications}
+            title="New internships"
+            aria-label="New internships"
+            aria-expanded={notificationsOpen}
+          >
+            <Icon
+              name="bell"
+              size={18}
+            />
+
+            {notificationCount > 0 && (
+              <b>{notificationCount}</b>
+            )}
+          </button>
+
+          {notificationsOpen && (
+            <section className="jd-notification-panel">
+              <header>
+                <div>
+                  <strong>New internships</strong>
+                  <span>
+                    {notificationCount
+                      ? `${notificationCount} new`
+                      : "You're up to date"}
+                  </span>
+                </div>
+              </header>
+
+              <div className="jd-notification-list">
+                {notifications.length ? (
+                  notifications.map((job) => (
+                    <button
+                      key={job.id}
+                      className="jd-notification-item"
+                      onClick={() =>
+                        onNotificationSelect(job.id)
+                      }
+                    >
+                      <CompanyLogo
+                        company={job.company}
+                        link={job.link}
+                        source={job.source}
+                        companyDomain={job.companyDomain}
+                        logoUrl={job.logoUrl}
+                      />
+
+                      <div>
+                        <strong>
+                          {job.role ||
+                            "New internship"}
+                        </strong>
+
+                        <span>
+                          {job.company ||
+                            "Company"}
+                        </span>
+
+                        <small>
+                          {job.fitScore
+                            ? `${job.fitScore}% match`
+                            : "New opportunity"}
+                          {job.detectedDate
+                            ? ` · ${job.detectedDate}`
+                            : ""}
+                        </small>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="jd-notification-empty">
+                    No new internships.
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+        </div>
 
         <button
           onClick={onToggleTheme}
@@ -1355,6 +1533,14 @@ export default function JobDriveDashboard({
           search={search}
           onSearch={onSearch}
           onLogout={onLogout}
+          notificationsOpen={notificationsOpen}
+          onToggleNotifications={toggleNotifications}
+          notificationCount={notificationCount}
+          notifications={newJobNotifications}
+          onNotificationSelect={(jobId) => {
+            setNotificationsOpen(false);
+            openJobDetail(jobId);
+          }}
         />
 
 
