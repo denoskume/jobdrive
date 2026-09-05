@@ -272,6 +272,13 @@ function runDiscoveryBatch_(options) {
 }
 
 function runJobDriveDiscovery() {
+  var backfillActive = false;
+  if (typeof PropertiesService !== "undefined" && PropertiesService.getScriptProperties) {
+    backfillActive = String(PropertiesService.getScriptProperties().getProperty("JOBDRIVE_BACKFILL_ACTIVE") || "").toLowerCase() === "true";
+  }
+  if (backfillActive && typeof runJobDriveBackfillBatch === "function") {
+    return runJobDriveBackfillBatch(new Date());
+  }
   return runDiscoveryBatch_({mode:"continuous",now:new Date()});
 }
 
