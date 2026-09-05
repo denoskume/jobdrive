@@ -21,6 +21,7 @@
 - Existing columns `S:W`, `X:Y:Z`, and `AA:AN` retain their meanings.
 - Phase 2C fields are `AO lastFollowUp`, `AP followUpCount`, `AQ actionPriority`, `AR actionReason`, `AS actionUpdatedAt`.
 - Scheduling a first follow-up does not count as completing a follow-up: it changes `U followUpDate` and `W lastUpdated` only. `AO lastFollowUp` and `AP followUpCount` change only after `Mark Followed Up`.
+- `No further follow-up` is durable without a new column: `followUpDate` empty plus populated `lastFollowUp` means no active schedule action until the user explicitly schedules another follow-up.
 - `AQ:AS` are snapshots only; live date-sensitive action computation is authoritative.
 - No paid API, new backend server, database, LinkedIn/Indeed scraping, auto-application, or generated recruiter message.
 - The existing 12-hour Discovery trigger stays unchanged.
@@ -105,6 +106,7 @@ function job(overrides = {}) {
     deadline: "",
     appliedDate: "",
     followUpDate: "",
+    lastFollowUp: "",
     ...overrides,
   };
 }
@@ -140,12 +142,23 @@ test("application follow-up states have precedence", () => {
   }
 });
 
-test("application without a next follow-up becomes Schedule Follow-up", () => {
+test("application without any prior follow-up becomes Schedule Follow-up", () => {
   const fresh = evaluateAction(job({ status: "Candidature envoyée", appliedDate: "2026-09-04" }), { now: NOW });
   const old = evaluateAction(job({ status: "Candidature envoyée", appliedDate: "2026-09-01" }), { now: NOW });
   assert.equal(fresh.actionType, "SCHEDULE_FOLLOW_UP");
   assert.equal(fresh.actionPriority, "Normal");
   assert.equal(old.actionPriority, "High");
+});
+
+test("No further follow-up stays inactive until explicitly rescheduled", () => {
+  const result = evaluateAction(job({
+    status: "Candidature envoyée",
+    followUpDate: "",
+    lastFollowUp: "2026-09-04T08:00:00.000Z",
+  }), { now: NOW });
+  assert.equal(result.active, false);
+  assert.equal(result.actionType, "NONE");
+  assert.equal(result.actionReason, "No further follow-up requested");
 });
 
 test("deadline matrix matches the approved thresholds", () => {
@@ -267,6 +280,7 @@ Follow-up due tomorrow
 Follow-up scheduled in N days
 No follow-up scheduled
 No follow-up scheduled after N days
+No further follow-up requested
 Strong Phase 2B fit; application not yet submitted
 No active action
 ```
@@ -276,7 +290,8 @@ Decision order:
 ```text
 terminal
 application tracking with followUpDate
-application tracking without followUpDate
+application tracking without followUpDate and populated lastFollowUp -> NONE
+application tracking without followUpDate and empty lastFollowUp -> Schedule Follow-up
 unknown/non-pre-application status
 pre-application fitScore < 75
 passed deadline
@@ -346,6 +361,7 @@ test("No further follow-up clears date and increments completion count", () => {
   const patch = buildCompletedFollowUpPatch({ followUpCount: 4 }, "none", { now: NOW });
   assert.equal(patch.followUpDate, "");
   assert.equal(patch.followUpCount, 5);
+  assert.equal(patch.lastFollowUp, NOW.toISOString());
 });
 
 test("first scheduling does not pretend a follow-up happened", () => {
@@ -486,7 +502,9 @@ Expected: FAIL.
 
 For `SCHEDULE_FOLLOW_UP`, render `Schedule Follow-up` with `+3`, `+7`, `+14` only and call `onScheduleFollowUp(job, days)`.
 
-For application-tracking rows that already have a follow-up context, render `Mark Followed Up` with `+3`, `+7`, `+14`, `No further follow-up` and call `onMarkFollowUp(job, choice)`.
+For application-tracking rows that have a populated `followUpDate`, render `Mark Followed Up` with `+3`, `+7`, `+14`, `No further follow-up` and call `onMarkFollowUp(job, choice)`.
+
+A `NONE` result created by `No further follow-up` is not present in Action Center until the user explicitly schedules a new follow-up through normal tracking controls.
 
 Never mutate a job inside the presentational component.
 
@@ -523,7 +541,7 @@ function withActionSnapshot(job, patch, now) {
 
 `scheduleFollowUp(job, days)` builds a first-schedule patch, adds a snapshot, calls `updateJobFields`, and only after success updates React state. It must not change `lastFollowUp` or `followUpCount`.
 
-Update existing `saveJob()` to add a fresh action snapshot to status/follow-up edits without modifying Phase 2B fields.
+Update existing `saveJob()` to add a fresh action snapshot to status/follow-up edits without modifying Phase 2B fields. If a user manually clears `followUpDate` on a row that already has `lastFollowUp`, the resulting live action is `NONE`, matching No further follow-up semantics.
 
 For `view === "actions"`, set `alternateContent` to `ActionCenterView` and pass handlers.
 
@@ -579,7 +597,7 @@ git commit -m "feat: add phase 2C action center interface"
 
 - [ ] **Step 1: Write failing parity tests**
 
-Use the same Node `vm` pattern as `tests/apps-script-scoring-parity.test.mjs`. Compare browser `evaluateAction()` and Apps Script `evaluateJobDriveAction_()` for fixed fixtures covering terminal, score below 75, deadline risk, Apply Now, overdue/today follow-up, and Schedule Follow-up. Assert deep equality for `active`, `actionType`, `actionPriority`, `actionReason`, `actionDate`, `urgencyDays`.
+Use the same Node `vm` pattern as `tests/apps-script-scoring-parity.test.mjs`. Compare browser `evaluateAction()` and Apps Script `evaluateJobDriveAction_()` for fixed fixtures covering terminal, score below 75, deadline risk, Apply Now, overdue/today follow-up, first-time Schedule Follow-up, and No further follow-up (`followUpDate:""` plus populated `lastFollowUp`). Assert deep equality for `active`, `actionType`, `actionPriority`, `actionReason`, `actionDate`, `urgencyDays`.
 
 Extend the Sheet test to assert `ActionCenter.gs` owns headers exactly:
 
@@ -616,7 +634,9 @@ ensureActionCenterHeaders_
 refreshActionSnapshotRow_
 ```
 
-`actionJobFromRow_()` maps only the required fields using existing indices, including `lastFollowUp row[40]`, `followUpCount row[41]`, `actionPriority row[42]`, `actionReason row[43]`, `actionUpdatedAt row[44]`.
+The Apps Script decision order and reason strings must exactly match Task 1, including `No further follow-up requested` when `followUpDate` is empty and `lastFollowUp` is populated.
+
+`actionJobFromRow_()` maps only required fields using existing indices, including `lastFollowUp row[40]`, `followUpCount row[41]`, `actionPriority row[42]`, `actionReason row[43]`, `actionUpdatedAt row[44]`.
 
 `ensureActionCenterHeaders_()` writes row 1 columns 41–45 only when needed.
 
@@ -675,6 +695,7 @@ Critical/High Deadline Risk included
 High Apply Now included
 Normal Apply Now omitted
 Normal future follow-up omitted
+No further follow-up omitted
 empty digest sends no email
 JOBDRIVE_DIGEST_EMAIL overrides effective-user fallback
 missing recipient sends nothing
@@ -709,7 +730,7 @@ FOLLOW_UP_TODAY always
 FOLLOW_UP_TOMORROW always
 DEADLINE_RISK only Critical or High
 APPLY_NOW only High
-all Normal future noise omitted
+all Normal future noise and NONE actions omitted
 ```
 
 `buildJobDriveActionDigest_(jobs, nowIso)` evaluates supplied normalized jobs and returns `{ dateKey, subject, body, items }` without sending mail or changing the idempotency key.
@@ -741,7 +762,7 @@ TOMORROW
 11. only after successful send writes `JOBDRIVE_LAST_DIGEST_DATE`;
 12. returns a summary object with `sent`, `count`, `dateKey`, and `skipped` when applicable.
 
-A MailApp exception may be logged but must be rethrown or reported as failure without writing the sent-date property.
+A MailApp exception may be logged but must not set the sent-date property.
 
 - [ ] **Step 5: Implement idempotent trigger setup**
 
@@ -833,6 +854,7 @@ S:AN meanings unchanged
 AO:AS only used for Phase 2C metadata
 first scheduling does not increment followUpCount
 completed follow-up increments followUpCount exactly once
+No further follow-up remains inactive with empty followUpDate plus populated lastFollowUp
 no personal email or secret hard-coded
 Action Center computes live state rather than trusting AQ:AS
 Phase 2C trigger installer is not called automatically
@@ -857,6 +879,7 @@ Body summary:
 - Action Center + Actions Today KPI
 - first-time follow-up scheduling without false completion count
 - atomic +3/+7/+14/no-further completed-follow-up flow
+- durable No further follow-up semantics without another Sheet column
 - AO:AS persistence without repurposing S:AN
 - browser/Apps Script parity
 - one daily idempotent Gmail digest
@@ -911,6 +934,7 @@ Actions Today KPI = live Critical + High count
 old rows without AO:AS still load
 Schedule Follow-up changes date without incrementing count
 Mark Followed Up +3 persists and increments count once
+No further follow-up stays inactive after refresh
 Last Follow-up persists in AO
 Phase 2B Fit Intelligence unchanged
 one useful digest can be generated/sent
