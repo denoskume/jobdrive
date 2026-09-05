@@ -48,6 +48,26 @@ test("Apps Script Discovery accepts internship evidence from description", () =>
   assert.equal(result.accepted, true);
 });
 
+test("Apps Script rejects generic early-stage wording as internship evidence", () => {
+  const context = loadAppsScript();
+  const candidate = {
+    company:"Datadog",
+    location:"Paris, France",
+    country:"France",
+    link:"https://careers.datadoghq.com/detail/7965428/?gh_jid=7965428",
+    role:"Manager I, Engineering - AI Platform - Evaluation & Annotation",
+    contract:"",
+    descriptionRaw:"Engineering manager for a generative AI platform. Lead AI model evaluation, training and inference systems. Interested in working on an early stage project with a fast iteration cycle."
+  };
+
+  const discovery = context.evaluateDiscoveryCandidate_(candidate);
+  const scoring = context.scoreInternshipCandidateEvidence_(candidate, "2026-09-05T12:00:00Z");
+  assert.equal(discovery.accepted, false);
+  assert.equal(discovery.reason, "internship_type");
+  assert.equal(scoring.accepted, false);
+  assert.equal(scoring.rejectionReason, "internship_type");
+});
+
 test("Apps Script evidence scorer still rejects off-target and defense roles", () => {
   const context = loadAppsScript();
   const cases = [
