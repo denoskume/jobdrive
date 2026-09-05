@@ -1,4 +1,13 @@
 export const COMPANY_IDENTITY_SEEDS = {
+  "alstom":
+    "alstom.com",
+
+  "asml":
+    "asml.com",
+
+  "stryker":
+    "stryker.com",
+
   "parfums christian dior":
     "dior.com",
 

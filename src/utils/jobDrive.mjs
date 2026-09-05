@@ -224,11 +224,23 @@ export function normalizeJobs(values = []) {
       notes: row[21] || "",
       lastUpdated: row[22] || "",
 
-      companyDomain:
-        String(row[23] || "").trim(),
+      // Real Google Sheet business columns:
+      // X = DASSIP Score
+      // Y = Entreprise & sujet score
+      // Z = Risque validation Centrale
+      dassipScore:
+        Number(row[23] || 0),
 
-      logoUrl:
-        String(row[24] || "").trim(),
+      companySubjectScore:
+        Number(row[24] || 0),
+
+      validationRisk:
+        String(row[25] || "").trim(),
+
+      // Company identity is resolved from the company name
+      // and official offer URL. X/Y must never feed logo metadata.
+      companyDomain: "",
+      logoUrl: "",
 
       descriptionRaw:
         String(row[26] || "").trim(),

@@ -4,7 +4,7 @@ import {
 
 
 export const CACHE_KEY =
-  "jobdrive.companyIdentity.v1";
+  "jobdrive.companyIdentity.v2";
 
 
 function resolveStorage(

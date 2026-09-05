@@ -67,4 +67,12 @@ test("description fields start at AA and do not consume X Y Z business data", ()
     job.descriptionRaw,
     "Excellent alignment"
   );
+
+  assert.equal(job.companyDomain, "");
+  assert.equal(job.logoUrl, "");
+  assert.equal(job.dassipScore, 97);
+  assert.equal(
+    job.validationRisk,
+    "Faible"
+  );
 });

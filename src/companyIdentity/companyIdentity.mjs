@@ -172,7 +172,39 @@ export function resolveCompanyIdentity(
 
 
   // ---------------------------------------------------------
-  // 3. Cache
+  // 3. Known company brand
+  // ---------------------------------------------------------
+
+  const seed =
+    findSeedIdentity(
+      company
+    );
+
+  if (seed) {
+    const identity = {
+      ...base,
+      domain:
+        seed.domain,
+      source:
+        seed.source,
+      confidence:
+        seed.confidence,
+      resolved:
+        true,
+    };
+
+    setCachedCompanyIdentity(
+      company,
+      identity,
+      storage
+    );
+
+    return identity;
+  }
+
+
+  // ---------------------------------------------------------
+  // 4. Cache
   // ---------------------------------------------------------
 
   const cached =
@@ -183,11 +215,14 @@ export function resolveCompanyIdentity(
 
   if (
     cached &&
-    cached.resolved
+    cached.resolved &&
+    normalizeDomain(cached.domain)
   ) {
     return {
       ...base,
       ...cached,
+      domain:
+        normalizeDomain(cached.domain),
       source:
         "cache",
       resolved:
@@ -197,7 +232,7 @@ export function resolveCompanyIdentity(
 
 
   // ---------------------------------------------------------
-  // 4. Official offer URL
+  // 5. Official offer URL
   // ---------------------------------------------------------
 
   const official =
@@ -249,38 +284,6 @@ export function resolveCompanyIdentity(
       resolved:
         false,
     };
-  }
-
-
-  // ---------------------------------------------------------
-  // 6. Seed alias
-  // ---------------------------------------------------------
-
-  const seed =
-    findSeedIdentity(
-      company
-    );
-
-  if (seed) {
-    const identity = {
-      ...base,
-      domain:
-        seed.domain,
-      source:
-        seed.source,
-      confidence:
-        seed.confidence,
-      resolved:
-        true,
-    };
-
-    setCachedCompanyIdentity(
-      company,
-      identity,
-      storage
-    );
-
-    return identity;
   }
 
 
