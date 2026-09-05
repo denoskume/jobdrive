@@ -22,6 +22,19 @@ test("generic early-stage wording in a permanent manager description is not inte
   assert.equal(result.evidence.internshipEvidence, "");
 });
 
+test("English 'at this stage a model' wording is not internship evidence", () => {
+  const result = evaluateEligibility({
+    ...base,
+    role: "Applied Scientist",
+    contract: "",
+    descriptionRaw: "At this stage a model is trained and evaluated for production deployment.",
+  });
+
+  assert.equal(result.accepted, false);
+  assert.equal(result.reason, "internship_type");
+  assert.equal(result.evidence.internshipEvidence, "");
+});
+
 test("explicit French stage wording in a description remains valid internship evidence", () => {
   const result = evaluateEligibility({
     company: "Industrial Vision SAS",
