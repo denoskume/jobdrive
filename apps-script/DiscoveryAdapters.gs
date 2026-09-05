@@ -73,29 +73,36 @@ function discoverLeverJobs_(source) {
   });
 }
 
+function normalizeSmartRecruitersJobs_(source, data) {
+  return (data.content || []).map(function(job) {
+    var loc = job.location || {};
+    return {
+      id: String(job.id || ""),
+      title: job.name || "",
+      company: job.company && job.company.name || source.company || "",
+      location: [loc.city, loc.region, loc.country].filter(Boolean).join(", "),
+      country: loc.country || "",
+      jobUrl: job.ref || ("https://jobs.smartrecruiters.com/" + source.tenant + "/" + job.id),
+      publishedAt: job.releasedDate || job.updatedDate || "",
+      descriptionPlain: job.jobAd && job.jobAd.sections && job.jobAd.sections.jobDescription && job.jobAd.sections.jobDescription.text || "",
+      employmentType: job.typeOfEmployment && job.typeOfEmployment.label || "",
+      compensation: ""
+    };
+  });
+}
+
+function discoverSmartRecruitersPage_(source, cursor) {
+  var url = String(cursor || "").trim() || ("https://api.smartrecruiters.com/v1/companies/" + encodeURIComponent(source.tenant) + "/postings?limit=100");
+  if (!/^https:\/\/api\.smartrecruiters\.com\//i.test(url)) throw new Error("Invalid SmartRecruiters cursor URL");
+  var data = discoveryFetchJson_(url);
+  var jobs = normalizeSmartRecruitersJobs_(source, data);
+  var next = String(data.nextPage || data.links && data.links.next || "").trim();
+  if (next && !/^https:\/\/api\.smartrecruiters\.com\//i.test(next)) throw new Error("Invalid SmartRecruiters next page URL");
+  return discoveryAdapterResult_(jobs.length ? "ok" : "empty", jobs, next, !next, "");
+}
+
 function discoverSmartRecruitersJobs_(source) {
-  var url = "https://api.smartrecruiters.com/v1/companies/" + encodeURIComponent(source.tenant) + "/postings?limit=100";
-  var jobs = [];
-  for (var page = 0; page < 5 && url; page++) {
-    var data = discoveryFetchJson_(url);
-    jobs = jobs.concat((data.content || []).map(function(job) {
-      var loc = job.location || {};
-      return {
-        id: String(job.id || ""),
-        title: job.name || "",
-        company: job.company && job.company.name || source.company || "",
-        location: [loc.city, loc.region, loc.country].filter(Boolean).join(", "),
-        country: loc.country || "",
-        jobUrl: job.ref || ("https://jobs.smartrecruiters.com/" + source.tenant + "/" + job.id),
-        publishedAt: job.releasedDate || job.updatedDate || "",
-        descriptionPlain: job.jobAd && job.jobAd.sections && job.jobAd.sections.jobDescription && job.jobAd.sections.jobDescription.text || "",
-        employmentType: job.typeOfEmployment && job.typeOfEmployment.label || "",
-        compensation: ""
-      };
-    }));
-    url = data.nextPage || data.links && data.links.next || "";
-  }
-  return jobs;
+  return discoverSmartRecruitersPage_(source, "").jobs;
 }
 
 function discoverTeamtailorJobs_(source) {
@@ -142,12 +149,19 @@ function discoverSourcePage_(source, cursor) {
     return discoveryAdapterResult_("configuration_required", [], cursor || "", true, "France Travail adapter is not loaded.");
   }
 
+  if (sourceType === "smartrecruiters") {
+    try {
+      return discoverSmartRecruitersPage_(source, cursor || "");
+    } catch (error) {
+      return discoveryAdapterResult_("fetch_error", [], cursor || "", false, String(error && error.message || error));
+    }
+  }
+
   try {
     var jobs;
     if (sourceType === "ashby") jobs = discoverAshbyJobs_(source);
     else if (sourceType === "greenhouse") jobs = discoverGreenhouseJobs_(source);
     else if (sourceType === "lever") jobs = discoverLeverJobs_(source);
-    else if (sourceType === "smartrecruiters") jobs = discoverSmartRecruitersJobs_(source);
     else if (sourceType === "teamtailor") jobs = discoverTeamtailorJobs_(source);
     else return discoveryAdapterResult_("unsupported", [], "", true, "Unsupported discovery source type: " + sourceType);
 
