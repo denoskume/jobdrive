@@ -10,6 +10,14 @@ const INTERNSHIP_POSITIVE_PATTERNS = [
   /\bfin d['’]études\b/i, /\bfin d'etudes\b/i, /\bpfe\b/i,
 ];
 
+const DESCRIPTION_INTERNSHIP_POSITIVE_PATTERNS = [
+  /\binternship\b/i, /\bintern\b/i, /\bstagiaire\b/i,
+  /\bfin d['’]études\b/i, /\bfin d'etudes\b/i, /\bpfe\b/i,
+  /\bstage\s+(?:de\b|d['’]|en\b|chez\b|au\b|à\b|a\b|pour\b|fin\b|\d+\s*(?:mois|months?)\b)/i,
+  /\b(?:ce|cet|un|une|notre|votre|le|la)\s+stage\b/i,
+  /\b(?:offre|convention|durée|duree|période|periode)\s+(?:de|du)\s+stage\b/i,
+];
+
 const STRICT_OFF_TARGET_ROLE_PATTERNS = [
   ...OFF_TARGET_ROLE_PATTERNS,
   /\bcustomer success\b/i, /\bcustomer support\b/i,
@@ -63,12 +71,12 @@ function firstMatch(patterns, text) {
 
 function internshipSignal(candidate = {}) {
   const fields = [
-    ["title", candidate.role],
-    ["contract", candidate.contract],
-    ["description", candidate.descriptionRaw],
+    ["title", candidate.role, INTERNSHIP_POSITIVE_PATTERNS],
+    ["contract", candidate.contract, INTERNSHIP_POSITIVE_PATTERNS],
+    ["description", candidate.descriptionRaw, DESCRIPTION_INTERNSHIP_POSITIVE_PATTERNS],
   ];
-  for (const [name, value] of fields) {
-    const pattern = INTERNSHIP_POSITIVE_PATTERNS.find((item) => item.test(String(value || "")));
+  for (const [name, value, patterns] of fields) {
+    const pattern = patterns.find((item) => item.test(String(value || "")));
     if (pattern) return `${name}:${String(value || "").match(pattern)?.[0]?.toLowerCase() || "match"}`;
   }
   return "";
