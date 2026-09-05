@@ -25,7 +25,10 @@ export const DISCOVERY_SOURCES = [
   { key:"pigment-ashby", company:"Pigment", type:"ashby", tenant:"pigment", active:false, verifiedAt:"", verificationStatus:"unverified" },
   { key:"contentsquare-greenhouse", company:"Contentsquare", type:"greenhouse", tenant:"contentsquare", active:false, verifiedAt:"", verificationStatus:"unverified" },
   { key:"criteo-greenhouse", company:"Criteo", type:"greenhouse", tenant:"criteo", active:false, verifiedAt:"", verificationStatus:"unverified" },
-  { key:"shifttechnology-lever", company:"Shift Technology", type:"lever", tenant:"shifttechnology", active:false, verifiedAt:"", verificationStatus:"unverified" }
+  { key:"shifttechnology-lever", company:"Shift Technology", type:"lever", tenant:"shifttechnology", active:false, verifiedAt:"", verificationStatus:"unverified" },
+  { key:"france-travail", company:"France Travail", type:"france_travail", tenant:"", active:true, verifiedAt:"", verificationStatus:"configuration_required" },
+  { key:"linkedin-market", company:"LinkedIn Jobs", type:"linkedin_discovery", tenant:"", active:true, verifiedAt:"", verificationStatus:"restricted" },
+  { key:"indeed-market", company:"Indeed", type:"indeed_discovery", tenant:"", active:true, verifiedAt:"", verificationStatus:"restricted" }
 ];
 
 export function activeDiscoverySources() {
