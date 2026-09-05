@@ -37,11 +37,11 @@ test("Coverage Health maps complete incomplete and restricted states explicitly"
   assert.match(code, /lastRotationCompletedAt/);
 });
 
-test("Overview renders CoverageHealthCard below the KPI section", () => {
+test("Overview injects CoverageHealthCard immediately after the KPI section", () => {
   const code = fs.readFileSync(dashboardPath, "utf8");
   assert.match(code, /CoverageHealthCard/);
-  const kpiEnd = code.indexOf("</section>", code.indexOf('className="jd-kpis"'));
-  const coverage = code.indexOf("<CoverageHealthCard", kpiEnd);
-  const workspace = code.indexOf('className="jd-workspace', kpiEnd);
-  assert.ok(kpiEnd >= 0 && coverage > kpiEnd && workspace > coverage);
+  assert.match(code, /querySelector\("\.jd-kpis"\)/);
+  assert.match(code, /insertAdjacentElement\("afterend", slot\)/);
+  assert.match(code, /view === "overview"/);
+  assert.match(code, /retainedTotal=\{jobs\.length\}/);
 });
