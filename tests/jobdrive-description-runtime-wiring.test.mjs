@@ -42,10 +42,10 @@ test("AppPro imports description persistence updater", () => {
 });
 
 
-test("loadJobs keeps the initial Google Sheet read path", () => {
+test("loadJobs keeps the Google Sheet jobs read path when coverage loads in parallel", () => {
   assert.match(
     app,
-    /await\s+readJobs\s*\(/
+    /readJobs\s*\(/
   );
 
   assert.match(
