@@ -17,12 +17,28 @@ function loadExistingDiscoveryIndex_(sheet) {
   });
   return index;
 }
+function ensureDiscoveryScoringHeaders_(sheet) {
+  var expected = [
+    "scoreGrade",
+    "scoreBreakdown",
+    "scoringStrengths",
+    "scoringWeaknesses",
+    "scoringVersion",
+    "scoringUpdatedAt"
+  ];
+  var range = sheet.getRange(1, 35, 1, 6);
+  var current = range.getDisplayValues()[0] || [];
+  var changed = expected.some(function(value, index) {
+    return String(current[index] || "") !== value;
+  });
+  if (changed) range.setValues([expected]);
+}
 function generateDiscoveryJobId_(candidate) {
   var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, [candidate.sourceKey,candidate.externalId,candidate.link,candidate.company,candidate.role].join("|"));
   return "DISC-" + digest.slice(0,6).map(function(b){ return (b & 255).toString(16).padStart(2,"0"); }).join("").toUpperCase();
 }
 function candidateToSheetRow_(candidate, scored) {
-  var row = Array(34).fill("");
+  var row = Array(40).fill("");
   row[0] = generateDiscoveryJobId_(candidate);
   row[1] = "Stage M2";
   row[2] = candidate.company;
@@ -30,6 +46,7 @@ function candidateToSheetRow_(candidate, scored) {
   row[4] = scored.domain || "Data Science / Signal / Image / ML / AI";
   row[5] = candidate.location;
   row[7] = candidate.contract || "Stage";
+  row[8] = candidate.compensation || "";
   row[9] = candidate.postedDate || "";
   row[10] = candidate.deadline || "";
   row[11] = "Nouveau";
@@ -45,6 +62,12 @@ function candidateToSheetRow_(candidate, scored) {
   row[21] = ""; // notes
   row[22] = ""; // lastUpdated remains user/runtime owned
   // X:Y:Z remain reserved business data; AA:AH remain description enrichment data.
+  row[34] = scored.grade || "";
+  row[35] = JSON.stringify(scored.scoreBreakdown || {});
+  row[36] = JSON.stringify(scored.strengths || []);
+  row[37] = JSON.stringify(scored.weaknesses || []);
+  row[38] = scored.scoringVersion || "";
+  row[39] = new Date().toISOString();
   return row;
 }
 function upsertDiscoveredCandidate_(sheet, candidate, scored, index) {
