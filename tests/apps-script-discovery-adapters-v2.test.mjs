@@ -45,7 +45,7 @@ test("Discovery adapters v2 standardize Ashby Greenhouse Lever SmartRecruiters a
     },
     {
       source: {sourceType:"smartrecruiters", tenant:"Acme"},
-      handler: () => response({content:[{id:"s4",name:"Data Intern",location:{city:"Toulouse",country:"fr"},ref:"https://jobs.smartrecruiters.com/Acme/s4"}]}),
+      handler: () => response({offset:0,limit:100,totalFound:1,content:[{id:"s4",name:"Data Intern",location:{city:"Toulouse",country:"fr"},ref:"https://jobs.smartrecruiters.com/Acme/s4"}]}),
     },
     {
       source: {sourceType:"teamtailor", endpoint:"https://career.acme.test/jobs.json"},
@@ -83,20 +83,25 @@ test("Discovery adapters v2 report restricted and unsupported sources honestly",
   assert.equal(unsupported.status, "unsupported");
 });
 
-test("SmartRecruiters exposes real page cursors instead of declaring a truncated scan complete", () => {
-  const firstUrl = "https://api.smartrecruiters.com/v1/companies/Acme/postings?limit=100";
+test("SmartRecruiters uses official offset limit totalFound pagination instead of truncating large boards", () => {
+  const firstUrl = "https://api.smartrecruiters.com/v1/companies/Acme/postings?limit=100&offset=0";
   const secondUrl = "https://api.smartrecruiters.com/v1/companies/Acme/postings?limit=100&offset=100";
   const calls = [];
   const context = loadAdapters((url) => {
     calls.push(url);
     if (url === firstUrl) {
       return response({
+        offset:0,
+        limit:100,
+        totalFound:150,
         content:[{id:"s1",name:"ML Intern",location:{city:"Paris",country:"fr"},ref:"https://jobs.smartrecruiters.com/Acme/s1"}],
-        nextPage: secondUrl,
       });
     }
     if (url === secondUrl) {
       return response({
+        offset:100,
+        limit:100,
+        totalFound:150,
         content:[{id:"s2",name:"Vision Intern",location:{city:"Lyon",country:"fr"},ref:"https://jobs.smartrecruiters.com/Acme/s2"}],
       });
     }
