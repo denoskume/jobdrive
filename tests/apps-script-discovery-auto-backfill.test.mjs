@@ -6,9 +6,16 @@ import vm from "node:vm";
 function loadDiscoveryRunner({backfillActive = false} = {}) {
   const code = fs.readFileSync("apps-script/Discovery.gs", "utf8");
   const calls = [];
+  const properties = new Map([
+    ["JOBDRIVE_BACKFILL_ACTIVE", backfillActive ? "true" : "false"],
+  ]);
   const context = {
     console,
-    isJobDriveBackfillActive_: () => backfillActive,
+    PropertiesService: {
+      getScriptProperties: () => ({
+        getProperty: (key) => properties.get(key) || "",
+      }),
+    },
     runJobDriveBackfillBatch: () => {
       calls.push("backfill");
       return {mode:"backfill", ran:true};
