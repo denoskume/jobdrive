@@ -1,0 +1,92 @@
+name: Phase 2C plan self-review fix
+
+on:
+  push:
+    branches:
+      - feature/phase2c-action-center
+    paths:
+      - .github/workflows/phase2c-plan-self-review-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase2c-action-center
+          fetch-depth: 0
+      - name: Patch plan semantics
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('docs/superpowers/plans/2026-09-05-phase2c-action-center.md')
+          s = p.read_text()
+
+          s = s.replace(
+              '    followUpDate: "",\n    ...overrides,',
+              '    followUpDate: "",\n    lastFollowUp: "",\n    ...overrides,',
+              1,
+          )
+
+          marker = '''test("application without a next follow-up becomes Schedule Follow-up", () => {
+  const fresh = evaluateAction(job({ status: "Candidature envoyée", appliedDate: "2026-09-04" }), { now: NOW });
+  const old = evaluateAction(job({ status: "Candidature envoyée", appliedDate: "2026-09-01" }), { now: NOW });
+  assert.equal(fresh.actionType, "SCHEDULE_FOLLOW_UP");
+  assert.equal(fresh.actionPriority, "Normal");
+  assert.equal(old.actionPriority, "High");
+});
+'''
+          addition = marker + '''
+test("No further follow-up stays inactive until explicitly rescheduled", () => {
+  const result = evaluateAction(job({
+    status: "Candidature envoyée",
+    followUpDate: "",
+    lastFollowUp: "2026-09-04T08:00:00.000Z",
+  }), { now: NOW });
+  assert.equal(result.active, false);
+  assert.equal(result.actionType, "NONE");
+  assert.equal(result.actionReason, "No further follow-up requested");
+});
+'''
+          if marker not in s:
+              raise SystemExit('schedule test marker not found')
+          s = s.replace(marker, addition, 1)
+
+          s = s.replace(
+              'No follow-up scheduled after N days\nStrong Phase 2B fit; application not yet submitted',
+              'No follow-up scheduled after N days\nNo further follow-up requested\nStrong Phase 2B fit; application not yet submitted',
+              1,
+          )
+
+          old_order = '''terminal
+application tracking with followUpDate
+application tracking without followUpDate
+unknown/non-pre-application status'''
+          new_order = '''terminal
+application tracking with followUpDate
+application tracking without followUpDate and populated lastFollowUp -> NONE
+application tracking without followUpDate and empty lastFollowUp -> Schedule Follow-up
+unknown/non-pre-application status'''
+          if old_order not in s:
+              raise SystemExit('decision order marker not found')
+          s = s.replace(old_order, new_order, 1)
+
+          s = s.replace(
+              'covering terminal, score below 75, deadline risk, Apply Now, overdue/today follow-up, and Schedule Follow-up.',
+              'covering terminal, score below 75, deadline risk, Apply Now, overdue/today follow-up, Schedule Follow-up, and No further follow-up.',
+              1,
+          )
+
+          p.write_text(s)
+          PY
+      - name: Commit plan fix and remove one-shot workflow
+        run: |
+          rm .github/workflows/phase2c-plan-self-review-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: resolve phase 2C follow-up state contradiction"
+          git push origin HEAD:feature/phase2c-action-center
