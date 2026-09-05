@@ -7,7 +7,7 @@ var DISCOVERY_DESCRIPTION_INTERNSHIP_PATTERNS_ = [
   /\bfin d['’]études\b/i,
   /\bfin d'etudes\b/i,
   /\bpfe\b/i,
-  /\bstage\s+(?:de\b|d['’]|en\b|chez\b|au\b|à\b|a\b|pour\b|fin\b|\d+\s*(?:mois|months?)\b)/i,
+  /\bstage\s+(?:de\b|d['’]|en\b|chez\b|au\b|à\b|pour\b|fin\b|\d+\s*(?:mois|months?)\b)/i,
   /\b(?:ce|cet|un|une|notre|votre|le|la)\s+stage\b/i,
   /\b(?:offre|convention|durée|duree|période|periode)\s+(?:de|du)\s+stage\b/i
 ];
