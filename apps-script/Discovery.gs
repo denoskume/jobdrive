@@ -1,40 +1,11 @@
 var DISCOVERY_RUNTIME_BUDGET_MS = 240000;
-
-var JOBDRIVE_DISCOVERY_SOURCES_ = [
-  {key:"mistral-ashby",company:"Mistral AI",type:"ashby",tenant:"mistral.ai",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"datadog-greenhouse",company:"Datadog",type:"greenhouse",tenant:"datadog",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"doctolib-greenhouse",company:"Doctolib",type:"greenhouse",tenant:"doctolib",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"backmarket-ashby",company:"Back Market",type:"ashby",tenant:"backmarket",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"bosch-smartrecruiters",company:"Bosch France",type:"smartrecruiters",tenant:"BoschGroup",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"visa-smartrecruiters",company:"Visa",type:"smartrecruiters",tenant:"Visa",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"publicis-smartrecruiters",company:"Publicis Groupe",type:"smartrecruiters",tenant:"PublicisGroupe",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"alan-ashby",company:"Alan",type:"ashby",tenant:"alan",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"nabla-ashby",company:"Nabla",type:"ashby",tenant:"nabla",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"owkin-ashby",company:"Owkin",type:"ashby",tenant:"owkin",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"pennylane-ashby",company:"Pennylane",type:"ashby",tenant:"pennylane",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"hcompany-ashby",company:"H Company",type:"ashby",tenant:"hcompany",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"photoroom-ashby",company:"Photoroom",type:"ashby",tenant:"photoroom",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"dust-ashby",company:"Dust",type:"ashby",tenant:"dust",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"gladia-ashby",company:"Gladia",type:"ashby",tenant:"gladia",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"decathlon-greenhouse",company:"Decathlon Digital",type:"greenhouse",tenant:"decathlontechnologyen",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"ubisoft-smartrecruiters",company:"Ubisoft",type:"smartrecruiters",tenant:"Ubisoft2",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"poolside-ashby",company:"Poolside",type:"ashby",tenant:"poolside",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"dataiku-greenhouse",company:"Dataiku",type:"greenhouse",tenant:"dataiku",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"blablacar-lever",company:"BlaBlaCar",type:"lever",tenant:"blablacar",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"pivot-ashby",company:"Pivot",type:"ashby",tenant:"pivot",active:true,verifiedAt:"2026-09-05",verificationStatus:"verified"},
-  {key:"huggingface-greenhouse",company:"Hugging Face",type:"greenhouse",tenant:"huggingface",active:false,verifiedAt:"2026-09-05",verificationStatus:"failed",notes:"Greenhouse endpoint returned 404 in production run."},
-  {key:"qonto-ashby",company:"Qonto",type:"ashby",tenant:"qonto",active:false,verifiedAt:"",verificationStatus:"unverified"},
-  {key:"pigment-ashby",company:"Pigment",type:"ashby",tenant:"pigment",active:false,verifiedAt:"",verificationStatus:"unverified"},
-  {key:"contentsquare-greenhouse",company:"Contentsquare",type:"greenhouse",tenant:"contentsquare",active:false,verifiedAt:"",verificationStatus:"unverified"},
-  {key:"criteo-greenhouse",company:"Criteo",type:"greenhouse",tenant:"criteo",active:false,verifiedAt:"",verificationStatus:"unverified"},
-  {key:"shifttechnology-lever",company:"Shift Technology",type:"lever",tenant:"shifttechnology",active:false,verifiedAt:"",verificationStatus:"unverified"}
-];
+var DISCOVERY_LIFECYCLE_SCAN_PREFIX_ = "JOBDRIVE_DISCOVERY_SCAN_STARTED_";
 
 function discoveryLocationText_(c){
   return [c.location,c.country].join(" ").toLowerCase();
 }
 function discoveryInternshipText_(c){
-  return [c.role,c.contract].join(" ").toLowerCase();
+  return [c.role,c.contract,c.descriptionRaw].join(" ").toLowerCase();
 }
 function discoveryDurationText_(c){
   return [c.role,c.contract,c.descriptionRaw].join(" ").toLowerCase();
@@ -47,14 +18,57 @@ function discoveryDurationCompatible_(c){
   return !any.test(t);
 }
 
+function discoveryLifecycleScanPropertyKey_(sourceKey) {
+  return DISCOVERY_LIFECYCLE_SCAN_PREFIX_ + String(sourceKey || "source").replace(/[^a-z0-9_.-]+/gi, "_").slice(0, 120);
+}
+
+function discoveryLifecycleScanStartedAt_(source, nowIso) {
+  source = source || {};
+  nowIso = String(nowIso || new Date().toISOString());
+  var cursor = String(source.cursor || "").trim();
+  var fallback = cursor ? String(source.lastAttemptAt || nowIso) : nowIso;
+  if (typeof PropertiesService === "undefined" || !PropertiesService.getScriptProperties) return fallback;
+  var properties = PropertiesService.getScriptProperties();
+  var key = discoveryLifecycleScanPropertyKey_(source.sourceKey || source.key || "");
+  if (!cursor) {
+    properties.setProperty(key, nowIso);
+    return nowIso;
+  }
+  var existing = String(properties.getProperty(key) || "").trim();
+  if (existing) return existing;
+  properties.setProperty(key, fallback);
+  return fallback;
+}
+
+function clearDiscoveryLifecycleScanStartedAt_(sourceKey) {
+  if (typeof PropertiesService === "undefined" || !PropertiesService.getScriptProperties) return;
+  PropertiesService.getScriptProperties().deleteProperty(discoveryLifecycleScanPropertyKey_(sourceKey));
+}
+
 function normalizeDiscoveryCandidate_(raw, source) {
-  return { sourceKey:source.key, externalId:String(raw.id||raw.externalId||""), company:String(raw.company||source.company||"").trim(), role:String(raw.title||raw.role||"").trim(), location:String(raw.location||raw.locationName||"").trim(), country:String(raw.country||"").trim(), postedDate:String(raw.publishedAt||raw.postedDate||raw.createdAt||"").trim(), deadline:String(raw.deadline||"").trim(), link:String(raw.absoluteUrl||raw.jobUrl||raw.url||raw.applyUrl||"").trim(), source:source.type, descriptionRaw:String(raw.descriptionPlain||raw.description||raw.descriptionHtml||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim(), contract:String(raw.employmentType||raw.contract||"").trim(), compensation:String(raw.compensation||raw.salary||raw.salaryRange||"").trim(), detectedAt:new Date().toISOString() };
+  source = source || {};
+  return {
+    sourceKey:String(source.sourceKey||source.key||"").trim(),
+    externalId:String(raw.id||raw.externalId||""),
+    company:String(raw.company||source.company||"").trim(),
+    role:String(raw.title||raw.role||"").trim(),
+    location:String(raw.location||raw.locationName||"").trim(),
+    country:String(raw.country||"").trim(),
+    postedDate:String(raw.publishedAt||raw.postedDate||raw.createdAt||"").trim(),
+    deadline:String(raw.deadline||"").trim(),
+    link:String(raw.absoluteUrl||raw.jobUrl||raw.url||raw.applyUrl||"").trim(),
+    source:String(source.sourceType||source.type||"").trim(),
+    descriptionRaw:String(raw.descriptionPlain||raw.description||raw.descriptionHtml||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim(),
+    contract:String(raw.employmentType||raw.contract||"").trim(),
+    compensation:String(raw.compensation||raw.salary||raw.salaryRange||"").trim(),
+    detectedAt:new Date().toISOString()
+  };
 }
 
 function evaluateDiscoveryCandidate_(c) {
   if (!/^https?:\/\//i.test(c.link)) return {accepted:false,reason:"missing_url"};
   var locationText=discoveryLocationText_(c);
-  var fr=/france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg/.test(locationText);
+  var fr=/france|paris|nantes|lyon|toulouse|bordeaux|grenoble|sophia antipolis|lille|rennes|marseille|aix-en-provence|montpellier|strasbourg|corse|corsica|guadeloupe|martinique|guyane|french guiana|réunion|reunion|mayotte|polynésie française|polynesie francaise|nouvelle-calédonie|nouvelle-caledonie|saint-pierre-et-miquelon/.test(locationText);
   if (!fr) return {accepted:false,reason:"country"};
 
   var internshipText=discoveryInternshipText_(c);
@@ -65,25 +79,85 @@ function evaluateDiscoveryCandidate_(c) {
   return {accepted:true,reason:"accepted"};
 }
 
-function createDiscoveryRunSummary_(){
-  return {startedAt:new Date().toISOString(),finishedAt:"",sourcesAttempted:0,sourcesSucceeded:0,rawJobsFound:0,normalizedJobs:0,rejectedByCountry:0,rejectedByInternshipType:0,rejectedByAcademicPolicy:0,rejectedByTechnicalAlignment:0,rejectedByScore:0,duplicatesSkipped:0,inserted:0,updated:0,sourceErrors:[],sourceHealth:[],runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,runtimeBudgetReached:false,sourcesSkippedByBudget:0};
+function createDiscoveryRunSummary_(mode, startedAt){
+  return {
+    mode:mode||"continuous",
+    startedAt:startedAt||new Date().toISOString(),
+    finishedAt:"",
+    sourcesAttempted:0,
+    sourcesSucceeded:0,
+    rawJobsFound:0,
+    normalizedJobs:0,
+    rejectedByCountry:0,
+    rejectedByInternshipType:0,
+    rejectedByAcademicPolicy:0,
+    rejectedByTechnicalAlignment:0,
+    rejectedByScore:0,
+    duplicatesSkipped:0,
+    inserted:0,
+    updated:0,
+    sourceErrors:[],
+    sourceHealth:[],
+    runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,
+    runtimeBudgetReached:false,
+    sourcesSkippedByBudget:0,
+    rotationCompleted:false,
+    lastRotationCompletedAt:""
+  };
 }
 
 function sourceHealthEntry_(source, status, jobsFound, elapsedMs, error) {
-  return {source:source.key,type:source.type,status:status,jobsFound:jobsFound||0,elapsedMs:elapsedMs||0,error:error||""};
+  source = source || {};
+  return {
+    source:source.sourceKey||source.key||"",
+    type:source.sourceType||source.type||"",
+    status:status,
+    jobsFound:jobsFound||0,
+    elapsedMs:elapsedMs||0,
+    error:error||""
+  };
 }
 
-function runJobDriveDiscovery() {
+function lifecycleListingsFromSourceResult_(jobs) {
+  return (jobs || []).map(function(raw) {
+    var id = String(raw.id || raw.externalId || "").trim();
+    if (!id) return null;
+    var status = String(raw.lifecycleStatus || raw.status || raw.state || "").trim();
+    if (!status && (raw.closed === true || raw.expired === true)) status = raw.expired === true ? "expired" : "closed";
+    return status ? {id:id,status:status} : id;
+  }).filter(function(value) { return value != null; });
+}
+
+function runDiscoveryBatch_(options) {
+  options=options||{};
+  var mode=options.mode==="backfill"?"backfill":"continuous";
+  var now=options.now instanceof Date?options.now:new Date();
+  var nowIso=now.toISOString();
   var startedMs=Date.now();
-  var summary=createDiscoveryRunSummary_();
+  var summary=createDiscoveryRunSummary_(mode,nowIso);
+  summary.mode=mode;
   var sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   if(!sheet) throw new Error("Sheet not found");
   ensureDiscoveryScoringHeaders_(sheet);
+  ensureDiscoveryLifecycleHeaders_(sheet);
   var index=loadExistingDiscoveryIndex_(sheet);
-  var activeSources=JOBDRIVE_DISCOVERY_SOURCES_.filter(function(s){return s.active&&s.verificationStatus==="verified";});
 
-  JOBDRIVE_DISCOVERY_SOURCES_.filter(function(s){return !s.active;}).forEach(function(source){
+  seedDiscoveryRegistry_();
+  if(typeof refreshFranceTravailRegistryConfig_==="function") refreshFranceTravailRegistryConfig_();
+  verifyPendingDiscoverySources_(5,nowIso);
+  var registeredSources=loadDiscoverySources_();
+  var activeSources=selectDiscoveryBatch_(registeredSources,nowIso,{
+    maxSources:25,
+    runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,
+    mode:mode,
+    rotationStartedAt:options.rotationStartedAt||""
+  });
+
+  registeredSources.filter(function(s){return !s.active;}).forEach(function(source){
     summary.sourceHealth.push(sourceHealthEntry_(source,"inactive",0,0,""));
+  });
+  registeredSources.filter(function(s){return s.active&&s.verificationStatus!=="verified";}).forEach(function(source){
+    summary.sourceHealth.push(sourceHealthEntry_(source,source.healthState||source.verificationStatus||"pending",0,0,""));
   });
 
   for(var i=0;i<activeSources.length;i++){
@@ -96,16 +170,18 @@ function runJobDriveDiscovery() {
 
     summary.sourcesAttempted++;
     var sourceStartedMs=Date.now();
+    var lifecycleScanStartedAt=discoveryLifecycleScanStartedAt_(source,new Date().toISOString());
     try {
-      var result=discoverSourceJobs_(source);
+      var result=discoverSourcePage_(source,source.cursor||"");
       var elapsedMs=Date.now()-sourceStartedMs;
+      persistDiscoverySourceHealth_(source,result,new Date().toISOString());
       if(result.status==="fetch_error"){
-        summary.sourceErrors.push({source:source.key,error:result.error});
+        summary.sourceErrors.push({source:source.sourceKey||source.key,error:result.error});
         summary.sourceHealth.push(sourceHealthEntry_(source,"fetch_error",0,elapsedMs,result.error));
         continue;
       }
-      if(result.status==="unsupported"){
-        summary.sourceHealth.push(sourceHealthEntry_(source,"unsupported",0,elapsedMs,""));
+      if(result.status==="unsupported"||result.status==="restricted"||result.status==="configuration_required"){
+        summary.sourceHealth.push(sourceHealthEntry_(source,result.status,0,elapsedMs,result.error||""));
         continue;
       }
 
@@ -123,7 +199,7 @@ function runJobDriveDiscovery() {
           return;
         }
 
-        var scored=scoreInternshipCandidate_(c,new Date().toISOString());
+        var scored=scoreInternshipCandidateEvidence_(c,new Date().toISOString());
         if(!scored.accepted){
           if(scored.rejectionReason==="internship_type"||scored.rejectionReason==="internship_duration") summary.rejectedByInternshipType++;
           else if(scored.rejectionReason==="academic_policy") summary.rejectedByAcademicPolicy++;
@@ -133,20 +209,53 @@ function runJobDriveDiscovery() {
 
         if(scored.fitScore<75){ summary.rejectedByScore++; return; }
         var action=upsertDiscoveredCandidate_(sheet,c,scored,index);
+        registerDiscoveredCareerSource_(c.link,source.sourceKey||source.key||"");
         if(action==="inserted") summary.inserted++;
         else if(action==="updated") summary.updated++;
         else summary.duplicatesSkipped++;
       });
+
+      var lifecycleListings=lifecycleListingsFromSourceResult_(result.jobs);
+      var lifecycleSeenAt=new Date().toISOString();
+      if(typeof markSourceListingsSeen_==="function"){
+        markSourceListingsSeen_(source.sourceKey||source.key||"",lifecycleListings,lifecycleSeenAt);
+      }
+
+      if(result.done===true && (result.status==="ok"||result.status==="empty") && typeof refreshMarketLifecycleForSource_==="function"){
+        refreshMarketLifecycleForSource_(
+          source.sourceKey||source.key||"",
+          lifecycleListings,
+          lifecycleSeenAt,
+          lifecycleScanStartedAt
+        );
+        clearDiscoveryLifecycleScanStartedAt_(source.sourceKey||source.key||"");
+      }
     } catch(error){
       var message=String(error&&error.message||error);
-      summary.sourceErrors.push({source:source.key,error:message});
+      persistDiscoverySourceHealth_(source,{status:"fetch_error",jobs:[],error:message},new Date().toISOString());
+      summary.sourceErrors.push({source:source.sourceKey||source.key,error:message});
       summary.sourceHealth.push(sourceHealthEntry_(source,"fetch_error",0,Date.now()-sourceStartedMs,message));
     }
   }
 
   summary.finishedAt=new Date().toISOString();
+  if(mode==="backfill"&&options.rotationStartedAt&&typeof isBackfillRotationComplete_==="function"){
+    summary.rotationCompleted=isBackfillRotationComplete_(loadDiscoverySources_(),options.rotationStartedAt);
+    if(summary.rotationCompleted) summary.lastRotationCompletedAt=summary.finishedAt;
+  }
+  if(typeof appendDiscoveryRun_==="function"){
+    try {
+      appendDiscoveryRun_(summary);
+    } catch(auditError) {
+      summary.auditError=String(auditError&&auditError.message||auditError);
+    }
+  }
   console.log(JSON.stringify(summary));
   return summary;
+}
+
+function runJobDriveDiscovery() {
+  return runDiscoveryBatch_({mode:"continuous",now:new Date()});
 }
 
 function removeJobDriveDiscoveryTriggers(){ ScriptApp.getProjectTriggers().forEach(function(t){ if(t.getHandlerFunction()==="runJobDriveDiscovery") ScriptApp.deleteTrigger(t); }); }

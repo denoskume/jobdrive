@@ -1,0 +1,128 @@
+.jd-coverage-health-slot {
+  padding: 0 24px 14px;
+}
+
+.jd-coverage-health {
+  min-height: 104px;
+  margin: 0 24px 14px;
+  padding: 13px 15px;
+  border: 1px solid var(--jd-border);
+  border-radius: 10px;
+  background: linear-gradient(145deg, var(--jd-panel-2), var(--jd-panel));
+  color: var(--jd-text);
+}
+
+.jd-coverage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 11px;
+}
+
+.jd-coverage-head > div {
+  min-width: 0;
+}
+
+.jd-coverage-head span,
+.jd-coverage-metrics small {
+  display: block;
+  color: var(--jd-muted);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: .04em;
+}
+
+.jd-coverage-head strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+}
+
+.jd-coverage-head b {
+  padding: 5px 8px;
+  border: 1px solid var(--jd-border-2);
+  border-radius: 999px;
+  background: var(--jd-panel-3);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.jd-coverage-complete .jd-coverage-head b {
+  color: var(--jd-green);
+}
+
+.jd-coverage-incomplete .jd-coverage-head b {
+  color: var(--jd-orange);
+}
+
+.jd-coverage-restricted .jd-coverage-head b {
+  color: var(--jd-cyan);
+}
+
+.jd-coverage-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.jd-coverage-metrics article {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--jd-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--jd-panel-3) 82%, transparent);
+}
+
+.jd-coverage-metrics strong {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--jd-text);
+  font-size: 16px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jd-coverage-metrics strong.compact {
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.jd-coverage-error {
+  margin: 9px 0 0;
+  color: var(--jd-orange);
+  font-size: 10px;
+}
+
+@media (max-width: 1180px) {
+  .jd-coverage-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .jd-coverage-health-slot {
+    padding: 0 14px 12px;
+  }
+
+  .jd-coverage-health {
+    margin: 0 14px 12px;
+  }
+
+  .jd-coverage-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .jd-coverage-head b {
+    white-space: normal;
+  }
+
+  .jd-coverage-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

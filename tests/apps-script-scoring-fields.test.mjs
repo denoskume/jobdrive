@@ -3,11 +3,20 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const discovery = fs.readFileSync("apps-script/Discovery.gs", "utf8");
+const scoringEvidenceV2 = fs.readFileSync("apps-script/ScoringEvidenceV2.gs", "utf8");
+const scoring = fs.readFileSync("apps-script/Scoring.gs", "utf8");
 const sheet = fs.readFileSync("apps-script/DiscoverySheet.gs", "utf8");
 const api = fs.readFileSync("apps-script/Code.gs", "utf8");
 
-test("discovery delegates weighted scoring to the Phase 2B scorer", () => {
-  assert.match(discovery, /scoreInternshipCandidate_\s*\(/);
+test("discovery delegates weighted scoring to the Phase 2B evidence-aware scorer", () => {
+  assert.match(discovery, /scoreInternshipCandidateEvidence_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringAlignmentScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringTechnicalQualityScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringCompanyQualityScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringPracticalFitScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringFreshnessScore_\s*\(/);
+  assert.match(scoringEvidenceV2, /scoringCompensationScore_\s*\(/);
+  assert.match(scoring, /var\s+SCORING_VERSION_\s*=\s*["']2\.0["']/);
   assert.doesNotMatch(discovery, /function\s+scoreDiscoveryCandidate_\s*\(/);
   assert.match(discovery, /scored\.fitScore\s*<\s*75/);
 });
@@ -30,8 +39,8 @@ test("discovery rejects explicit durations outside the 5-6 month target", () => 
   assert.match(discovery, /reason\s*:\s*["']internship_duration["']/);
 });
 
-test("Sheet insert expands to AI:AN without taking ownership of tracking fields", () => {
-  assert.match(sheet, /Array\(40\)\.fill\(["']{2}\)/);
+test("Sheet insert expands through BC without taking ownership of tracking fields", () => {
+  assert.match(sheet, /Array\(55\)\.fill\(["']{2}\)/);
   assert.match(sheet, /row\[34\]\s*=\s*scored\.grade/);
   assert.match(sheet, /row\[35\]\s*=\s*JSON\.stringify\(scored\.scoreBreakdown/);
   assert.match(sheet, /row\[36\]\s*=\s*JSON\.stringify\(scored\.strengths/);
@@ -44,6 +53,11 @@ test("Sheet insert expands to AI:AN without taking ownership of tracking fields"
   assert.doesNotMatch(sheet, /row\[20\]\s*=\s*scored/);
   assert.doesNotMatch(sheet, /row\[21\]\s*=\s*scored/);
   assert.doesNotMatch(sheet, /row\[22\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[40\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[41\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[42\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[43\]\s*=\s*scored/);
+  assert.doesNotMatch(sheet, /row\[44\]\s*=\s*scored/);
 });
 
 test("Apps Script defines exact scoring headers in AI through AN", () => {

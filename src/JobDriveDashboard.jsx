@@ -10,6 +10,7 @@ import {
 } from "./utils/jobDrive.mjs";
 
 import CompanyLogo from "./components/CompanyLogo.jsx";
+import CoverageHealthCard from "./discovery/CoverageHealthCard.jsx";
 
 import "./jobdrive-dashboard.css";
 
@@ -1359,6 +1360,8 @@ export default function JobDriveDashboard({
   onLogout,
   alternateContent,
   userProfile,
+  coverage,
+  coverageError = "",
   actionKpi = {
     todayCount: 0,
     criticalCount: 0,
@@ -1665,6 +1668,11 @@ export default function JobDriveDashboard({
 
             </section>
 
+            <CoverageHealthCard
+              coverage={coverage}
+              retainedTotal={jobs.length}
+              error={coverageError}
+            />
 
             <section className="jd-workspace jd-internship-stage">
 

@@ -178,9 +178,9 @@ test("recommended ranking is fit-first then priority deadline publication and de
   );
 });
 
-test("Sheets client keeps Phase 2B scoring metadata inside the extended A:AS range", () => {
+test("Sheets client keeps Phase 2B scoring metadata while reading the full Phase 2D A:BC range", () => {
   const code = fs.readFileSync("src/services/sheetsApi.js", "utf8");
-  assert.match(code, /'\$\{SHEET_NAME\}'!A:AS/);
+  assert.match(code, /'\$\{SHEET_NAME\}'!A:BC/);
 });
 
 test("AppPro defaults to recommended ranking and exposes Fit Intelligence", () => {
