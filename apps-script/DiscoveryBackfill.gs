@@ -8,7 +8,10 @@ function discoveryBackfillProperties_() {
 }
 
 function discoveryBackfillNow_(now) {
-  return now instanceof Date ? now : new Date();
+  if (now && typeof now.getTime === "function" && isFinite(now.getTime())) {
+    return new Date(now.getTime());
+  }
+  return new Date();
 }
 
 function discoveryBackfillIso_(now) {
