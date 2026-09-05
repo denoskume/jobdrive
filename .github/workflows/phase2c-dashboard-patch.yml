@@ -23,154 +23,139 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           p = Path("src/JobDriveDashboard.jsx")
           s = p.read_text()
 
-          replacements = [
-              (
-                  '''function KPI({
-            label,
-            value,
-            hint,
-            icon,
-            tone,
-          }) {
-            return (
-              <article className={`jd-kpi ${tone}`}>
-          ''',
-                  '''function KPI({
-            label,
-            value,
-            hint,
-            icon,
-            tone,
-            onClick,
-          }) {
-            return (
-              <article
-                className={`jd-kpi ${tone}`}
-                onClick={onClick}
-                role={onClick ? "button" : undefined}
-                tabIndex={onClick ? 0 : undefined}
-                onKeyDown={(event) => {
-                  if (onClick && (event.key === "Enter" || event.key === " ")) {
-                    event.preventDefault();
-                    onClick();
-                  }
-                }}
-              >
-          ''',
-              ),
-              (
-                  '''        <button
-                    className={
-                      view === "pipeline"
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() =>
-                      onViewChange("pipeline")
-                    }
-                  >
-                    <Icon name="pipeline" />
-                    Pipeline
-                  </button>
-          ''',
-                  '''        <button
-                    className={
-                      view === "actions"
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() =>
-                      onViewChange("actions")
-                    }
-                  >
-                    <Icon name="bell" />
-                    Action Center
-                  </button>
-
-                  <button
-                    className={
-                      view === "pipeline"
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() =>
-                      onViewChange("pipeline")
-                    }
-                  >
-                    <Icon name="pipeline" />
-                    Pipeline
-                  </button>
-          ''',
-              ),
-              (
-                  '''          >
-                    <option value="newest">
-                      Newest
-                    </option>
-          ''',
-                  '''          >
-                    <option value="recommended">
-                      Recommended
-                    </option>
-                    <option value="newest">
-                      Newest
-                    </option>
-          ''',
-              ),
-              (
-                  '''  alternateContent,
-            userProfile,
-          }) {
-          ''',
-                  '''  alternateContent,
-            userProfile,
-            actionKpi = {
-              todayCount: 0,
-              criticalCount: 0,
-              highCount: 0,
-            },
-          }) {
-          ''',
-              ),
-              (
-                  '''              <KPI
-                    label="HIGH MATCH"
-                    value={highMatch}
-                    hint="≥ 85% match"
-                    icon="target"
-                    tone="green"
-                  />
-          ''',
-                  '''              <KPI
-                    label="HIGH MATCH"
-                    value={highMatch}
-                    hint="≥ 85% match"
-                    icon="target"
-                    tone="green"
-                  />
-
-                  <KPI
-                    label="ACTIONS TODAY"
-                    value={actionKpi.todayCount}
-                    hint={`${actionKpi.criticalCount} critical · ${actionKpi.highCount} high`}
-                    icon="bell"
-                    tone="orange"
-                    onClick={() => onViewChange("actions")}
-                  />
-          ''',
-              ),
-          ]
-
-          for old, new in replacements:
-              old = old.replace("          ", "")
-              new = new.replace("          ", "")
+          def replace_once(old, new, label):
+              global s
               if old not in s:
-                  raise SystemExit("dashboard patch marker not found:\n" + old[:160])
+                  raise SystemExit(f"dashboard patch marker not found: {label}")
               s = s.replace(old, new, 1)
+
+          replace_once(
+              '''function KPI({
+  label,
+  value,
+  hint,
+  icon,
+  tone,
+}) {
+  return (
+    <article className={`jd-kpi ${tone}`}>
+''',
+              '''function KPI({
+  label,
+  value,
+  hint,
+  icon,
+  tone,
+  onClick,
+}) {
+  return (
+    <article
+      className={`jd-kpi ${tone}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (onClick && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
+''',
+              "KPI",
+          )
+
+          pipeline = re.search(
+              r'\n        <button\n          className=\{\n            view === "pipeline".*?\n        </button>\n',
+              s,
+              re.S,
+          )
+          if not pipeline:
+              raise SystemExit("dashboard patch marker not found: pipeline nav")
+          action_button = '''
+        <button
+          className={
+            view === "actions"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            onViewChange("actions")
+          }
+        >
+          <Icon name="bell" />
+          Action Center
+        </button>
+'''
+          s = s[:pipeline.start()] + action_button + s[pipeline.start():]
+
+          replace_once(
+              '''          >
+            <option value="newest">
+              Newest
+            </option>
+''',
+              '''          >
+            <option value="recommended">
+              Recommended
+            </option>
+            <option value="newest">
+              Newest
+            </option>
+''',
+              "recommended sort",
+          )
+
+          replace_once(
+              '''  alternateContent,
+  userProfile,
+}) {
+''',
+              '''  alternateContent,
+  userProfile,
+  actionKpi = {
+    todayCount: 0,
+    criticalCount: 0,
+    highCount: 0,
+  },
+}) {
+''',
+              "dashboard props",
+          )
+
+          replace_once(
+              '''              <KPI
+                label="HIGH MATCH"
+                value={highMatch}
+                hint="≥ 85% match"
+                icon="target"
+                tone="green"
+              />
+''',
+              '''              <KPI
+                label="HIGH MATCH"
+                value={highMatch}
+                hint="≥ 85% match"
+                icon="target"
+                tone="green"
+              />
+
+              <KPI
+                label="ACTIONS TODAY"
+                value={actionKpi.todayCount}
+                hint={`${actionKpi.criticalCount} critical · ${actionKpi.highCount} high`}
+                icon="bell"
+                tone="orange"
+                onClick={() => onViewChange("actions")}
+              />
+''',
+              "action KPI",
+          )
 
           p.write_text(s)
           PY
