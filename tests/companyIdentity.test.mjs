@@ -380,7 +380,7 @@ test("resolveCompanyIdentity uses cached identity before URL inference", () => {
   };
 
   storage.setItem(
-    "jobdrive.companyIdentity.v1",
+    "jobdrive.companyIdentity.v2",
     JSON.stringify(cache)
   );
 
@@ -553,7 +553,7 @@ test("resolveCompanyIdentity caches official URL resolution", () => {
 
   const raw =
     storage.getItem(
-      "jobdrive.companyIdentity.v1"
+      "jobdrive.companyIdentity.v2"
     );
 
   assert.ok(raw);

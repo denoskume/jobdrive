@@ -302,36 +302,34 @@ test("sortInternships supports deadline, match, priority and company", () => {
   }
 });
 
-test("normalizes company identity metadata from Google Sheet rows", () => {
+test("normalizes real business columns without treating them as logo metadata", () => {
   const headers = Array.from(
-    { length: 25 },
+    { length: 26 },
     (_, index) => `column-${index}`
   );
 
-  const row = Array(25).fill("");
+  const row = Array(26).fill("");
 
   row[0] = "identity-1";
   row[1] = "Stage M2";
   row[2] = "Example Company";
   row[3] = "AI Internship";
 
-  row[23] = "example.com";
-  row[24] = "https://cdn.example.com/logo.svg";
+  row[23] = "97";
+  row[24] = "92";
+  row[25] = "Faible";
 
   const [job] = normalizeJobs([
     headers,
     row,
   ]);
 
-  assert.equal(
-    job.companyDomain,
-    "example.com"
-  );
+  assert.equal(job.dassipScore, 97);
+  assert.equal(job.companySubjectScore, 92);
+  assert.equal(job.validationRisk, "Faible");
 
-  assert.equal(
-    job.logoUrl,
-    "https://cdn.example.com/logo.svg"
-  );
+  assert.equal(job.companyDomain, "");
+  assert.equal(job.logoUrl, "");
 });
 
 

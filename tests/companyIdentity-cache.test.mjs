@@ -35,7 +35,7 @@ function createStorage() {
 test("uses versioned cache key", () => {
   assert.equal(
     CACHE_KEY,
-    "jobdrive.companyIdentity.v1"
+    "jobdrive.companyIdentity.v2"
   );
 });
 
