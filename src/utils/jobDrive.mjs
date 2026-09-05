@@ -319,6 +319,23 @@ export function normalizeJobs(values = []) {
 
       scoringUpdatedAt:
         String(row[39] || "").trim(),
+
+      lastFollowUp:
+        String(row[40] || "").trim(),
+
+      followUpCount:
+        Number.isFinite(Number(row[41]))
+          ? Number(row[41])
+          : 0,
+
+      actionPriority:
+        String(row[42] || "").trim(),
+
+      actionReason:
+        String(row[43] || "").trim(),
+
+      actionUpdatedAt:
+        String(row[44] || "").trim(),
     }))
     .filter((job) => job.id);
 }

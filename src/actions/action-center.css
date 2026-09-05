@@ -1,0 +1,254 @@
+.jd-action-center {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100%;
+  padding: 24px;
+  color: inherit;
+}
+
+.jd-action-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.jd-action-header span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  opacity: 0.62;
+}
+
+.jd-action-header h1,
+.jd-action-group h2,
+.jd-action-card h3,
+.jd-action-header p,
+.jd-action-reason {
+  margin: 0;
+}
+
+.jd-action-header h1 {
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+.jd-action-header p {
+  margin-top: 7px;
+  opacity: 0.68;
+}
+
+.jd-action-header > strong {
+  white-space: nowrap;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.jd-action-groups {
+  display: grid;
+  gap: 22px;
+}
+
+.jd-action-group {
+  display: grid;
+  gap: 12px;
+}
+
+.jd-action-group > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.jd-action-group > header h2 {
+  font-size: 16px;
+}
+
+.jd-action-group > header span {
+  min-width: 30px;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.jd-action-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.jd-action-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, currentColor 3%, transparent);
+}
+
+.jd-action-card.priority-critical {
+  border-width: 2px;
+}
+
+.jd-action-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.jd-action-card-head > div:first-child {
+  min-width: 0;
+}
+
+.jd-action-card h3 {
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.jd-action-card-head strong {
+  display: block;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  opacity: 0.72;
+}
+
+.jd-action-priority {
+  display: inline-flex;
+  padding: 4px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.jd-action-score {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.jd-action-score b,
+.jd-action-score span {
+  display: block;
+}
+
+.jd-action-score b {
+  font-size: 18px;
+}
+
+.jd-action-score span {
+  margin-top: 2px;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.jd-action-reason {
+  font-size: 13px;
+  line-height: 1.55;
+  opacity: 0.84;
+}
+
+.jd-action-meta,
+.jd-action-links,
+.jd-action-control > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jd-action-meta span {
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.jd-action-links button,
+.jd-action-links a,
+.jd-action-control button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.jd-action-links button:disabled,
+.jd-action-control button:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
+
+.jd-action-control {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.jd-action-control > strong {
+  font-size: 12px;
+}
+
+.jd-action-empty {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  padding: 32px;
+  border: 1px dashed color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 18px;
+  text-align: center;
+}
+
+.jd-action-empty p {
+  margin: 6px 0 0;
+  opacity: 0.62;
+}
+
+@media (max-width: 760px) {
+  .jd-action-center {
+    padding: 16px;
+  }
+
+  .jd-action-header,
+  .jd-action-card-head {
+    flex-direction: column;
+  }
+
+  .jd-action-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jd-action-links,
+  .jd-action-control > div {
+    width: 100%;
+  }
+
+  .jd-action-links button,
+  .jd-action-links a,
+  .jd-action-control button {
+    min-height: 44px;
+    flex: 1 1 132px;
+  }
+}

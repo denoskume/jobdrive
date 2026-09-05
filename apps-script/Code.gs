@@ -66,7 +66,12 @@ function doGet(e) {
       scoringStrengths: row[36] || "",
       scoringWeaknesses: row[37] || "",
       scoringVersion: row[38] || "",
-      scoringUpdatedAt: row[39] || ""
+      scoringUpdatedAt: row[39] || "",
+      lastFollowUp: row[40] || "",
+      followUpCount: Number(row[41] || 0),
+      actionPriority: row[42] || "",
+      actionReason: row[43] || "",
+      actionUpdatedAt: row[44] || ""
     }));
 
   return jsonResponse({

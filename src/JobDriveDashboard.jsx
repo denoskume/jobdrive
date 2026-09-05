@@ -230,9 +230,21 @@ function KPI({
   hint,
   icon,
   tone,
+  onClick,
 }) {
   return (
-    <article className={`jd-kpi ${tone}`}>
+    <article
+      className={`jd-kpi ${tone}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (onClick && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <div>
         <small>{label}</small>
         <strong>{value}</strong>
@@ -336,6 +348,20 @@ function Sidebar({
         >
           <Icon name="overview" />
           Overview
+        </button>
+
+        <button
+          className={
+            view === "actions"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            onViewChange("actions")
+          }
+        >
+          <Icon name="bell" />
+          Action Center
         </button>
 
         <button
@@ -659,6 +685,9 @@ function JobFeed({
               )
             }
           >
+            <option value="recommended">
+              Recommended
+            </option>
             <option value="newest">
               Newest
             </option>
@@ -1330,6 +1359,11 @@ export default function JobDriveDashboard({
   onLogout,
   alternateContent,
   userProfile,
+  actionKpi = {
+    todayCount: 0,
+    criticalCount: 0,
+    highCount: 0,
+  },
 }) {
 
   const [theme, setTheme] =
@@ -1594,6 +1628,15 @@ export default function JobDriveDashboard({
                 hint="≥ 85% match"
                 icon="target"
                 tone="green"
+              />
+
+              <KPI
+                label="ACTIONS TODAY"
+                value={actionKpi.todayCount}
+                hint={`${actionKpi.criticalCount} critical · ${actionKpi.highCount} high`}
+                icon="bell"
+                tone="orange"
+                onClick={() => onViewChange("actions")}
               />
 
               <KPI

@@ -178,20 +178,22 @@ test("recommended ranking is fit-first then priority deadline publication and de
   );
 });
 
-test("Sheets client reads through AN for scoring metadata", () => {
+test("Sheets client keeps Phase 2B scoring metadata inside the extended A:AS range", () => {
   const code = fs.readFileSync("src/services/sheetsApi.js", "utf8");
-  assert.match(code, /'\$\{SHEET_NAME\}'!A:AN/);
+  assert.match(code, /'\$\{SHEET_NAME\}'!A:AS/);
 });
 
 test("AppPro defaults to recommended ranking and exposes Fit Intelligence", () => {
-  const code = fs.readFileSync("src/AppPro.jsx", "utf8");
+  const appPro = fs.readFileSync("src/AppPro.jsx", "utf8");
+  const dashboard = fs.readFileSync("src/JobDriveDashboard.jsx", "utf8");
 
-  assert.match(code, /useState\("recommended"\)/);
-  assert.doesNotMatch(code, /useState\("newest"\)/);
-  assert.match(code, /<option value="recommended">/);
-  assert.match(code, /Fit Intelligence/);
-  assert.match(code, /job\.scoreGrade/);
-  assert.match(code, /job\.scoreBreakdown/);
-  assert.match(code, /job\.scoringStrengths/);
-  assert.match(code, /job\.scoringWeaknesses/);
+  assert.match(appPro, /useState\("recommended"\)/);
+  assert.doesNotMatch(appPro, /useState\("newest"\)/);
+  assert.match(dashboard, /<option value="recommended">/);
+  assert.match(dashboard, /Recommended/);
+  assert.match(appPro, /Fit Intelligence/);
+  assert.match(appPro, /job\.scoreGrade/);
+  assert.match(appPro, /job\.scoreBreakdown/);
+  assert.match(appPro, /job\.scoringStrengths/);
+  assert.match(appPro, /job\.scoringWeaknesses/);
 });
