@@ -77,8 +77,9 @@ function runJobDriveDiscovery() {
   var index=loadExistingDiscoveryIndex_(sheet);
 
   seedDiscoveryRegistry_();
-  var registeredSources=loadDiscoverySources_();
   var nowIso=new Date().toISOString();
+  verifyPendingDiscoverySources_(5, nowIso);
+  var registeredSources=loadDiscoverySources_();
   var activeSources=selectDiscoveryBatch_(registeredSources,nowIso,{maxSources:25,runtimeBudgetMs:DISCOVERY_RUNTIME_BUDGET_MS,mode:"continuous"});
 
   registeredSources.filter(function(s){return !s.active;}).forEach(function(source){
@@ -136,6 +137,7 @@ function runJobDriveDiscovery() {
 
         if(scored.fitScore<75){ summary.rejectedByScore++; return; }
         var action=upsertDiscoveredCandidate_(sheet,c,scored,index);
+        registerDiscoveredCareerSource_(c.link, source.sourceKey||source.key||"");
         if(action==="inserted") summary.inserted++;
         else if(action==="updated") summary.updated++;
         else summary.duplicatesSkipped++;
