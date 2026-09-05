@@ -26,8 +26,8 @@ import {
   STATUS_OPTIONS,
   addDaysISO,
   calculateAnalytics,
+  deadlineInfo,
   filterInternships,
-  internshipSpecializations,
   sortInternships,
   sourceAnalytics,
   statusLabel,
@@ -230,6 +230,47 @@ function FitIntelligence({ job }) {
   );
 }
 
+function priorityClass(priority) {
+  if (priority === "Haute") return "high";
+  if (priority === "Moyenne") return "medium";
+  return "low";
+}
+
+function matchClass(score) {
+  if (score >= 90) return "excellent";
+  if (score >= 80) return "strong";
+  return "moderate";
+}
+
+function DeadlineBadge({ deadline }) {
+  const info = deadlineInfo(deadline);
+  if (info.state === "none") {
+    return <span className="pro-deadline neutral">No deadline</span>;
+  }
+  if (info.state === "expired") {
+    return <span className="pro-deadline expired">Expired</span>;
+  }
+  if (info.days <= 3) {
+    return <span className="pro-deadline urgent">Deadline · {info.days}d</span>;
+  }
+  if (info.days <= 7) {
+    return <span className="pro-deadline soon">Deadline · {info.days}d</span>;
+  }
+  return <span className="pro-deadline">Deadline · {deadline}</span>;
+}
+
+function FollowUpBadge({ job }) {
+  if (!job.followUpDate) return null;
+  const info = deadlineInfo(job.followUpDate);
+  if (info.state === "expired") {
+    return <span className="pro-followup overdue">Follow-up overdue</span>;
+  }
+  if (info.state === "future" && info.days <= 2) {
+    return <span className="pro-followup">Follow-up in {info.days}d</span>;
+  }
+  return <span className="pro-followup">Follow-up · {job.followUpDate}</span>;
+}
+
 function JobDrawer({ job, saving, onClose, onSave }) {
   const [draft, setDraft] = useState(null);
 
@@ -264,9 +305,25 @@ function JobDrawer({ job, saving, onClose, onSave }) {
         <div className="pro-drawer-body">
           <section className="pro-score-summary">
             <div>
-              <span className="pro-match">{job.fitScore ? `${job.fitScore}% Match` : "No score"}</span>
-              {job.priority && <span className="pro-priority">{job.priority}</span>}
+              <span className={`pro-match ${matchClass(job.fitScore)}`}>
+                {job.fitScore ? `${job.fitScore}% Match` : "No score"}
+              </span>
+              {job.priority && (
+                <span className={`pro-priority ${priorityClass(job.priority)}`}>
+                  {job.priority}
+                </span>
+              )}
             </div>
+            <DeadlineBadge deadline={job.deadline} />
+          </section>
+
+          <section className="pro-detail-grid">
+            <div><small>Location</small><strong>{job.location || "Not specified"}</strong></div>
+            <div><small>Mode</small><strong>{job.mode || "Not specified"}</strong></div>
+            <div><small>Contract</small><strong>{job.contract || "Not specified"}</strong></div>
+            <div><small>Compensation</small><strong>{job.compensation || "Not specified"}</strong></div>
+            <div><small>Detected</small><strong>{job.detectedDate || "Unknown"}</strong></div>
+            <div><small>Source</small><strong>{job.source || "Unknown"}</strong></div>
           </section>
 
           {job.whyRelevant && (
@@ -315,6 +372,8 @@ function JobDrawer({ job, saving, onClose, onSave }) {
                 />
               </label>
             </div>
+
+            <FollowUpBadge job={{ ...job, followUpDate: draft.followUpDate }} />
 
             <label className="pro-field">
               <span>Private Notes</span>
@@ -380,7 +439,6 @@ export default function AppPro() {
   const [quickFilter, setQuickFilter] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedJobId, setSelectedJobId] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
   const expiryTimer = useRef(null);
 
   const loadJobs = useCallback(async () => {
@@ -421,7 +479,6 @@ export default function AppPro() {
       }
 
       setJobs(enrichedInternships);
-      setLastUpdated(new Date());
       setSelectedJob((current) =>
         current
           ? enrichedInternships.find((job) => job.id === current.id) || current
@@ -489,7 +546,6 @@ export default function AppPro() {
     const next = { ...job, ...patch };
     setJobs((current) => current.map((item) => item.id === job.id ? next : item));
     setSelectedJob((current) => current?.id === job.id ? next : current);
-    setLastUpdated(new Date());
     return next;
   }
 
@@ -591,8 +647,6 @@ export default function AppPro() {
     }
   }
 
-  const specializations = useMemo(() => internshipSpecializations(jobs), [jobs]);
-  const metrics = useMemo(() => calculateAnalytics(jobs), [jobs]);
   const actionItems = useMemo(() => buildActionItems(jobs), [jobs]);
   const actionKpi = useMemo(() => calculateActionKpi(actionItems), [actionItems]);
 
@@ -704,14 +758,6 @@ export default function AppPro() {
         onClose={() => setSelectedJob(null)}
         onSave={saveJob}
       />
-
-      <span hidden aria-hidden="true">
-        {/* Phase 2B Recommended ranking remains the default sort mode. */}
-        <select value="recommended" readOnly>
-          <option value="recommended">Recommended</option>
-        </select>
-        {specializations.length + metrics.total + Number(Boolean(lastUpdated))}
-      </span>
     </>
   );
 }
