@@ -54,3 +54,22 @@ test("dashboard provides light theme styles", () => {
     /name=\{\s*theme === "dark"\s*\? "moon"\s*:\s*"sun"/
   );
 });
+
+test("light mode covers every fullscreen detail surface", () => {
+  const requiredSelectors = [
+    ".jd-shell.jd-theme-light .jd-detail-backdrop",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-detail-header",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-detail-scroll",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-match-card",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-info-card",
+    ".jd-shell.jd-theme-light .jd-detail-modal .jd-skills",
+    ".jd-shell.jd-theme-light .jd-detail-close",
+  ];
+
+  for (const selector of requiredSelectors) {
+    assert.ok(
+      css.includes(selector),
+      `missing light-theme override for ${selector}`
+    );
+  }
+});
