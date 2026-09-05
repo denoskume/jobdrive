@@ -62,6 +62,28 @@ const fullStack = baseCandidate({
   link: "https://example.com/jobs/full-stack",
 });
 
+const customerSuccessIntern = baseCandidate({
+  role: "Customer Success Intern",
+  contract: "Internship - 6 months",
+  descriptionRaw:
+    "Six-month internship at a generative AI company supporting customer onboarding and adoption.",
+  roleMission: "Own customer onboarding, adoption and account success.",
+  mustHaveSkills: "Customer success, communication, account management",
+  domain: "Generative AI",
+  whyRelevant: "Strong Generative AI alignment",
+});
+
+const fullStackIntern = baseCandidate({
+  role: "Full Stack Engineering Intern",
+  contract: "Internship - 6 months",
+  descriptionRaw:
+    "Six-month internship building interfaces for a machine learning company.",
+  roleMission: "Build React frontend, backend APIs and web applications.",
+  mustHaveSkills: "TypeScript, React, frontend, backend, full-stack engineering",
+  domain: "Machine Learning",
+  whyRelevant: "Strong Machine Learning alignment",
+});
+
 const shortInternship = baseCandidate({
   contract: "Internship - 3 months",
   descriptionRaw:
@@ -103,8 +125,8 @@ test("discovery gate keeps a real six-month M2 machine-learning internship", () 
   assert.equal(result.accepted, true);
 });
 
-test("scoring hard gate rejects customer-success and full-stack roles despite AI company text", () => {
-  for (const fixture of [customerSuccess, fullStack]) {
+test("scoring hard gate rejects off-target internships despite AI company text", () => {
+  for (const fixture of [customerSuccessIntern, fullStackIntern]) {
     const scored = scoreInternship(fixture, { now: new Date("2026-09-05T12:00:00Z") });
     assert.equal(scored.accepted, false, fixture.role);
     assert.equal(scored.rejectionReason, "technical_alignment", fixture.role);
@@ -114,6 +136,7 @@ test("scoring hard gate rejects customer-success and full-stack roles despite AI
 test("scoring hard gate rejects non-internship contracts and incompatible durations", () => {
   const nonIntern = scoreInternship(customerSuccess, { now: new Date("2026-09-05T12:00:00Z") });
   assert.equal(nonIntern.accepted, false);
+  assert.equal(nonIntern.rejectionReason, "internship_type");
 
   const tooShort = scoreInternship(shortInternship, { now: new Date("2026-09-05T12:00:00Z") });
   assert.equal(tooShort.accepted, false);
@@ -148,12 +171,17 @@ test("Apps Script discovery and scoring enforce the same strict gates", () => {
   assert.equal(goodDiscovery.accepted, true);
 
   const customerScore = plain(scoring.scoreInternshipCandidate_(customerSuccess, "2026-09-05T12:00:00Z"));
-  const fullStackScore = plain(scoring.scoreInternshipCandidate_(fullStack, "2026-09-05T12:00:00Z"));
+  const customerInternScore = plain(scoring.scoreInternshipCandidate_(customerSuccessIntern, "2026-09-05T12:00:00Z"));
+  const fullStackInternScore = plain(scoring.scoreInternshipCandidate_(fullStackIntern, "2026-09-05T12:00:00Z"));
   const shortScore = plain(scoring.scoreInternshipCandidate_(shortInternship, "2026-09-05T12:00:00Z"));
   const goodScore = plain(scoring.scoreInternshipCandidate_(baseCandidate(), "2026-09-05T12:00:00Z"));
 
   assert.equal(customerScore.accepted, false);
-  assert.equal(fullStackScore.accepted, false);
+  assert.equal(customerScore.rejectionReason, "internship_type");
+  assert.equal(customerInternScore.accepted, false);
+  assert.equal(customerInternScore.rejectionReason, "technical_alignment");
+  assert.equal(fullStackInternScore.accepted, false);
+  assert.equal(fullStackInternScore.rejectionReason, "technical_alignment");
   assert.equal(shortScore.accepted, false);
   assert.equal(shortScore.rejectionReason, "internship_duration");
   assert.equal(goodScore.accepted, true);
