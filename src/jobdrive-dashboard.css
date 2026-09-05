@@ -3218,3 +3218,82 @@ button.active {
     color .18s ease,
     border-color .18s ease;
 }
+
+/* =========================================================
+   LIGHT MODE — COMPLETE SURFACE OVERRIDE
+   ========================================================= */
+
+.jd-shell.jd-theme-light .jd-kpi,
+.jd-shell.jd-theme-light .jd-feed,
+.jd-shell.jd-theme-light .jd-feed-header,
+.jd-shell.jd-theme-light .jd-job-list,
+.jd-shell.jd-theme-light .jd-job-card,
+.jd-shell.jd-theme-light .jd-job-card.active,
+.jd-shell.jd-theme-light .jd-detail,
+.jd-shell.jd-theme-light .jd-detail-modal,
+.jd-shell.jd-theme-light .jd-detail-panel,
+.jd-shell.jd-theme-light .jd-offer-summary,
+.jd-shell.jd-theme-light .jd-offer-summary-item {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #16202b !important;
+  border-color: #dce3eb !important;
+}
+
+.jd-shell.jd-theme-light .jd-main,
+.jd-shell.jd-theme-light .jd-content,
+.jd-shell.jd-theme-light .jd-workspace {
+  background: #f3f6fa !important;
+  background-image: none !important;
+}
+
+.jd-shell.jd-theme-light .jd-feed-header {
+  border-bottom-color: #dce3eb !important;
+}
+
+.jd-shell.jd-theme-light .jd-job-card:hover,
+.jd-shell.jd-theme-light .jd-job-card.active {
+  background: #f8fafc !important;
+  border-color: #b8c5d3 !important;
+}
+
+.jd-shell.jd-theme-light .jd-kpi strong,
+.jd-shell.jd-theme-light .jd-job-card h3,
+.jd-shell.jd-theme-light .jd-feed-header strong,
+.jd-shell.jd-theme-light .jd-job-title h3 {
+  color: #16202b !important;
+}
+
+.jd-shell.jd-theme-light .jd-kpi small,
+.jd-shell.jd-theme-light .jd-kpi span,
+.jd-shell.jd-theme-light .jd-job-card p,
+.jd-shell.jd-theme-light .jd-job-meta,
+.jd-shell.jd-theme-light .jd-feed-header label,
+.jd-shell.jd-theme-light .jd-feed-header span {
+  color: #64748b !important;
+}
+
+.jd-shell.jd-theme-light .jd-job-tags span,
+.jd-shell.jd-theme-light .jd-tag {
+  background: #eef2f7 !important;
+  color: #536273 !important;
+  border-color: #dce3eb !important;
+}
+
+.jd-shell.jd-theme-light .jd-company-logo {
+  background: #ffffff !important;
+  border-color: #dce3eb !important;
+}
+
+.jd-shell.jd-theme-light .jd-feed select {
+  background: #ffffff !important;
+  color: #16202b !important;
+}
+
+.jd-shell.jd-theme-light .jd-pagination,
+.jd-shell.jd-theme-light .jd-feed-footer {
+  background: #ffffff !important;
+  color: #64748b !important;
+  border-color: #dce3eb !important;
+}
+
