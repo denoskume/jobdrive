@@ -13,9 +13,17 @@ function readActionCenter() {
   }
 }
 
-test("dashboard exposes Action Center navigation and KPI", () => {
+test("dashboard exposes Action Center navigation and clickable KPI", () => {
   assert.match(dashboard, /onViewChange\("actions"\)/);
   assert.match(dashboard, /ACTIONS TODAY/);
+  assert.match(dashboard, /actionKpi\.todayCount/);
+  assert.match(dashboard, /actionKpi\.criticalCount/);
+  assert.match(dashboard, /onClick=\{\(\) => onViewChange\("actions"\)\}/);
+});
+
+test("dashboard preserves Recommended as a visible sort option", () => {
+  assert.match(dashboard, /<option value="recommended">/);
+  assert.match(dashboard, /Recommended/);
 });
 
 test("AppPro computes live actions and wires follow-up helpers", () => {
@@ -23,6 +31,7 @@ test("AppPro computes live actions and wires follow-up helpers", () => {
   assert.match(appPro, /view === "actions"/);
   assert.match(appPro, /buildCompletedFollowUpPatch/);
   assert.match(appPro, /buildScheduleFollowUpPatch/);
+  assert.match(appPro, /actionKpi=\{actionKpi\}/);
 });
 
 test("Action Center renders approved groups and controls", () => {
