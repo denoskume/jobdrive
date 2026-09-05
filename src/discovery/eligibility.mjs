@@ -30,7 +30,6 @@ const INTERNSHIP_NEG = [
   /\bapprentice(ship)?\b/i,
   /\bapprenti(e)?\b/i,
   /\bpermanent\b/i,
-  /\bfull[- ]?time\b/i,
   /\bcdi\b/i,
   /\bph\.?d\b/i,
   /\bcifre\b/i,
