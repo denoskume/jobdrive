@@ -45,6 +45,8 @@ test("JobDrawer preserves existing decision context", () => {
   assert.match(appPro, /function FollowUpBadge/);
   assert.match(appPro, /matchClass\(job\.fitScore\)/);
   assert.match(appPro, /priorityClass\(job\.priority\)/);
+  assert.match(appPro, /<DeadlineBadge deadline=\{job\.deadline\}\s*\/>/);
+  assert.match(appPro, /<FollowUpBadge job=\{\{ \.\.\.job, followUpDate: draft\.followUpDate \}\}\s*\/>/);
 
   for (const label of [
     "Location",
