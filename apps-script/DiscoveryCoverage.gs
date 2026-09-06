@@ -175,6 +175,10 @@ function discoveryRunSummaryToObject_(summary) {
 }
 
 function appendDiscoveryRun_(summary) {
+  if (typeof seedTargetCompanies_ === "function") seedTargetCompanies_();
+  if (typeof refreshTargetCompanyCoverage_ === "function") {
+    summary.targetCompanyCoverage = refreshTargetCompanyCoverage_(summary.finishedAt || new Date().toISOString());
+  }
   var object = discoveryRunSummaryToObject_(summary);
   var sheet = discoveryRunSheet_();
   var row = DISCOVERY_RUN_HEADERS_.map(function(header) { return object[header] == null ? "" : object[header]; });
