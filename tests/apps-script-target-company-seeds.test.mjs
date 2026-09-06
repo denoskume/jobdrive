@@ -22,7 +22,7 @@ test("target company seed contains exactly 200 unique valid employers", () => {
     assert.ok(["giant", "recognized"].includes(row.companyClass));
     assert.ok([1, 2, 3].includes(Number(row.priorityTier)));
     assert.ok(String(row.specializations || "").trim());
-    assert.ok(["verified", "probable", "unknown"].includes(row.francePresence));
+    assert.ok(["verified", "probable"].includes(row.francePresence));
   }
 });
 
