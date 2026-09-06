@@ -109,6 +109,7 @@ Each row must support at least:
 - `coverageStatus`: `covered`, `partial`, or `uncovered`;
 - `coverageReason`;
 - `lastCoveredAt`;
+- `lastMarketObservedAt`;
 - `lastSeenInternshipAt`;
 - `activeInternshipCount`;
 - `notes`.
@@ -122,6 +123,7 @@ The 200-company seed must satisfy all of the following:
 - exactly 200 unique `companyKey` values;
 - no duplicate canonical companies under alternate brand names;
 - plausible operations or hiring presence in France;
+- seed records use only `verified` or `probable` France presence; `unknown` is reserved for later discoveries pending validation;
 - at least one target specialization;
 - no university, school, academic research institute, or academic laboratory;
 - no company whose target value is primarily defense/military work;
@@ -135,9 +137,11 @@ The seed catalogue is maintained as version-controlled data for reproducibility,
 
 Coverage must be conservative. JobDrive must never label a company `covered` merely because a market-wide source exists.
 
+The source-health window is **24 hours**, matching the current Coverage Health view. Market-observation evidence remains current for **30 days** because large employers may not publish a matching internship every day.
+
 ### `covered`
 
-A target company is `covered` when at least one **company-specific, verified, active discovery source** is mapped to it and that source has a recent successful scan within the normal coverage window.
+A target company is `covered` when at least one **company-specific, verified, active discovery source** is mapped to it and that source has a successful scan within the previous 24 hours.
 
 Examples:
 
@@ -149,13 +153,13 @@ Examples:
 
 ### `partial`
 
-A target company is `partial` when no healthy direct company-specific source is available, but JobDrive has evidence that the company is currently observable through an accessible market-wide source such as France Travail or another permitted discovery surface.
+A target company is `partial` when no healthy direct company-specific source is available, but JobDrive has actually observed that employer in an accessible market-wide discovery source within the previous 30 days.
 
-A generic France Travail connection does **not** make all 200 companies partial automatically. The company must have been observed or explicitly queryable through that source.
+A generic France Travail connection does **not** make all 200 companies partial automatically. The scan must encounter the company and update `lastMarketObservedAt` from real candidate data before filtering/retention.
 
 ### `uncovered`
 
-A company is `uncovered` when JobDrive has no healthy direct source and no current market-source evidence sufficient to claim monitoring.
+A company is `uncovered` when JobDrive has no healthy direct source and no qualifying market-source observation within the previous 30 days.
 
 Restricted LinkedIn/Indeed access must never be counted as coverage.
 
@@ -183,10 +187,13 @@ Responsibilities:
 1. ensure the `Target Companies` sheet and header exist;
 2. insert missing seed companies without overwriting user-maintained operational fields;
 3. refresh direct source coverage from `Discovery Sources`;
-4. refresh `partial` evidence from recently observed market-wide discovery results where available;
-5. refresh active internship counts from retained opportunities;
-6. update `lastCoveredAt` and `lastSeenInternshipAt` only from real evidence;
-7. preserve notes and manual metadata corrections.
+4. record `lastMarketObservedAt` when raw candidates from accessible market-wide sources match a target company, before offer-level filtering;
+5. refresh `partial` status from market observations no older than 30 days;
+6. refresh active internship counts from retained opportunities;
+7. update `lastCoveredAt` and `lastSeenInternshipAt` only from real evidence;
+8. preserve notes and manual metadata corrections.
+
+`activeInternshipCount` means currently actionable retained opportunities for that employer. Records with terminal tracking status `Accepté`, `Refusé`, or `Expiré`, or a discovery lifecycle explicitly marked closed, are excluded from this count.
 
 The normal 12-hour discovery lifecycle should update company coverage after source scans. It must not create a second independent high-frequency trigger.
 
@@ -291,19 +298,20 @@ The target-company catalogue expands recall; it does not weaken precision.
 Add regression tests for at least:
 
 1. seed catalogue contains exactly 200 unique companies;
-2. every seed company has a valid class, tier, and at least one specialization;
+2. every seed company has a valid class, tier, France-presence value, and at least one specialization;
 3. academic/research-lab entries are absent;
 4. known defense-only targets are absent;
-5. source mapping marks a company covered only from healthy verified direct sources;
+5. source mapping marks a company covered only from healthy verified direct sources scanned within 24 hours;
 6. generic France Travail availability alone does not mark all companies partial;
-7. observed market-source evidence can mark a company partial;
+7. an actual market-source observation can mark a company partial for no more than 30 days;
 8. alias normalization joins internships to the correct target company;
 9. target-company bootstrap is idempotent;
 10. operational sheet fields are preserved on reseed;
-11. Companies-view filters and counters are correct;
-12. Target Companies read failure does not break the Opportunities dashboard;
-13. all existing discovery, scoring, Action Center, company identity, description, and dashboard tests remain green;
-14. production build succeeds.
+11. terminal/closed opportunities are excluded from `activeInternshipCount`;
+12. Companies-view filters and counters are correct;
+13. Target Companies read failure does not break the Opportunities dashboard;
+14. all existing discovery, scoring, Action Center, company identity, description, and dashboard tests remain green;
+15. production build succeeds.
 
 ## Acceptance criteria
 
