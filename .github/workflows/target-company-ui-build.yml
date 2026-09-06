@@ -1,0 +1,82 @@
+name: Target Company UI Build
+
+on:
+  push:
+    branches:
+      - feature/target-company-coverage-200
+    paths:
+      - scripts/apply-target-companies-ui.mjs
+      - .github/workflows/target-company-ui-build.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: ${{ !contains(github.event.head_commit.message, 'remove target company UI bootstrap') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/target-company-coverage-200
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Confirm dashboard contract is red before wiring
+        shell: bash
+        run: |
+          set +e
+          node --test tests/target-companies-dashboard.test.mjs
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected the dashboard contract to fail before UI wiring."
+            exit 1
+          fi
+          echo "RED confirmed."
+
+      - name: Apply target company UI wiring
+        run: node scripts/apply-target-companies-ui.mjs
+
+      - name: Run target company tests
+        run: >-
+          node --test
+          tests/apps-script-target-company-seeds.test.mjs
+          tests/apps-script-target-companies-sheet.test.mjs
+          tests/apps-script-target-company-coverage.test.mjs
+          tests/apps-script-target-company-runner.test.mjs
+          tests/target-companies-model.test.mjs
+          tests/target-companies-api.test.mjs
+          tests/target-companies-dashboard.test.mjs
+
+      - name: Run full regression suite
+        run: npm test
+
+      - name: Build production bundle
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          VITE_JOBDRIVE_SPREADSHEET_ID: ${{ vars.VITE_JOBDRIVE_SPREADSHEET_ID }}
+          VITE_JOBDRIVE_APPS_SCRIPT_URL: ${{ vars.VITE_JOBDRIVE_APPS_SCRIPT_URL }}
+        run: npm run build
+
+      - name: Commit verified UI wiring
+        shell: bash
+        run: |
+          if git diff --quiet -- src/AppPro.jsx src/JobDriveDashboard.jsx; then
+            echo "No UI wiring changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/AppPro.jsx src/JobDriveDashboard.jsx
+          git commit -m "feat: wire target companies dashboard [generated-target-company-ui]"
+          git push origin HEAD:feature/target-company-coverage-200
