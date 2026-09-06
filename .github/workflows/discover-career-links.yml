@@ -1,4 +1,4 @@
-name: Discover Career Links
+name: Audit Career Links
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ permissions:
   contents: read
 
 jobs:
-  discover:
+  audit:
     if: github.head_ref == 'feature/company-career-links'
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,11 +19,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Discover official careers links
-        run: node scripts/discover-career-links.mjs
-      - name: Upload discovery output
+      - name: Audit recruitment destinations
+        run: node scripts/audit-career-url-map.mjs
+      - name: Upload audit output
         uses: actions/upload-artifact@v4
         with:
-          name: careers-links
-          path: tmp/careers-links.json
+          name: career-url-audit
+          path: tmp/career-url-audit.json
           if-no-files-found: error
