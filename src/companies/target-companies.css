@@ -191,8 +191,41 @@
   gap: 9px;
 }
 
-.tc-company-title > strong {
+.tc-company-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: inherit;
+  text-decoration: none;
   font-size: 14px;
+  border-radius: 5px;
+}
+
+.tc-company-link strong {
+  font-size: 14px;
+}
+
+.tc-company-link > span {
+  font-size: 11px;
+  opacity: .45;
+  transform: translateY(-1px);
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.tc-company-link:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tc-company-link:hover > span,
+.tc-company-link:focus-visible > span {
+  opacity: .9;
+  transform: translate(1px, -2px);
+}
+
+.tc-company-link:focus-visible {
+  outline: 2px solid rgba(79, 70, 229, .42);
+  outline-offset: 3px;
 }
 
 .tc-coverage {
