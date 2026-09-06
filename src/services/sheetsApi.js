@@ -5,6 +5,7 @@ import {
 const SHEET_NAME = "Opportunités";
 const DISCOVERY_SOURCES_SHEET = "Discovery Sources";
 const DISCOVERY_RUNS_SHEET = "Discovery Runs";
+const TARGET_COMPANIES_SHEET = "Target Companies";
 
 const GOOGLE_SHEETS_API =
   "https://sheets.googleapis.com/v4/spreadsheets";
@@ -91,6 +92,17 @@ export async function readDiscoveryCoverage({
   ]);
 
   return { sources, runs };
+}
+
+export async function readTargetCompanies({
+  token,
+  spreadsheetId,
+}) {
+  return readRange({
+    token,
+    spreadsheetId,
+    range: `'${TARGET_COMPANIES_SHEET}'!A:R`,
+  });
 }
 
 export async function findRowByJobId({

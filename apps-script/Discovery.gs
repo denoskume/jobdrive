@@ -223,8 +223,14 @@ function runDiscoveryBatch_(options) {
         sourceJobsFound+=pageJobs.length;
         summary.rawJobsFound+=pageJobs.length;
 
-        pageJobs.forEach(function(raw){
-          var c=normalizeDiscoveryCandidate_(raw,source); summary.normalizedJobs++;
+        var normalizedPageJobs=pageJobs.map(function(raw){
+          return normalizeDiscoveryCandidate_(raw,source);
+        });
+        if(typeof recordTargetCompanyMarketObservations_==="function"){
+          recordTargetCompanyMarketObservations_(normalizedPageJobs,new Date().toISOString());
+        }
+        normalizedPageJobs.forEach(function(c){
+          summary.normalizedJobs++;
           var e=evaluateDiscoveryCandidate_(c);
           if(!e.accepted){
             if(e.reason==="country") summary.rejectedByCountry++;
