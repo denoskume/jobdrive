@@ -3,7 +3,7 @@ var TARGET_COMPANY_HEADERS_ = [
   "companyKey", "companyName", "companyClass", "priorityTier", "sector",
   "specializations", "francePresence", "officialDomain", "careersUrl", "aliases",
   "sourceKeys", "coverageStatus", "coverageReason", "lastCoveredAt",
-  "lastSeenInternshipAt", "activeInternshipCount", "notes"
+  "lastMarketObservedAt", "lastSeenInternshipAt", "activeInternshipCount", "notes"
 ];
 
 var TARGET_COMPANY_STRATEGIC_FIELDS_ = [
@@ -12,7 +12,7 @@ var TARGET_COMPANY_STRATEGIC_FIELDS_ = [
 ];
 
 var TARGET_COMPANY_OPERATIONAL_FIELDS_ = [
-  "coverageStatus", "coverageReason", "lastCoveredAt",
+  "coverageStatus", "coverageReason", "lastCoveredAt", "lastMarketObservedAt",
   "lastSeenInternshipAt", "activeInternshipCount", "notes"
 ];
 
@@ -42,6 +42,7 @@ function targetCompanyObjectToRow_(company) {
     coverageStatus: "uncovered",
     coverageReason: "",
     lastCoveredAt: "",
+    lastMarketObservedAt: "",
     lastSeenInternshipAt: "",
     activeInternshipCount: 0,
     notes: ""
@@ -195,20 +196,20 @@ function targetCompanyOpportunityMatches_(company, opportunity) {
   }
 
   var officialDomain = targetCompanyNormalizeDomain_(company.officialDomain);
-  if (officialDomain) {
-    var opportunityDomain = targetCompanyNormalizeDomain_(
-      opportunity.companyDomain || opportunity.link || ""
-    );
-    if (opportunityDomain && opportunityDomain === officialDomain) return true;
-  }
+  var opportunityDomain = targetCompanyNormalizeDomain_(opportunity.companyDomain);
+  if (officialDomain && opportunityDomain && opportunityDomain === officialDomain) return true;
 
   return false;
 }
 
 function targetCompanyOpportunityActive_(opportunity) {
-  var status = String(opportunity && opportunity.marketStatus || "").trim().toLowerCase();
-  if (!status) return true;
-  return ["closed", "expired", "removed", "inactive", "archived"].indexOf(status) < 0;
+  opportunity = opportunity || {};
+  var trackingStatus = targetCompanyNormalizeName_(opportunity.status);
+  if (["accepte", "refuse", "expire"].indexOf(trackingStatus) >= 0) return false;
+
+  var marketStatus = String(opportunity.marketStatus || "").trim().toLowerCase();
+  if (["closed", "expired", "removed", "inactive", "archived"].indexOf(marketStatus) >= 0) return false;
+  return true;
 }
 
 function targetCompanyOpportunityObservedAt_(opportunity) {
@@ -230,6 +231,46 @@ function targetCompanyIsMarketSource_(sourceKey, sourceType) {
   var type = String(sourceType || "").trim().toLowerCase();
   if (key === "france-travail" || type === "france_travail") return true;
   return false;
+}
+
+function recordTargetCompanyMarketObservations_(candidates, nowIso) {
+  candidates = Array.isArray(candidates) ? candidates : [];
+  nowIso = String(nowIso || new Date().toISOString());
+  var marketCandidates = candidates.filter(function(candidate) {
+    return targetCompanyIsMarketSource_(candidate && candidate.sourceKey, candidate && candidate.source);
+  });
+  if (!marketCandidates.length) return {observed: 0};
+
+  var sheet = ensureTargetCompanySheet_();
+  var companies = loadTargetCompanies_();
+  var rows = sheet.getDataRange().getDisplayValues();
+  var rowByKey = {};
+  for (var i = 1; i < rows.length; i++) {
+    var key = targetCompanyClean_(rows[i][0]);
+    if (key) rowByKey[key] = i + 1;
+  }
+
+  var observed = 0;
+  companies.forEach(function(company) {
+    var matched = marketCandidates.some(function(candidate) {
+      return targetCompanyOpportunityMatches_(company, candidate);
+    });
+    if (!matched) return;
+
+    var currentMs = targetCompanyTime_(company.lastMarketObservedAt);
+    var observedMs = targetCompanyTime_(nowIso);
+    var next = Object.assign({}, company, {
+      lastMarketObservedAt: !currentMs || observedMs >= currentMs ? nowIso : company.lastMarketObservedAt
+    });
+    var rowNumber = rowByKey[company.companyKey];
+    if (rowNumber) {
+      sheet.getRange(rowNumber, 1, 1, TARGET_COMPANY_HEADERS_.length)
+        .setValues([targetCompanyObjectToRow_(next)]);
+      observed++;
+    }
+  });
+
+  return {observed: observed};
 }
 
 function computeTargetCompanyCoverage_(company, sources, opportunities, nowIso) {
@@ -255,39 +296,34 @@ function computeTargetCompanyCoverage_(company, sources, opportunities, nowIso) 
   var matching = opportunities.filter(function(opportunity) {
     return targetCompanyOpportunityMatches_(company, opportunity);
   });
-
   var activeMatching = matching.filter(targetCompanyOpportunityActive_);
-  var lastSeen = activeMatching
+  var lastSeen = matching
     .map(targetCompanyOpportunityObservedAt_)
     .filter(function(value) { return Boolean(value); })
     .sort()
     .pop() || "";
 
-  var marketEvidence = activeMatching.filter(function(opportunity) {
-    if (!targetCompanyIsMarketSource_(opportunity.sourceKey, opportunity.source)) return false;
-    var observedMs = targetCompanyTime_(targetCompanyOpportunityObservedAt_(opportunity));
-    return Boolean(observedMs) && nowMs >= observedMs &&
-      nowMs - observedMs <= TARGET_COMPANY_MARKET_EVIDENCE_MS_;
-  }).sort(function(a, b) {
-    return targetCompanyTime_(targetCompanyOpportunityObservedAt_(b)) -
-      targetCompanyTime_(targetCompanyOpportunityObservedAt_(a));
-  });
+  var marketObservedMs = targetCompanyTime_(company.lastMarketObservedAt);
+  var hasRecentMarketEvidence = Boolean(marketObservedMs) && nowMs >= marketObservedMs &&
+    nowMs - marketObservedMs <= TARGET_COMPANY_MARKET_EVIDENCE_MS_;
 
   if (healthyDirect.length) {
     return {
       coverageStatus: "covered",
       coverageReason: "direct-source:" + targetCompanyClean_(healthyDirect[0].sourceKey || healthyDirect[0].key),
       lastCoveredAt: new Date(targetCompanyTime_(healthyDirect[0].lastSuccessfulScanAt)).toISOString(),
+      lastMarketObservedAt: company.lastMarketObservedAt || "",
       lastSeenInternshipAt: lastSeen,
       activeInternshipCount: activeMatching.length
     };
   }
 
-  if (marketEvidence.length) {
+  if (hasRecentMarketEvidence) {
     return {
       coverageStatus: "partial",
-      coverageReason: "market-observation:" + targetCompanyClean_(marketEvidence[0].sourceKey || marketEvidence[0].source),
+      coverageReason: "recent-market-observation",
       lastCoveredAt: "",
+      lastMarketObservedAt: company.lastMarketObservedAt,
       lastSeenInternshipAt: lastSeen,
       activeInternshipCount: activeMatching.length
     };
@@ -297,6 +333,7 @@ function computeTargetCompanyCoverage_(company, sources, opportunities, nowIso) 
     coverageStatus: "uncovered",
     coverageReason: "no-current-evidence",
     lastCoveredAt: "",
+    lastMarketObservedAt: company.lastMarketObservedAt || "",
     lastSeenInternshipAt: lastSeen,
     activeInternshipCount: activeMatching.length
   };
@@ -313,6 +350,7 @@ function loadTargetCompanyOpportunityEvidence_() {
     return {
       id: row[0] || "",
       company: row[2] || "",
+      status: row[11] || "",
       link: row[15] || "",
       source: row[16] || "",
       detectedAt: row[17] || "",
