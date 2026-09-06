@@ -26,6 +26,17 @@ test("target company seed contains exactly 200 unique valid employers", () => {
   }
 });
 
+test("all target companies expose a secure official careers destination", () => {
+  const rows = loadSeeds();
+  for (const row of rows) {
+    assert.match(
+      String(row.careersUrl || ""),
+      /^https:\/\//,
+      `${row.companyName} is missing an HTTPS careers URL`
+    );
+  }
+});
+
 test("target company seed excludes academic and defense-first organizations", () => {
   const text = JSON.stringify(loadSeeds()).toLowerCase();
   for (const forbidden of [
