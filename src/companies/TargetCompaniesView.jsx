@@ -163,7 +163,10 @@ export default function TargetCompaniesView({
         ) : filtered.length ? (
           <div className="tc-list">
             {filtered.map((company) => {
-              const evidence = company.lastCoveredAt || company.lastSeenInternshipAt;
+              const evidence =
+                company.lastCoveredAt ||
+                company.lastMarketObservedAt ||
+                company.lastSeenInternshipAt;
               return (
                 <article className="tc-company" key={company.companyKey}>
                   <div className="tc-company-main">
