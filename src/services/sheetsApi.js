@@ -101,7 +101,7 @@ export async function readTargetCompanies({
   return readRange({
     token,
     spreadsheetId,
-    range: `'${TARGET_COMPANIES_SHEET}'!A:Q`,
+    range: `'${TARGET_COMPANIES_SHEET}'!A:R`,
   });
 }
 
