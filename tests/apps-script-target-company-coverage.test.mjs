@@ -90,3 +90,17 @@ test("stale direct source does not count as covered", () => {
   );
   assert.equal(result.coverageStatus, "uncovered");
 });
+
+test("explicitly suffixed organization label still matches the canonical company", () => {
+  const context = loadContext();
+  const company = { companyKey: "euronext", companyName: "Euronext", sourceKeys: "", aliases: "Euronext" };
+  const opportunity = { company: "Euronext — Quant Research" };
+  assert.equal(context.targetCompanyOpportunityMatches_(company, opportunity), true);
+});
+
+test("plain longer organization name is not treated as the canonical company", () => {
+  const context = loadContext();
+  const company = { companyKey: "orange", companyName: "Orange", sourceKeys: "", aliases: "Orange" };
+  const opportunity = { company: "Orange Business" };
+  assert.equal(context.targetCompanyOpportunityMatches_(company, opportunity), false);
+});

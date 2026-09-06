@@ -156,6 +156,24 @@ function targetCompanyNormalizeName_(value) {
     .trim();
 }
 
+function targetCompanyExplicitBaseName_(value) {
+  var text = String(value || "").trim();
+  if (!text) return "";
+  var match = text.match(/^(.+?)(?:\s*[—–|:/]\s*|\s+-\s+|\s*\().+$/);
+  return match ? String(match[1] || "").trim() : "";
+}
+
+function targetCompanyNameMatches_(candidateName, opportunityCompany) {
+  var normalizedCandidate = targetCompanyNormalizeName_(candidateName);
+  var normalizedOpportunity = targetCompanyNormalizeName_(opportunityCompany);
+  if (!normalizedCandidate || !normalizedOpportunity) return false;
+  if (normalizedOpportunity === normalizedCandidate) return true;
+
+  var explicitBase = targetCompanyExplicitBaseName_(opportunityCompany);
+  return Boolean(explicitBase) &&
+    targetCompanyNormalizeName_(explicitBase) === normalizedCandidate;
+}
+
 function targetCompanyCsv_(value) {
   return String(value || "")
     .split(",")
@@ -186,11 +204,11 @@ function targetCompanyOpportunityMatches_(company, opportunity) {
   var opportunitySourceKey = targetCompanyClean_(opportunity.sourceKey);
   if (opportunitySourceKey && mappedSources.indexOf(opportunitySourceKey) >= 0) return true;
 
-  var normalizedOpportunityCompany = targetCompanyNormalizeName_(opportunity.company);
-  if (normalizedOpportunityCompany) {
-    if (normalizedOpportunityCompany === targetCompanyNormalizeName_(company.companyName)) return true;
+  var opportunityCompany = targetCompanyClean_(opportunity.company);
+  if (opportunityCompany) {
+    if (targetCompanyNameMatches_(company.companyName, opportunityCompany)) return true;
     var aliasMatch = targetCompanyCsv_(company.aliases).some(function(alias) {
-      return normalizedOpportunityCompany === targetCompanyNormalizeName_(alias);
+      return targetCompanyNameMatches_(alias, opportunityCompany);
     });
     if (aliasMatch) return true;
   }
