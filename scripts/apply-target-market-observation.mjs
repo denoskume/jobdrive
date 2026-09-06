@@ -1,5 +1,6 @@
 import fs from "node:fs";
 
+// Exact one-time transform used only to wire and verify the raw market observation hook.
 const path = "apps-script/Discovery.gs";
 const source = fs.readFileSync(path, "utf8");
 const needle = `        pageJobs.forEach(function(raw){\n          var c=normalizeDiscoveryCandidate_(raw,source); summary.normalizedJobs++;\n          var e=evaluateDiscoveryCandidate_(c);`;
