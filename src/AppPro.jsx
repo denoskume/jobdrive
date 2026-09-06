@@ -9,6 +9,8 @@ import {
 import "./pro.css";
 import JobDriveDashboard from "./JobDriveDashboard.jsx";
 import ActionCenterView from "./actions/ActionCenterView.jsx";
+import TargetCompaniesView from "./companies/TargetCompaniesView.jsx";
+import { normalizeTargetCompanyRows } from "./companies/targetCompanies.mjs";
 
 import {
   fetchGoogleProfile,
@@ -19,6 +21,7 @@ import {
 import {
   readDiscoveryCoverage,
   readJobs,
+  readTargetCompanies,
   updateDescriptionFields,
   updateJobFields,
 } from "./services/sheetsApi";
@@ -434,6 +437,8 @@ export default function AppPro() {
   const [jobs, setJobs] = useState([]);
   const [coverage, setCoverage] = useState(() => emptyCoverageSnapshot());
   const [coverageError, setCoverageError] = useState("");
+  const [targetCompanies, setTargetCompanies] = useState([]);
+  const [targetCompaniesError, setTargetCompaniesError] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingFollowUpJobId, setSavingFollowUpJobId] = useState("");
@@ -456,11 +461,14 @@ export default function AppPro() {
     setError("");
 
     try {
-      const [result, coverageRead] = await Promise.all([
+      const [result, coverageRead, targetCompanyRead] = await Promise.all([
         readJobs({ token, spreadsheetId: SPREADSHEET_ID }),
         readDiscoveryCoverage({ token, spreadsheetId: SPREADSHEET_ID })
           .then((value) => ({ value, error: null }))
           .catch((coverageReadError) => ({ value: null, error: coverageReadError })),
+        readTargetCompanies({ token, spreadsheetId: SPREADSHEET_ID })
+          .then((values) => ({ value: normalizeTargetCompanyRows(values), error: null }))
+          .catch((readError) => ({ value: [], error: readError })),
       ]);
 
       if (coverageRead.error) {
@@ -471,6 +479,9 @@ export default function AppPro() {
         setCoverage(normalizeCoverageRows(coverageRead.value, { now: new Date() }));
         setCoverageError("");
       }
+
+      setTargetCompanies(targetCompanyRead.value);
+      setTargetCompaniesError(targetCompanyRead.error?.message || "");
 
       const internshipResult = filterInternships(result);
       let enrichedInternships = internshipResult;
@@ -549,6 +560,8 @@ export default function AppPro() {
         setJobs([]);
         setCoverage(emptyCoverageSnapshot());
         setCoverageError("");
+        setTargetCompanies([]);
+        setTargetCompaniesError("");
         setUserProfile(null);
       }, expiresIn * 1000);
     } catch (err) {
@@ -564,6 +577,8 @@ export default function AppPro() {
     setJobs([]);
     setCoverage(emptyCoverageSnapshot());
     setCoverageError("");
+    setTargetCompanies([]);
+    setTargetCompaniesError("");
     setSelectedJob(null);
     setUserProfile(null);
     if (current) await revokeGoogleToken(current);
@@ -749,6 +764,12 @@ export default function AppPro() {
       <Pipeline jobs={jobs} onOpen={setSelectedJob} />
     ) : view === "analytics" ? (
       <AnalyticsView jobs={jobs} />
+    ) : view === "companies" ? (
+      <TargetCompaniesView
+        companies={targetCompanies}
+        error={targetCompaniesError}
+        loading={loading}
+      />
     ) : null;
 
   return (

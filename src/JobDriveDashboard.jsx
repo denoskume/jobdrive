@@ -398,7 +398,16 @@ function Sidebar({
           Calendar
         </button>
 
-        <button>
+        <button
+          className={
+            view === "companies"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            onViewChange("companies")
+          }
+        >
           <Icon name="companies" />
           Companies
         </button>
