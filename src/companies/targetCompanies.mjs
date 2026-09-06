@@ -1,3 +1,5 @@
+import { targetCompanyCareerUrl } from "./targetCompanyCareerUrls.mjs";
+
 const COVERAGE_ORDER = {
   uncovered: 0,
   partial: 1,
@@ -37,6 +39,7 @@ export function normalizeTargetCompanyRows(values = []) {
       object.aliases = csv(object.aliases);
       object.sourceKeys = csv(object.sourceKeys);
       object.coverageStatus = clean(object.coverageStatus) || "uncovered";
+      object.careersUrl = targetCompanyCareerUrl(object);
       return object;
     });
 }
