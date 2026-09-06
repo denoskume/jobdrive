@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
+import { TARGET_COMPANY_CAREER_URLS } from "../src/companies/targetCompanyCareerUrls.mjs";
 
 function loadSeeds() {
   const context = {};
@@ -26,13 +27,14 @@ test("target company seed contains exactly 200 unique valid employers", () => {
   }
 });
 
-test("all target companies expose a secure official careers destination", () => {
+test("all 200 target companies have a secure recruitment destination", () => {
   const rows = loadSeeds();
+  assert.equal(Object.keys(TARGET_COMPANY_CAREER_URLS).length, 200);
   for (const row of rows) {
     assert.match(
-      String(row.careersUrl || ""),
+      String(TARGET_COMPANY_CAREER_URLS[row.companyKey] || ""),
       /^https:\/\//,
-      `${row.companyName} is missing an HTTPS careers URL`
+      `${row.companyName} is missing an HTTPS recruitment URL`
     );
   }
 });
