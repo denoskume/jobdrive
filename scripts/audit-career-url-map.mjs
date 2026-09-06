@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { TARGET_COMPANY_CAREER_URLS } from "../src/companies/targetCompanyCareerUrls.mjs";
+import { TARGET_COMPANY_CAREER_URL_OVERRIDES } from "../src/companies/targetCompanyCareerUrlOverrides.mjs";
 
 async function probe([companyKey, url]) {
   try {
@@ -46,14 +47,27 @@ async function mapLimit(entries, limit) {
   return output;
 }
 
-const entries = Object.entries(TARGET_COMPANY_CAREER_URLS);
+const resolvedUrls = {
+  ...TARGET_COMPANY_CAREER_URLS,
+  ...TARGET_COMPANY_CAREER_URL_OVERRIDES,
+};
+const entries = Object.entries(resolvedUrls);
 if (entries.length !== 200) throw new Error(`Expected 200 career URLs, got ${entries.length}`);
 const results = await mapLimit(entries, 16);
 const summary = results.reduce((acc, item) => {
-  const bucket = item.status === 0 ? "network_error" : item.status < 400 ? "success" : item.status < 500 ? "client_blocked_or_missing" : "server_error";
+  const bucket = item.status === 0
+    ? "network_error"
+    : item.status < 400
+      ? "success"
+      : item.status < 500
+        ? "client_blocked_or_missing"
+        : "server_error";
   acc[bucket] = (acc[bucket] || 0) + 1;
   return acc;
 }, {});
 fs.mkdirSync("tmp", { recursive: true });
-fs.writeFileSync("tmp/career-url-audit.json", JSON.stringify({ generatedAt: new Date().toISOString(), summary, results }, null, 2));
+fs.writeFileSync(
+  "tmp/career-url-audit.json",
+  JSON.stringify({ generatedAt: new Date().toISOString(), summary, results }, null, 2)
+);
 console.log("SUMMARY", JSON.stringify(summary));
