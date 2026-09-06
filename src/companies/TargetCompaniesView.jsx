@@ -171,7 +171,17 @@ export default function TargetCompaniesView({
                 <article className="tc-company" key={company.companyKey}>
                   <div className="tc-company-main">
                     <div className="tc-company-title">
-                      <strong>{company.companyName}</strong>
+                      <a
+                        className="tc-company-link"
+                        href={company.careersUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={`Open ${company.companyName} careers`}
+                        aria-label={`Open ${company.companyName} careers in a new tab`}
+                      >
+                        <strong>{company.companyName}</strong>
+                        <span aria-hidden="true">↗</span>
+                      </a>
                       <span className={`tc-coverage tc-${company.coverageStatus || "uncovered"}`}>
                         {company.coverageStatus === "uncovered" ? "Not covered" : company.coverageStatus}
                       </span>
