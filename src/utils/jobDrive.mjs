@@ -516,6 +516,9 @@ const ALIGNED_INTERNSHIP_PATTERNS = [
   /\bself[- ]supervised\b/i,
 
   /\bcomputer vision\b/i,
+  /\blidar\b/i,
+  /\b3d sensing\b/i,
+  /\b3d perception\b/i,
   /\bvision artificielle\b/i,
   /\bimage processing\b/i,
   /\bimage analysis\b/i,
