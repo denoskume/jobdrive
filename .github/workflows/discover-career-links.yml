@@ -1,0 +1,29 @@
+name: Discover Career Links
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    if: github.head_ref == 'feature/company-career-links'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Discover official careers links
+        run: node scripts/discover-career-links.mjs
+      - name: Upload discovery output
+        uses: actions/upload-artifact@v4
+        with:
+          name: careers-links
+          path: tmp/careers-links.json
+          if-no-files-found: error
