@@ -654,18 +654,18 @@ function hasCompatibleInternshipDuration(job = {}) {
 function isTargetTechnicalRole(job = {}) {
   const role = internshipRoleText(job);
 
-  if (!role.trim()) {
-    return isAlignedInternship(job);
-  }
-
   if (matchesAny(OFF_TARGET_INTERNSHIP_ROLE_PATTERNS, role)) {
     return false;
   }
 
-  return (
-    matchesAny(ALIGNED_INTERNSHIP_PATTERNS, role) ||
+  if (
+    role.trim() &&
     matchesAny(TARGET_ROLE_FALLBACK_PATTERNS, role)
-  );
+  ) {
+    return true;
+  }
+
+  return isAlignedInternship(job);
 }
 
 function internshipOrganizationText(job = {}) {
