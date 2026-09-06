@@ -35,7 +35,7 @@ test("filters support class tier specialization coverage and search", () => {
   assert.equal(filterTargetCompanies(companies, { search: "air" })[0].companyName, "Airbus");
 });
 
-test("normalizer reads headers dynamically and parses list and numeric fields", () => {
+test("normalizer reads headers dynamically and adds the mapped recruitment destination", () => {
   const values = [
     ["companyName","companyKey","specializations","priorityTier","coverageStatus","activeInternshipCount","companyClass"],
     ["Mistral AI","mistral-ai","machine-learning,deep-learning","1","covered","2","recognized"],
@@ -45,6 +45,16 @@ test("normalizer reads headers dynamically and parses list and numeric fields", 
   assert.deepEqual(company.specializations, ["machine-learning","deep-learning"]);
   assert.equal(company.priorityTier, 1);
   assert.equal(company.activeInternshipCount, 2);
+  assert.match(company.careersUrl, /^https:\/\//);
+});
+
+test("an explicit careers URL from the registry overrides the built-in fallback", () => {
+  const values = [
+    ["companyName","companyKey","careersUrl"],
+    ["Mistral AI","mistral-ai","https://example.com/custom-careers"],
+  ];
+  const [company] = normalizeTargetCompanyRows(values);
+  assert.equal(company.careersUrl, "https://example.com/custom-careers");
 });
 
 test("default filtering order prioritizes tier then uncovered partial covered", () => {

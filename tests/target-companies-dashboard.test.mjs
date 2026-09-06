@@ -16,3 +16,11 @@ test("AppPro loads target companies without coupling failure to jobs", () => {
   assert.match(app, /TargetCompaniesView/);
   assert.match(app, /targetCompanyRead[\s\S]*catch\(\(readError\)/);
 });
+
+test("company names open official careers destinations in a safe new tab", () => {
+  const view = fs.readFileSync("src/companies/TargetCompaniesView.jsx", "utf8");
+  assert.match(view, /href=\{company\.careersUrl\}/);
+  assert.match(view, /target="_blank"/);
+  assert.match(view, /rel="noopener noreferrer"/);
+  assert.match(view, /company\.companyName/);
+});

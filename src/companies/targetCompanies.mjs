@@ -1,3 +1,6 @@
+import { targetCompanyCareerUrl } from "./targetCompanyCareerUrls.mjs";
+import { targetCompanyCareerUrlOverride } from "./targetCompanyCareerUrlOverrides.mjs";
+
 const COVERAGE_ORDER = {
   uncovered: 0,
   partial: 1,
@@ -37,6 +40,11 @@ export function normalizeTargetCompanyRows(values = []) {
       object.aliases = csv(object.aliases);
       object.sourceKeys = csv(object.sourceKeys);
       object.coverageStatus = clean(object.coverageStatus) || "uncovered";
+      const explicitCareersUrl = clean(object.careersUrl);
+      object.careersUrl =
+        explicitCareersUrl ||
+        targetCompanyCareerUrlOverride(object.companyKey) ||
+        targetCompanyCareerUrl(object);
       return object;
     });
 }

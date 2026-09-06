@@ -1,0 +1,29 @@
+name: Audit Career Links
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.head_ref == 'feature/company-career-links'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Audit recruitment destinations
+        run: node scripts/audit-career-url-map.mjs
+      - name: Upload audit output
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-url-audit
+          path: tmp/career-url-audit.json
+          if-no-files-found: error
